@@ -1,0 +1,22 @@
+{
+ "_doc": "Roles de empleados. hire/salary se multiplican por la 'escala' del negocio (= ganancia por segundo de ese negocio a nivel 10 sin bonificaciones). Efectos * eficiencia del empleado: speed, revenue, restock_speed (+% velocidad de reposición), team_eff (+% eficiencia del resto del equipo), zone_revenue (+% a todos los negocios de la misma zona). auto_sell / auto_restock activan la automatización.",
+ "roles": [
+  {"id": "vendedor", "name": "Vendedor", "icon": "persona", "description": "Atiende solo: el negocio vende sin que toques nada.", "hire": 12, "salary": 0.05, "min_level": 1, "min_stage": 1, "auto_sell": true, "auto_restock": false, "effects": {"speed": 0.05}},
+  {"id": "repositor", "name": "Repositor", "icon": "caja", "description": "Repone mercadería solo y más rápido. Menos ventas perdidas por falta de stock.", "hire": 18, "salary": 0.05, "min_level": 5, "min_stage": 1, "auto_sell": false, "auto_restock": true, "effects": {"restock_speed": 0.6}},
+  {"id": "cajero", "name": "Cajero", "icon": "moneda", "description": "Cobra rapidísimo: ciclos más cortos. También atiende solo.", "hire": 30, "salary": 0.09, "min_level": 10, "min_stage": 1, "auto_sell": true, "auto_restock": false, "effects": {"speed": 0.25}},
+  {"id": "encargado", "name": "Encargado", "icon": "llave", "description": "Vende y repone solo, y mejora los precios.", "hire": 120, "salary": 0.22, "min_level": 25, "min_stage": 2, "auto_sell": true, "auto_restock": true, "effects": {"revenue": 0.12, "restock_speed": 0.3}},
+  {"id": "supervisor", "name": "Supervisor", "icon": "estrella", "description": "Ordena al equipo: más ingresos y mejor eficiencia de los demás.", "hire": 300, "salary": 0.35, "min_level": 40, "min_stage": 3, "auto_sell": false, "auto_restock": false, "effects": {"revenue": 0.2, "team_eff": 0.1}},
+  {"id": "gerente", "name": "Gerente", "icon": "corona", "description": "Gestión total: automatiza todo, sube los ingresos y resuelve solo las fallas de suministro.", "hire": 1000, "salary": 0.8, "min_level": 60, "min_stage": 4, "auto_sell": true, "auto_restock": true, "manager": true, "effects": {"revenue": 0.35, "restock_speed": 0.3}},
+  {"id": "director", "name": "Director regional", "icon": "mapa", "description": "Coordina la zona: bonifica a TODOS tus negocios de la misma zona.", "hire": 5000, "salary": 2.5, "min_level": 75, "min_stage": 5, "auto_sell": false, "auto_restock": false, "effects": {"zone_revenue": 0.1}}
+ ],
+ "xp_levels": [0, 600, 1800, 5400, 14400],
+ "xp_level_bonus": 0.05,
+ "efficiency_min": 0.7,
+ "efficiency_max": 1.2,
+ "candidates_per_business": 3,
+ "candidate_refresh_seconds": 600,
+ "reroll_cooldown_seconds": 60,
+ "fire_severance_seconds": 60,
+ "first_names": ["Chiche", "Mirta", "Coco", "Nelly", "Tano", "Pocha", "Ruben", "Graciela", "Kevin", "Yamila", "Tito", "Marga", "Lalo", "Nancy", "Pato", "Susi", "Beto", "Dora", "Facu", "Romi", "Cacho", "Estela", "Juanci", "Luli", "Pichi", "Norma", "Toto", "Sabri", "Fede", "Moni", "Rulo", "Vero"],
+ "last_names": ["Benítez", "Ferreyra", "Acosta", "Ledesma", "Quiroga", "Sosa", "Ojeda", "Funes", "Peralta", "Godoy", "Paz", "Vera", "Molina", "Rivero", "Aguirre", "Luna", "Correa", "Navarro", "Bustos", "Arce", "Toledo", "Medina", "Ponce", "Villalba"]
+}

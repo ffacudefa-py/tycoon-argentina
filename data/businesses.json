@@ -1,0 +1,965 @@
+{
+ "businesses": [
+  {
+   "id": "puesto",
+   "name": "Puesto callejero",
+   "description": "Una mesita, una sombrilla y muchas ganas. El arranque de todo imperio que se precie.",
+   "cycle": 1.0,
+   "level_cost_base": 6,
+   "level_cost_growth": 1.15,
+   "unlock": {
+    "cost": 0,
+    "stage": 1,
+    "requires": null
+   },
+   "restock_time": 3,
+   "tags": [
+    "minorista",
+    "calle"
+   ],
+   "art": {
+    "archetype": "stall",
+    "main": "celeste",
+    "accent": "amarillo",
+    "sign": "alfajor"
+   },
+   "max_level": 100,
+   "products": [
+    {
+     "id": "alfajor",
+     "name": "Alfajores",
+     "icon": "alfajor",
+     "price": 5,
+     "cost": 2.4,
+     "demand": 3,
+     "tags": [
+      "golosina"
+     ]
+    },
+    {
+     "id": "bebida",
+     "name": "Bebidas",
+     "icon": "bebida",
+     "price": 8,
+     "cost": 4,
+     "demand": 3,
+     "tags": [
+      "bebida"
+     ]
+    },
+    {
+     "id": "snack",
+     "name": "Snacks",
+     "icon": "snack",
+     "price": 6,
+     "cost": 3.2,
+     "demand": 2,
+     "tags": [
+      "snack"
+     ]
+    },
+    {
+     "id": "golosina",
+     "name": "Golosinas",
+     "icon": "golosina",
+     "price": 3,
+     "cost": 1.2,
+     "demand": 2,
+     "tags": [
+      "golosina",
+      "escolar"
+     ]
+    }
+   ],
+   "upgrade_names": {
+    "stock_ampliado": "Conservadora grande",
+    "proveedores": "Mayorista amigo",
+    "caja_rapida": "Cambio preparado",
+    "empleado_confianza": "El sobrino ayuda",
+    "segundo_mostrador": "Segunda mesita",
+    "local_ampliado": "Gazebo con luces",
+    "sistema_gestion": "Cuaderno de cuentas",
+    "sucursal": "Otro puesto en la esquina"
+   }
+  },
+  {
+   "id": "kiosco",
+   "name": "Kiosco",
+   "description": "Abierto 24 horas (en teoría). Golosinas, gaseosas y el diálogo filosófico de la madrugada.",
+   "cycle": 2.5,
+   "level_cost_base": 200,
+   "level_cost_growth": 1.14,
+   "unlock": {
+    "cost": 2000,
+    "stage": 1,
+    "requires": {
+     "business": "puesto",
+     "level": 10
+    }
+   },
+   "restock_time": 5,
+   "tags": [
+    "minorista",
+    "escolar"
+   ],
+   "art": {
+    "archetype": "kiosk",
+    "main": "rojo",
+    "accent": "blanco",
+    "sign": "golosina"
+   },
+   "max_level": 100,
+   "products": [
+    {
+     "id": "golosinas_k",
+     "name": "Golosinas",
+     "icon": "golosina",
+     "price": 61,
+     "cost": 28,
+     "demand": 3,
+     "tags": [
+      "golosina",
+      "escolar"
+     ]
+    },
+    {
+     "id": "gaseosa",
+     "name": "Gaseosas",
+     "icon": "bebida",
+     "price": 93,
+     "cost": 48,
+     "demand": 3,
+     "tags": [
+      "bebida"
+     ]
+    },
+    {
+     "id": "carga",
+     "name": "Carga de celu",
+     "icon": "celular",
+     "price": 200,
+     "cost": 184,
+     "demand": 2,
+     "tags": []
+    },
+    {
+     "id": "utiles",
+     "name": "Útiles escolares",
+     "icon": "utiles",
+     "price": 83,
+     "cost": 36,
+     "demand": 2,
+     "tags": [
+      "escolar"
+     ]
+    }
+   ],
+   "upgrade_names": {
+    "stock_ampliado": "Stock ampliado",
+    "proveedores": "Proveedores económicos",
+    "caja_rapida": "Caja rápida",
+    "empleado_confianza": "Empleado de confianza",
+    "segundo_mostrador": "Segundo mostrador",
+    "local_ampliado": "Local ampliado",
+    "sistema_gestion": "Sistema de gestión",
+    "sucursal": "Sucursal adicional"
+   }
+  },
+  {
+   "id": "comida",
+   "name": "Puesto de comida",
+   "description": "Choripán, pancho y el humito que atrae clientes desde tres cuadras.",
+   "cycle": 5.0,
+   "level_cost_base": 4000,
+   "level_cost_growth": 1.13,
+   "unlock": {
+    "cost": 40000,
+    "stage": 2,
+    "requires": {
+     "business": "kiosco",
+     "level": 10
+    }
+   },
+   "restock_time": 6,
+   "tags": [
+    "comida",
+    "calle"
+   ],
+   "art": {
+    "archetype": "food_cart",
+    "main": "naranja",
+    "accent": "amarillo",
+    "sign": "choripan"
+   },
+   "max_level": 100,
+   "products": [
+    {
+     "id": "choripan",
+     "name": "Choripanes",
+     "icon": "choripan",
+     "price": 848,
+     "cost": 424,
+     "demand": 4,
+     "tags": [
+      "comida"
+     ]
+    },
+    {
+     "id": "pancho",
+     "name": "Panchos",
+     "icon": "pancho",
+     "price": 599,
+     "cost": 274,
+     "demand": 3,
+     "tags": [
+      "comida"
+     ]
+    },
+    {
+     "id": "hamburguesa",
+     "name": "Hamburguesas",
+     "icon": "hamburguesa",
+     "price": 1020,
+     "cost": 574,
+     "demand": 2,
+     "tags": [
+      "comida"
+     ]
+    },
+    {
+     "id": "gaseosa_c",
+     "name": "Gaseosas",
+     "icon": "bebida",
+     "price": 424,
+     "cost": 215,
+     "demand": 2,
+     "tags": [
+      "bebida"
+     ]
+    }
+   ],
+   "upgrade_names": {
+    "stock_ampliado": "Heladera extra",
+    "proveedores": "Carnicería del barrio",
+    "caja_rapida": "Parrilla doble",
+    "empleado_confianza": "Parrillero de confianza",
+    "segundo_mostrador": "Segunda plancha",
+    "local_ampliado": "Toldo y banquitos",
+    "sistema_gestion": "Comandas numeradas",
+    "sucursal": "Carrito en la cancha"
+   }
+  },
+  {
+   "id": "lavadero",
+   "name": "Lavadero de autos",
+   "description": "Espuma, hidrolavadora y un tipo que te dice que el tapizado necesita un tratamiento.",
+   "cycle": 9.0,
+   "level_cost_base": 80000,
+   "level_cost_growth": 1.12,
+   "unlock": {
+    "cost": 800000,
+    "stage": 2,
+    "requires": {
+     "business": "comida",
+     "level": 10
+    }
+   },
+   "restock_time": 8,
+   "tags": [
+    "autos",
+    "servicio"
+   ],
+   "art": {
+    "archetype": "carwash",
+    "main": "azul",
+    "accent": "celeste",
+    "sign": "auto"
+   },
+   "max_level": 100,
+   "products": [
+    {
+     "id": "lavado",
+     "name": "Lavado exprés",
+     "icon": "espuma",
+     "price": 3930,
+     "cost": 1220,
+     "demand": 4,
+     "tags": []
+    },
+    {
+     "id": "completo",
+     "name": "Lavado completo",
+     "icon": "auto",
+     "price": 7070,
+     "cost": 2510,
+     "demand": 3,
+     "tags": []
+    },
+    {
+     "id": "encerado",
+     "name": "Encerado",
+     "icon": "cera",
+     "price": 5500,
+     "cost": 2240,
+     "demand": 2,
+     "tags": []
+    },
+    {
+     "id": "aspirado",
+     "name": "Aspirado",
+     "icon": "aspiradora",
+     "price": 3220,
+     "cost": 785,
+     "demand": 2,
+     "tags": []
+    }
+   ],
+   "upgrade_names": {
+    "stock_ampliado": "Bidones de shampoo",
+    "proveedores": "Químicos al por mayor",
+    "caja_rapida": "Hidrolavadora turbo",
+    "empleado_confianza": "Lavador estrella",
+    "segundo_mostrador": "Segunda bahía",
+    "local_ampliado": "Túnel de lavado",
+    "sistema_gestion": "Turnos por mensaje",
+    "sucursal": "Lavadero en la ruta"
+   }
+  },
+  {
+   "id": "almacen",
+   "name": "Almacén",
+   "description": "El almacén de barrio: fiado, yerba y novedades del vecindario incluidas.",
+   "cycle": 15.0,
+   "level_cost_base": 1600000,
+   "level_cost_growth": 1.12,
+   "unlock": {
+    "cost": 16000000,
+    "stage": 3,
+    "requires": {
+     "business": "lavadero",
+     "level": 10
+    }
+   },
+   "restock_time": 10,
+   "tags": [
+    "minorista",
+    "escolar"
+   ],
+   "art": {
+    "archetype": "shop",
+    "main": "verde",
+    "accent": "crema",
+    "sign": "yerba"
+   },
+   "max_level": 100,
+   "products": [
+    {
+     "id": "yerba",
+     "name": "Yerba",
+     "icon": "yerba",
+     "price": 79900,
+     "cost": 50200,
+     "demand": 4,
+     "tags": []
+    },
+    {
+     "id": "fideos",
+     "name": "Fideos",
+     "icon": "fideos",
+     "price": 46200,
+     "cost": 27900,
+     "demand": 3,
+     "tags": []
+    },
+    {
+     "id": "aceite",
+     "name": "Aceite",
+     "icon": "aceite",
+     "price": 91300,
+     "cost": 62700,
+     "demand": 2,
+     "tags": []
+    },
+    {
+     "id": "facturas",
+     "name": "Facturas",
+     "icon": "facturas",
+     "price": 62700,
+     "cost": 30800,
+     "demand": 3,
+     "tags": [
+      "comida"
+     ]
+    }
+   ],
+   "upgrade_names": {
+    "stock_ampliado": "Depósito al fondo",
+    "proveedores": "Proveedor de confianza",
+    "caja_rapida": "Balanza electrónica",
+    "empleado_confianza": "Almacenero veterano",
+    "segundo_mostrador": "Fiambrería",
+    "local_ampliado": "Local de esquina",
+    "sistema_gestion": "Libreta digital del fiado",
+    "sucursal": "Almacén en el otro barrio"
+   }
+  },
+  {
+   "id": "cafeteria",
+   "name": "Cafetería",
+   "description": "Café con leche, medialunas y wifi que anda cuando quiere.",
+   "cycle": 22.0,
+   "level_cost_base": 32000000,
+   "level_cost_growth": 1.11,
+   "unlock": {
+    "cost": 320000000,
+    "stage": 3,
+    "requires": {
+     "business": "almacen",
+     "level": 10
+    }
+   },
+   "restock_time": 12,
+   "tags": [
+    "comida",
+    "bebida",
+    "estudiantes"
+   ],
+   "art": {
+    "archetype": "cafe",
+    "main": "marron",
+    "accent": "crema",
+    "sign": "cafe"
+   },
+   "max_level": 100,
+   "products": [
+    {
+     "id": "cafe",
+     "name": "Café con leche",
+     "icon": "cafe",
+     "price": 350000,
+     "cost": 120000,
+     "demand": 4,
+     "tags": [
+      "bebida"
+     ]
+    },
+    {
+     "id": "medialunas",
+     "name": "Medialunas",
+     "icon": "medialuna",
+     "price": 267000,
+     "cost": 120000,
+     "demand": 4,
+     "tags": [
+      "comida"
+     ]
+    },
+    {
+     "id": "tostado",
+     "name": "Tostados",
+     "icon": "tostado",
+     "price": 442000,
+     "cost": 221000,
+     "demand": 2,
+     "tags": [
+      "comida"
+     ]
+    },
+    {
+     "id": "licuado",
+     "name": "Licuados",
+     "icon": "licuado",
+     "price": 396000,
+     "cost": 175000,
+     "demand": 2,
+     "tags": [
+      "bebida"
+     ]
+    }
+   ],
+   "upgrade_names": {
+    "stock_ampliado": "Alacena grande",
+    "proveedores": "Tostadero propio",
+    "caja_rapida": "Cafetera de dos grupos",
+    "empleado_confianza": "Barista de confianza",
+    "segundo_mostrador": "Barra al ventanal",
+    "local_ampliado": "Vereda con mesitas",
+    "sistema_gestion": "Pedidos por QR",
+    "sucursal": "Cafetería en la facultad"
+   }
+  },
+  {
+   "id": "restaurante",
+   "name": "Restaurante",
+   "description": "Milanesa napolitana del tamaño de un plato... y del plato de al lado.",
+   "cycle": 30.0,
+   "level_cost_base": 640000000,
+   "level_cost_growth": 1.11,
+   "unlock": {
+    "cost": 6400000000,
+    "stage": 4,
+    "requires": {
+     "business": "cafeteria",
+     "level": 10
+    }
+   },
+   "restock_time": 15,
+   "tags": [
+    "comida",
+    "turismo"
+   ],
+   "art": {
+    "archetype": "restaurant",
+    "main": "bordo",
+    "accent": "amarillo",
+    "sign": "milanesa"
+   },
+   "max_level": 100,
+   "products": [
+    {
+     "id": "milanesa",
+     "name": "Milanesas",
+     "icon": "milanesa",
+     "price": 2700000,
+     "cost": 1250000,
+     "demand": 4,
+     "tags": [
+      "comida"
+     ]
+    },
+    {
+     "id": "ravioles",
+     "name": "Ravioles",
+     "icon": "ravioles",
+     "price": 2100000,
+     "cost": 871000,
+     "demand": 3,
+     "tags": [
+      "comida"
+     ]
+    },
+    {
+     "id": "parrillada",
+     "name": "Parrillada",
+     "icon": "parrilla",
+     "price": 4350000,
+     "cost": 2400000,
+     "demand": 2,
+     "tags": [
+      "comida"
+     ]
+    },
+    {
+     "id": "flan",
+     "name": "Flan mixto",
+     "icon": "flan",
+     "price": 1190000,
+     "cost": 420000,
+     "demand": 2,
+     "tags": [
+      "comida"
+     ]
+    }
+   ],
+   "upgrade_names": {
+    "stock_ampliado": "Cámara frigorífica",
+    "proveedores": "Frigorífico directo",
+    "caja_rapida": "Cocina industrial",
+    "empleado_confianza": "Chef de confianza",
+    "segundo_mostrador": "Salón del fondo",
+    "local_ampliado": "Terraza",
+    "sistema_gestion": "Comandera digital",
+    "sucursal": "Segundo restaurante"
+   }
+  },
+  {
+   "id": "supermercado",
+   "name": "Supermercado",
+   "description": "Góndolas, ofertas de 3x2 y el carrito con una rueda que no gira.",
+   "cycle": 40.0,
+   "level_cost_base": 12800000000,
+   "level_cost_growth": 1.1,
+   "unlock": {
+    "cost": 128000000000,
+    "stage": 4,
+    "requires": {
+     "business": "restaurante",
+     "level": 10
+    }
+   },
+   "restock_time": 18,
+   "tags": [
+    "minorista"
+   ],
+   "art": {
+    "archetype": "supermarket",
+    "main": "rojo",
+    "accent": "amarillo",
+    "sign": "carrito"
+   },
+   "max_level": 100,
+   "products": [
+    {
+     "id": "almacen_s",
+     "name": "Almacén",
+     "icon": "fideos",
+     "price": 31000000,
+     "cost": 21200000,
+     "demand": 4,
+     "tags": []
+    },
+    {
+     "id": "limpieza",
+     "name": "Limpieza",
+     "icon": "limpieza",
+     "price": 23800000,
+     "cost": 15700000,
+     "demand": 3,
+     "tags": []
+    },
+    {
+     "id": "bebidas_s",
+     "name": "Bebidas",
+     "icon": "bebida",
+     "price": 26200000,
+     "cost": 19100000,
+     "demand": 3,
+     "tags": [
+      "bebida"
+     ]
+    },
+    {
+     "id": "carniceria",
+     "name": "Carnicería",
+     "icon": "carne",
+     "price": 47700000,
+     "cost": 35800000,
+     "demand": 2,
+     "tags": [
+      "comida"
+     ]
+    }
+   ],
+   "upgrade_names": {
+    "stock_ampliado": "Depósito grande",
+    "proveedores": "Compras centralizadas",
+    "caja_rapida": "Cajas autoservicio",
+    "empleado_confianza": "Jefe de piso",
+    "segundo_mostrador": "Más cajas",
+    "local_ampliado": "Estacionamiento",
+    "sistema_gestion": "Sistema de inventario",
+    "sucursal": "Nueva sucursal"
+   }
+  },
+  {
+   "id": "gimnasio",
+   "name": "Gimnasio",
+   "description": "Cuotas mensuales de gente que viene en enero. Y en marzo. A veces.",
+   "cycle": 55.0,
+   "level_cost_base": 256000000000,
+   "level_cost_growth": 1.1,
+   "unlock": {
+    "cost": 2560000000000,
+    "stage": 5,
+    "requires": {
+     "business": "supermercado",
+     "level": 10
+    }
+   },
+   "restock_time": 20,
+   "tags": [
+    "servicio",
+    "salud"
+   ],
+   "art": {
+    "archetype": "gym",
+    "main": "violeta",
+    "accent": "celeste",
+    "sign": "pesa"
+   },
+   "max_level": 100,
+   "products": [
+    {
+     "id": "pase",
+     "name": "Pase diario",
+     "icon": "pesa",
+     "price": 53300000,
+     "cost": 10700000,
+     "demand": 3,
+     "tags": []
+    },
+    {
+     "id": "cuota",
+     "name": "Cuota mensual",
+     "icon": "calendario",
+     "price": 135000000,
+     "cost": 33700000,
+     "demand": 4,
+     "tags": []
+    },
+    {
+     "id": "spinning",
+     "name": "Clases de spinning",
+     "icon": "bici",
+     "price": 81700000,
+     "cost": 24100000,
+     "demand": 2,
+     "tags": []
+    },
+    {
+     "id": "batidos",
+     "name": "Batidos proteicos",
+     "icon": "licuado",
+     "price": 39100000,
+     "cost": 20200000,
+     "demand": 2,
+     "tags": [
+      "bebida"
+     ]
+    }
+   ],
+   "upgrade_names": {
+    "stock_ampliado": "Más equipamiento",
+    "proveedores": "Equipos usados",
+    "caja_rapida": "Molinete automático",
+    "empleado_confianza": "Profe de confianza",
+    "segundo_mostrador": "Sala de clases",
+    "local_ampliado": "Pileta",
+    "sistema_gestion": "App de reservas",
+    "sucursal": "Otra sede"
+   }
+  },
+  {
+   "id": "taller",
+   "name": "Taller mecánico",
+   "description": "\"Eso es la junta del tapa de cilindros, maestro.\" Diagnóstico garantizado.",
+   "cycle": 70.0,
+   "level_cost_base": 5120000000000,
+   "level_cost_growth": 1.1,
+   "unlock": {
+    "cost": 51200000000000,
+    "stage": 5,
+    "requires": {
+     "business": "gimnasio",
+     "level": 10
+    }
+   },
+   "restock_time": 24,
+   "tags": [
+    "autos",
+    "servicio"
+   ],
+   "art": {
+    "archetype": "garage",
+    "main": "gris",
+    "accent": "naranja",
+    "sign": "llave"
+   },
+   "max_level": 100,
+   "products": [
+    {
+     "id": "service",
+     "name": "Service completo",
+     "icon": "llave",
+     "price": 1120000000,
+     "cost": 509000000,
+     "demand": 3,
+     "tags": []
+    },
+    {
+     "id": "aceite_t",
+     "name": "Cambio de aceite",
+     "icon": "aceite",
+     "price": 453000000,
+     "cost": 224000000,
+     "demand": 4,
+     "tags": []
+    },
+    {
+     "id": "frenos",
+     "name": "Frenos",
+     "icon": "engranaje",
+     "price": 896000000,
+     "cost": 453000000,
+     "demand": 2,
+     "tags": []
+    },
+    {
+     "id": "alineacion",
+     "name": "Alineación",
+     "icon": "auto",
+     "price": 560000000,
+     "cost": 196000000,
+     "demand": 2,
+     "tags": []
+    }
+   ],
+   "upgrade_names": {
+    "stock_ampliado": "Depósito de repuestos",
+    "proveedores": "Repuestos alternativos",
+    "caja_rapida": "Elevador hidráulico",
+    "empleado_confianza": "Mecánico de confianza",
+    "segundo_mostrador": "Segunda fosa",
+    "local_ampliado": "Galpón ampliado",
+    "sistema_gestion": "Scanner computarizado",
+    "sucursal": "Taller en la ruta"
+   }
+  },
+  {
+   "id": "mensajeria",
+   "name": "Empresa de mensajería",
+   "description": "Motos, mochilas térmicas y la promesa de \"llega en 15 minutos\".",
+   "cycle": 90.0,
+   "level_cost_base": 102000000000000,
+   "level_cost_growth": 1.1,
+   "unlock": {
+    "cost": 1024000000000000,
+    "stage": 6,
+    "requires": {
+     "business": "taller",
+     "level": 10
+    }
+   },
+   "restock_time": 30,
+   "tags": [
+    "logistica",
+    "servicio"
+   ],
+   "art": {
+    "archetype": "depot",
+    "main": "amarillo",
+    "accent": "azul",
+    "sign": "caja"
+   },
+   "max_level": 100,
+   "products": [
+    {
+     "id": "urbano",
+     "name": "Envío urbano",
+     "icon": "caja",
+     "price": 3320000000,
+     "cost": 1310000000,
+     "demand": 4,
+     "tags": []
+    },
+    {
+     "id": "express",
+     "name": "Envío express",
+     "icon": "rayo",
+     "price": 5240000000,
+     "cost": 2090000000,
+     "demand": 3,
+     "tags": []
+    },
+    {
+     "id": "paqueteria",
+     "name": "Paquetería",
+     "icon": "caja",
+     "price": 3930000000,
+     "cost": 2010000000,
+     "demand": 2,
+     "tags": []
+    },
+    {
+     "id": "mudanza",
+     "name": "Mini mudanzas",
+     "icon": "camion",
+     "price": 9600000000,
+     "cost": 5410000000,
+     "demand": 1,
+     "tags": []
+    }
+   ],
+   "upgrade_names": {
+    "stock_ampliado": "Flota de motos",
+    "proveedores": "Combustible mayorista",
+    "caja_rapida": "Rutas optimizadas",
+    "empleado_confianza": "Cadete estrella",
+    "segundo_mostrador": "Centro de despacho",
+    "local_ampliado": "Depósito central",
+    "sistema_gestion": "Seguimiento en vivo",
+    "sucursal": "Base en otra ciudad"
+   }
+  },
+  {
+   "id": "distribuidora",
+   "name": "Distribuidora",
+   "description": "Camiones que reparten a todo el barrio. Bueno, a todos los barrios.",
+   "cycle": 120.0,
+   "level_cost_base": 2050000000000000,
+   "level_cost_growth": 1.1,
+   "unlock": {
+    "cost": 20480000000000000,
+    "stage": 6,
+    "requires": {
+     "business": "mensajeria",
+     "level": 10
+    }
+   },
+   "restock_time": 40,
+   "tags": [
+    "logistica",
+    "minorista"
+   ],
+   "art": {
+    "archetype": "warehouse",
+    "main": "verde",
+    "accent": "amarillo",
+    "sign": "camion"
+   },
+   "max_level": 100,
+   "products": [
+    {
+     "id": "bebidas_d",
+     "name": "Bebidas mayorista",
+     "icon": "bebida",
+     "price": 64000000000,
+     "cost": 48000000000,
+     "demand": 4,
+     "tags": [
+      "bebida"
+     ]
+    },
+    {
+     "id": "golosinas_d",
+     "name": "Golosinas mayorista",
+     "icon": "golosina",
+     "price": 52000000000,
+     "cost": 36000000000,
+     "demand": 3,
+     "tags": [
+      "golosina"
+     ]
+    },
+    {
+     "id": "almacen_d",
+     "name": "Almacén mayorista",
+     "icon": "fideos",
+     "price": 77300000000,
+     "cost": 57300000000,
+     "demand": 3,
+     "tags": []
+    },
+    {
+     "id": "lacteos",
+     "name": "Lácteos",
+     "icon": "leche",
+     "price": 57300000000,
+     "cost": 41300000000,
+     "demand": 2,
+     "tags": []
+    }
+   ],
+   "upgrade_names": {
+    "stock_ampliado": "Depósito refrigerado",
+    "proveedores": "Contratos con fábricas",
+    "caja_rapida": "Autoelevadores",
+    "empleado_confianza": "Jefe de logística",
+    "segundo_mostrador": "Segundo andén",
+    "local_ampliado": "Nave industrial",
+    "sistema_gestion": "Software de ruteo",
+    "sucursal": "Centro de distribución regional"
+   }
+  }
+ ]
+}

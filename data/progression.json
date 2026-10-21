@@ -1,0 +1,311 @@
+{
+ "_doc": "Constantes de balance, etapas, prestigio, recompensas diarias y avatares. Todo lo que hay acá se puede ajustar sin tocar código.",
+ "balance": {
+  "start_money": 30,
+  "tick_seconds": 0.1,
+  "offline_cap_hours": 8,
+  "offline_step_seconds": 5,
+  "offline_min_seconds": 30,
+  "offline_summary_min_seconds": 60,
+  "autosave_seconds": 30,
+  "stock_cycles": 25,
+  "stock_seconds": 40,
+  "start_stock_fraction": 0.5,
+  "restock_threshold": 0.35,
+  "min_cycle": 0.1,
+  "max_money": 1000000000000000000,
+  "base_slots": 1,
+  "max_slots": 6,
+  "salary_debt_efficiency": 0.5,
+  "clock_tolerance_seconds": 300,
+  "max_boost_multiplier": 2.0,
+  "milestones": [
+   {
+    "level": 10,
+    "speed": 1.0,
+    "slots": 1
+   },
+   {
+    "level": 25,
+    "speed": 2.0,
+    "slots": 0
+   },
+   {
+    "level": 50,
+    "speed": 2.0,
+    "slots": 1
+   },
+   {
+    "level": 75,
+    "speed": 1.5,
+    "slots": 0
+   },
+   {
+    "level": 100,
+    "speed": 2.0,
+    "slots": 1
+   }
+  ],
+  "visual_tiers": [
+   1,
+   10,
+   25,
+   50,
+   100
+  ]
+ },
+ "stages": [
+  {
+   "id": 1,
+   "name": "Emprendedor callejero",
+   "earnings": 0
+  },
+  {
+   "id": 2,
+   "name": "Comerciante de barrio",
+   "earnings": 5000
+  },
+  {
+   "id": 3,
+   "name": "Empresario local",
+   "earnings": 400000
+  },
+  {
+   "id": 4,
+   "name": "Empresario regional",
+   "earnings": 40000000
+  },
+  {
+   "id": 5,
+   "name": "Dueño de una cadena comercial",
+   "earnings": 4000000000
+  },
+  {
+   "id": 6,
+   "name": "Inversor nacional",
+   "earnings": 600000000000
+  },
+  {
+   "id": 7,
+   "name": "Propietario de un conglomerado",
+   "earnings": 100000000000000
+  },
+  {
+   "id": 8,
+   "name": "Magnate empresarial",
+   "earnings": 20000000000000000
+  }
+ ],
+ "prestige": {
+  "_doc": "Puntos = floor(2 * sqrt(ganancias de la partida / divisor)) menos los ya obtenidos en esa partida. Cada punto ganado (gastado o no) da +bonus_per_point a todos los ingresos.",
+  "min_stage": 5,
+  "divisor": 4000000000,
+  "bonus_per_point": 0.02,
+  "perks": [
+   {
+    "id": "inversores",
+    "name": "Inversores ángeles",
+    "icon": "moneda",
+    "description": "+10 % de ingresos en todos los negocios por nivel.",
+    "max_level": 10,
+    "cost": 2,
+    "effects": {
+     "income": 0.1
+    }
+   },
+   {
+    "id": "contactos",
+    "name": "Contactos en el rubro",
+    "icon": "llave",
+    "description": "-5 % en costos de niveles y mejoras por nivel.",
+    "max_level": 5,
+    "cost": 3,
+    "effects": {
+     "level_cost": 0.05
+    }
+   },
+   {
+    "id": "reclutadora",
+    "name": "Consultora de RR. HH.",
+    "icon": "persona",
+    "description": "-10 % en costos de contratación y +5 % de eficiencia de empleados por nivel.",
+    "max_level": 5,
+    "cost": 2,
+    "effects": {
+     "hire_cost": 0.1,
+     "employee_eff": 0.05
+    }
+   },
+   {
+    "id": "capital_semilla",
+    "name": "Capital semilla",
+    "icon": "billete",
+    "description": "Empezás cada grupo nuevo con más capital ($2.000 / $60.000 / $2 M).",
+    "max_level": 3,
+    "cost": 3,
+    "effects": {
+     "start_money": [
+      2000,
+      60000,
+      2000000
+     ]
+    }
+   },
+   {
+    "id": "caja_fuerte",
+    "name": "Caja fuerte",
+    "icon": "reloj",
+    "description": "+1 hora de ganancias offline por nivel (base 8 h).",
+    "max_level": 4,
+    "cost": 4,
+    "effects": {
+     "offline_hours": 1
+    }
+   },
+   {
+    "id": "franquicia",
+    "name": "Franquicia express",
+    "icon": "edificio",
+    "description": "Empezás cada grupo nuevo con el kiosco (nivel 1) y, en el nivel 2, también con el puesto de comida.",
+    "max_level": 2,
+    "cost": 5,
+    "effects": {
+     "start_businesses": [
+      [
+       "kiosco"
+      ],
+      [
+       "kiosco",
+       "comida"
+      ]
+     ]
+    }
+   }
+  ]
+ },
+ "daily_rewards": [
+  {
+   "day": 1,
+   "label": "Changuita",
+   "reward": {
+    "income_seconds": 120,
+    "min": 100
+   }
+  },
+  {
+   "day": 2,
+   "label": "Turbo x2 (10 min)",
+   "reward": {
+    "boost": {
+     "mult": 2.0,
+     "seconds": 600
+    }
+   }
+  },
+  {
+   "day": 3,
+   "label": "Aguinaldo chico",
+   "reward": {
+    "income_seconds": 300,
+    "min": 300
+   }
+  },
+  {
+   "day": 4,
+   "label": "Avatar: Mate",
+   "reward": {
+    "icon": "mate",
+    "fallback": {
+     "income_seconds": 600,
+     "min": 600
+    }
+   }
+  },
+  {
+   "day": 5,
+   "label": "Turbo x2 (20 min)",
+   "reward": {
+    "boost": {
+     "mult": 2.0,
+     "seconds": 1200
+    }
+   }
+  },
+  {
+   "day": 6,
+   "label": "Aguinaldo",
+   "reward": {
+    "income_seconds": 900,
+    "min": 1000
+   }
+  },
+  {
+   "day": 7,
+   "label": "Avatar: Gato del barrio",
+   "reward": {
+    "icon": "gato",
+    "income_seconds": 1800,
+    "min": 2000
+   }
+  }
+ ],
+ "avatars": [
+  {
+   "id": "emprendedor",
+   "name": "Emprendedor",
+   "unlocked": true
+  },
+  {
+   "id": "vecina",
+   "name": "Vecina",
+   "unlocked": true
+  },
+  {
+   "id": "perro",
+   "name": "Perro callejero",
+   "unlocked": true
+  },
+  {
+   "id": "gorra",
+   "name": "Gorra de visera",
+   "unlocked": false,
+   "hint": "Logro: Emprendedor"
+  },
+  {
+   "id": "mate",
+   "name": "Mate",
+   "unlocked": false,
+   "hint": "Recompensa diaria: día 4"
+  },
+  {
+   "id": "gato",
+   "name": "Gato del barrio",
+   "unlocked": false,
+   "hint": "Recompensa diaria: día 7"
+  },
+  {
+   "id": "alfajor",
+   "name": "Alfajor",
+   "unlocked": false,
+   "hint": "Logro: Mil alfajores"
+  },
+  {
+   "id": "kiosquero",
+   "name": "Kiosquero",
+   "unlocked": false,
+   "hint": "Logro: Rey del kiosco"
+  },
+  {
+   "id": "galera",
+   "name": "Galera",
+   "unlocked": false,
+   "hint": "Logro: Magnate"
+  },
+  {
+   "id": "corona",
+   "name": "Corona",
+   "unlocked": false,
+   "hint": "Logro: Fundador"
+  }
+ ]
+}

@@ -1,0 +1,273 @@
+{
+ "_doc": "Zonas del mapa y empresas rivales. demand: bonificación de ingresos para negocios con esa etiqueta (se toma la mayor). competition: penalización base de la zona. Los rivales suman competencia sobre negocios con etiquetas de su sector en sus zonas (power * competition_per_power, tope max_competition).",
+ "zones": [
+  {
+   "id": "barrio",
+   "name": "Barrio Villa Esperanza",
+   "description": "Casas bajas, almacenes de toda la vida y vecinos que se conocen todos.",
+   "cost": 0,
+   "stage": 1,
+   "demand": {
+    "minorista": 0.1,
+    "calle": 0.1
+   },
+   "competition": 0.03,
+   "recommended": [
+    "puesto",
+    "kiosco",
+    "almacen"
+   ],
+   "map": {
+    "x": 28,
+    "y": 300,
+    "w": 140,
+    "h": 116
+   }
+  },
+  {
+   "id": "centro",
+   "name": "Microcentro del Sol",
+   "description": "Oficinistas apurados que almuerzan parados. Mucha demanda, mucha competencia.",
+   "cost": 60000,
+   "stage": 2,
+   "demand": {
+    "comida": 0.25,
+    "calle": 0.15
+   },
+   "competition": 0.1,
+   "recommended": [
+    "comida",
+    "kiosco",
+    "cafeteria"
+   ],
+   "map": {
+    "x": 174,
+    "y": 276,
+    "w": 118,
+    "h": 100
+   }
+  },
+  {
+   "id": "universidad",
+   "name": "Ciudad Universitaria del Sauce",
+   "description": "Estudiantes con poca plata y mucha hambre. Fotocopias y café a toda hora.",
+   "cost": 1500000,
+   "stage": 3,
+   "demand": {
+    "estudiantes": 0.35,
+    "escolar": 0.25,
+    "bebida": 0.1
+   },
+   "competition": 0.06,
+   "recommended": [
+    "cafeteria",
+    "kiosco",
+    "gimnasio"
+   ],
+   "map": {
+    "x": 28,
+    "y": 158,
+    "w": 130,
+    "h": 104
+   }
+  },
+  {
+   "id": "costanera",
+   "name": "Costanera Linda",
+   "description": "Paseo turístico junto al río. Los fines de semana largos explota.",
+   "cost": 40000000,
+   "stage": 3,
+   "demand": {
+    "turismo": 0.35,
+    "comida": 0.15,
+    "bebida": 0.2
+   },
+   "competition": 0.12,
+   "recommended": [
+    "restaurante",
+    "cafeteria",
+    "comida"
+   ],
+   "map": {
+    "x": 252,
+    "y": 90,
+    "w": 90,
+    "h": 150
+   }
+  },
+  {
+   "id": "industrial",
+   "name": "Parque Fabril Sur",
+   "description": "Galpones, camiones y talleres. Acá se arregla y se mueve todo.",
+   "cost": 1500000000,
+   "stage": 4,
+   "demand": {
+    "autos": 0.35,
+    "logistica": 0.25,
+    "servicio": 0.1
+   },
+   "competition": 0.08,
+   "recommended": [
+    "lavadero",
+    "taller",
+    "distribuidora"
+   ],
+   "map": {
+    "x": 28,
+    "y": 430,
+    "w": 160,
+    "h": 92
+   }
+  },
+  {
+   "id": "puerto",
+   "name": "Dársena Vieja",
+   "description": "Grúas, contenedores y depósitos. El corazón de la logística.",
+   "cost": 60000000000,
+   "stage": 5,
+   "demand": {
+    "logistica": 0.4,
+    "minorista": 0.1
+   },
+   "competition": 0.1,
+   "recommended": [
+    "distribuidora",
+    "mensajeria",
+    "supermercado"
+   ],
+   "map": {
+    "x": 200,
+    "y": 392,
+    "w": 142,
+    "h": 130
+   }
+  },
+  {
+   "id": "financiero",
+   "name": "Distrito Torres del Plata",
+   "description": "Torres de vidrio y gente que habla de 'sinergias'. Pagan bien por todo.",
+   "cost": 4000000000000,
+   "stage": 6,
+   "demand": {
+    "servicio": 0.3,
+    "salud": 0.3,
+    "comida": 0.1,
+    "estudiantes": 0.1
+   },
+   "competition": 0.15,
+   "recommended": [
+    "gimnasio",
+    "restaurante",
+    "mensajeria"
+   ],
+   "map": {
+    "x": 120,
+    "y": 28,
+    "w": 124,
+    "h": 116
+   }
+  }
+ ],
+ "relocate_cost_factor": 0.25,
+ "competition_per_power": 0.025,
+ "max_competition": 0.35,
+ "rival_update_seconds": 90,
+ "campaign_power_reduction": 3,
+ "campaign_cooldown_seconds": 300,
+ "campaign_income_seconds": 60,
+ "campaign_min_cost": 300,
+ "rivals": [
+  {
+   "id": "ramon",
+   "name": "Distribuciones Don Ramón",
+   "sector": "Comercio minorista",
+   "tags": [
+    "minorista"
+   ],
+   "zones": [
+    "barrio",
+    "centro"
+   ],
+   "behavior": "Conservador",
+   "start_power": 2,
+   "color": "verde"
+  },
+  {
+   "id": "fogon",
+   "name": "Parrillas El Fogón Feliz",
+   "sector": "Comida rápida",
+   "tags": [
+    "comida"
+   ],
+   "zones": [
+    "centro",
+    "costanera"
+   ],
+   "behavior": "Agresivo",
+   "start_power": 3,
+   "color": "rojo"
+  },
+  {
+   "id": "bruma",
+   "name": "Café Bruma S.A.",
+   "sector": "Cafeterías",
+   "tags": [
+    "bebida",
+    "estudiantes"
+   ],
+   "zones": [
+    "universidad",
+    "costanera"
+   ],
+   "behavior": "Expansivo",
+   "start_power": 2,
+   "color": "marron"
+  },
+  {
+   "id": "brillo",
+   "name": "Lavaclean Hermanos",
+   "sector": "Autos y servicios",
+   "tags": [
+    "autos"
+   ],
+   "zones": [
+    "industrial",
+    "barrio"
+   ],
+   "behavior": "Conservador",
+   "start_power": 1,
+   "color": "azul"
+  },
+  {
+   "id": "veloz",
+   "name": "Grupo Veloz Logística",
+   "sector": "Logística",
+   "tags": [
+    "logistica"
+   ],
+   "zones": [
+    "puerto",
+    "industrial"
+   ],
+   "behavior": "Agresivo",
+   "start_power": 3,
+   "color": "amarillo"
+  }
+ ],
+ "rival_lines": {
+  "grow": [
+   "{r} abrió otro local en {z}.",
+   "{r} lanzó una promo agresiva en {z}.",
+   "{r} contrató más personal en {z}."
+  ],
+  "shrink": [
+   "{r} cerró un local en {z}.",
+   "{r} tiene problemas con sus proveedores.",
+   "{r} subió los precios y perdió clientes."
+  ],
+  "campaign": [
+   "Tu campaña le sacó clientes a {r}.",
+   "Volanteada épica: {r} pierde terreno."
+  ]
+ }
+}

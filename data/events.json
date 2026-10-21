@@ -1,0 +1,32 @@
+{
+ "_doc": "Eventos temporales. Se sortean con pesos (weight) cada interval_min..interval_max segundos de juego (solo con la app abierta). Efectos: demand (multiplica clientes de productos con product_tags), revenue / speed / cost (multiplican sobre negocios con business_tags). 'random_owned' elige un negocio propio al azar. Las decisiones (choices) son opcionales: si no decidís, el evento termina solo al vencer su duración.",
+ "interval_min": 150,
+ "interval_max": 300,
+ "first_event_delay": 240,
+ "max_active": 2,
+ "min_businesses": 2,
+ "multiplier_clamp": [0.5, 3.0],
+ "events": [
+  {"id": "finde_largo", "name": "Fin de semana largo", "icon": "sol", "description": "Todo el mundo sale a pasear: restaurantes, cafeterías y la costanera se llenan.", "duration": 180, "weight": 3, "stage": 2, "kind": "good", "target": {"business_tags": ["turismo", "comida"]}, "effects": {"revenue": 1.4}},
+  {"id": "ola_calor", "name": "Ola de calor", "icon": "fuego", "description": "38 °C a la sombra. Las bebidas se venden como pan caliente (el pan no tanto).", "duration": 150, "weight": 3, "stage": 1, "kind": "good", "target": {"product_tags": ["bebida"]}, "effects": {"demand": 1.8}},
+  {"id": "vuelta_clases", "name": "Vuelta a clases", "icon": "utiles", "description": "Útiles, golosinas y productos escolares vuelan de los estantes.", "duration": 180, "weight": 2, "stage": 1, "kind": "good", "target": {"product_tags": ["escolar"], "business_tags": ["escolar", "estudiantes"]}, "effects": {"demand": 1.7, "revenue": 1.1}},
+  {"id": "festival", "name": "Festival local", "icon": "bandera", "description": "Hay peña en la plaza: los puestos de comida y los negocios de la calle reciben una bonificación.", "duration": 150, "weight": 2, "stage": 1, "kind": "good", "target": {"business_tags": ["calle", "comida"]}, "effects": {"revenue": 1.35, "speed": 1.15}},
+  {"id": "descuento_proveedor", "name": "Proveedor con descuento", "icon": "camion", "description": "Tu mayorista liquida stock: la mercadería sale 40 % más barata. ¡Llená el depósito!", "duration": 120, "weight": 3, "stage": 1, "kind": "good", "target": {"business_tags": ["minorista", "comida", "calle", "bebida"]}, "effects": {"cost": 0.6}},
+  {"id": "falla_suministro", "name": "Falla de suministro", "icon": "alerta", "description": "Se rompió la cadena de frío / se cortó la luz / el proveedor no aparece. Un negocio trabaja a media máquina.", "duration": 240, "weight": 2, "stage": 1, "kind": "bad", "target": {"businesses": "random_owned"}, "effects": {"speed": 0.5},
+   "choices": [
+    {"id": "flete", "label": "Pagar flete urgente", "cost_income_seconds": 45, "result": "end"},
+    {"id": "esperar", "label": "Esperar a que se arregle", "cost_income_seconds": 0, "result": "keep"}
+   ]},
+  {"id": "partido", "name": "Final del campeonato", "icon": "pelota", "description": "Todo el país mira el partido. Bebidas y snacks a full, el resto un poco quieto.", "duration": 120, "weight": 2, "stage": 2, "kind": "mixed", "target": {"product_tags": ["bebida", "snack", "comida"]}, "effects": {"demand": 1.6}},
+  {"id": "lluvia", "name": "Diluvio", "icon": "lluvia", "description": "Llueve a cántaros: la calle está vacía pero el delivery no da abasto.", "duration": 120, "weight": 2, "stage": 2, "kind": "mixed", "target": {"business_tags": ["calle"]}, "effects": {"speed": 0.8}, "secondary": {"target": {"business_tags": ["logistica"]}, "effects": {"revenue": 1.5}}}
+ ],
+ "inflation": {
+  "_doc": "Inflación ficticia OPCIONAL (desactivada por defecto en Ajustes). Cada period segundos se anuncia una remarcación con warning segundos de anticipación: suben los costos de mercadería; los precios de venta acompañan después de price_lag segundos. Reponer antes del aumento conviene. Los costos de niveles y mejoras NO cambian, así que el dinero ahorrado no pierde valor para invertir.",
+  "period": 600,
+  "warning": 60,
+  "cost_step": 0.08,
+  "price_step": 0.08,
+  "price_lag": 90,
+  "max_index": 4.0
+ }
+}
