@@ -102,13 +102,13 @@ func _locked_card(id: String) -> Control:
 	txt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var dark: bool = not st["available"]
 	txt.add_child(U.label(def["name"], U.SIZE_BODY, U.TEXT_LIGHT if dark else U.TEXT, true))
-	txt.add_child(U.para(def["description"], 9, Color("c2c0d6") if dark else U.TEXT_SOFT))
+	txt.add_child(U.para(def["description"], U.SIZE_SMALL, Color("c2c0d6") if dark else U.TEXT_SOFT))
 	row.add_child(txt)
 	col.add_child(row)
 	var products := []
 	for p in def["products"]:
 		products.append(p["name"])
-	col.add_child(U.para("Vende: " + ", ".join(products) + ". Ciclo de %s." % Fmt.cycle(def["cycle"]), 9, Color("c2c0d6") if dark else U.TEXT_SOFT))
+	col.add_child(U.para("Vende: " + ", ".join(products) + ". Ciclo de %s." % Fmt.cycle(def["cycle"]), U.SIZE_SMALL, Color("c2c0d6") if dark else U.TEXT_SOFT))
 	for r in st["reasons"]:
 		var rr := U.hbox(3)
 		rr.add_child(U.icon("candado"))

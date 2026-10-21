@@ -46,7 +46,7 @@ func rebuild() -> void:
 	U.on_press(se, func() -> void: SettingsModal.open())
 	row.add_child(se)
 	_col.add_child(row)
-	_col.add_child(U.para("Tycoon Argentina v%s · Progreso guardado sólo en este dispositivo (sin cuentas ni nube por ahora). Fuente Pixelify Sans (licencia OFL). Arte, sonidos y nombres originales y ficticios." % ProjectSettings.get_setting("application/config/version"), 9, Color("8c8aa8")))
+	_col.add_child(U.para("Tycoon Argentina v%s · Progreso guardado sólo en este dispositivo (sin cuentas ni nube por ahora). Fuente Pixelify Sans (licencia OFL). Arte, sonidos y nombres originales y ficticios." % ProjectSettings.get_setting("application/config/version"), U.SIZE_SMALL, Color("8c8aa8")))
 	_refresh()
 
 
@@ -79,14 +79,14 @@ func _header() -> Control:
 	n.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	n.clip_text = true
 	name_row.add_child(n)
-	var edit := U.button("Editar", "crema", "", 22, 9)
+	var edit := U.button("Editar", "crema", "", 22, U.SIZE_SMALL)
 	U.on_press(edit, RenameDialog.open)
 	name_row.add_child(edit)
 	col.add_child(name_row)
 	col.add_child(U.label("Etapa %d de 8 · %s" % [m.stage, m.data.stage_name(m.stage)], U.SIZE_SMALL, U.GREEN, true))
 	_stage_bar = U.progress("violeta", 8)
 	col.add_child(_stage_bar)
-	_stage_label = U.label("", 9, U.TEXT_SOFT)
+	_stage_label = U.label("", U.SIZE_SMALL, U.TEXT_SOFT)
 	col.add_child(_stage_label)
 	row.add_child(col)
 	return card
@@ -171,10 +171,10 @@ func _prestige() -> Control:
 			var v := U.vbox(0)
 			v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 			v.add_child(U.label("%s (%d/%d)" % [p["name"], m.perk_level(p["id"]), int(p["max_level"])], U.SIZE_SMALL, U.TEXT, true))
-			v.add_child(U.para(p["description"], 9, U.TEXT_SOFT))
+			v.add_child(U.para(p["description"], U.SIZE_SMALL, U.TEXT_SOFT))
 			row.add_child(v)
 			var maxed := m.perk_level(p["id"]) >= int(p["max_level"])
-			var b2 := U.button("Máx." if maxed else "%d pts" % PrestigeSystem.perk_cost(m, p["id"]), "violeta", "", 24, 9)
+			var b2 := U.button("Máx." if maxed else "%d pts" % PrestigeSystem.perk_cost(m, p["id"]), "violeta", "", 24, U.SIZE_SMALL)
 			b2.disabled = maxed or PrestigeSystem.available_points(m) < PrestigeSystem.perk_cost(m, p["id"])
 			var pid: String = p["id"]
 			U.on_press(b2, func() -> void: Main.instance.result(PrestigeSystem.buy_perk(m, pid)), "")

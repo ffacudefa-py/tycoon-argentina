@@ -7,7 +7,8 @@ extends Control
 ## (ventas por segundo) pero no calcula nada. Con calidad baja o ahorro de
 ## energía se reduce la cantidad de personajes.
 
-const H := 200
+const H := 170
+const ART_H := 200          ## alto del arte; se recorta el cielo de arriba
 const BG_W := 480
 const BUILDING_BASE_Y := 163
 const WALK_Y := 172
@@ -25,6 +26,7 @@ var _last_tier := -1
 var _last_float := 0
 var _dog: Sprite2D
 var _dog_dir := 1.0
+var _world: Node2D
 
 
 func _init() -> void:
@@ -34,20 +36,23 @@ func _init() -> void:
 
 
 func _ready() -> void:
+	_world = Node2D.new()
+	_world.position = Vector2(0, H - ART_H)
+	add_child(_world)
 	_bg = Sprite2D.new()
 	_bg.centered = false
-	add_child(_bg)
+	_world.add_child(_bg)
 	_building = Sprite2D.new()
 	_building.centered = false
-	add_child(_building)
+	_world.add_child(_building)
 	_people = Node2D.new()
-	add_child(_people)
+	_world.add_child(_people)
 	_dog = Sprite2D.new()
 	_dog.texture = U.tex("characters/dog.png")
 	_dog.hframes = 4
 	_dog.centered = false
 	_dog.visible = false
-	add_child(_dog)
+	_world.add_child(_dog)
 	resized.connect(_layout)
 	var m := Game.m
 	m.business_changed.connect(func(id: String) -> void:
@@ -80,6 +85,7 @@ func refresh() -> void:
 	if _last_tier >= 0 and tier > _last_tier:
 		_tier_flash()
 	_last_tier = tier
+	_closed_sign(s.get("closed", false))
 	_rebuild_workers()
 	_layout()
 
@@ -209,7 +215,7 @@ func _update_dog(delta: float, level: int) -> void:
 func _on_sale(id: String, revenue: int) -> void:
 	if id != bid or not is_visible_in_tree() or Main.instance == null:
 		return
-	var center := get_global_rect().position + Vector2(size.x / 2.0, 90)
+	var center := get_global_rect().position + Vector2(size.x / 2.0, 90 - (ART_H - H))
 	var now := Time.get_ticks_msec()
 	if now - _last_float > 350:
 		_last_float = now
@@ -226,3 +232,23 @@ func _tier_flash() -> void:
 	_building.modulate = Color(2, 2, 2)
 	var tw := create_tween()
 	tw.tween_property(_building, "modulate", Color.WHITE, 0.4)
+
+
+var _closed: Label
+
+
+## Cartel "CERRADO" mientras el puesto no se abrió (misión guiada, paso 1).
+func _closed_sign(on: bool) -> void:
+	if _closed == null:
+		_closed = U.label("CERRADO", U.SIZE_TITLE, Color.WHITE, true, HORIZONTAL_ALIGNMENT_CENTER)
+		var sb := StyleBoxFlat.new()
+		sb.bg_color = Color("b83a3f")
+		sb.border_color = Color("1b1a2e")
+		sb.set_border_width_all(2)
+		sb.content_margin_left = 8
+		sb.content_margin_right = 8
+		_closed.add_theme_stylebox_override("normal", sb)
+		add_child(_closed)
+	_closed.visible = on
+	_closed.position = Vector2(floor(size.x / 2.0) - 44, 54)
+	_building.modulate = Color(0.6, 0.6, 0.7) if on else Color.WHITE

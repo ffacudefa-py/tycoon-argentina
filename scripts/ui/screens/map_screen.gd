@@ -120,7 +120,7 @@ func _build_rivals() -> void:
 		log_card.add_child(lv)
 		lv.add_child(U.label("Novedades del mercado", U.SIZE_SMALL, U.TEXT, true))
 		for i in range(m.rival_log.size() - 1, maxi(-1, m.rival_log.size() - 6), -1):
-			lv.add_child(U.para("• " + m.rival_log[i]["text"], 9, U.TEXT_SOFT))
+			lv.add_child(U.para("• " + m.rival_log[i]["text"], U.SIZE_SMALL, U.TEXT_SOFT))
 		_rivals_box.add_child(log_card)
 
 
@@ -137,25 +137,25 @@ static func rival_card(rid: String) -> Control:
 	n.clip_text = true
 	top.add_child(n)
 	var trend: String = ["▼", "=", "▲"][int(st.get("trend", 0)) + 1]
-	top.add_child(U.label("Poder %d/10 %s" % [int(st["power"]), "baja" if trend == "▼" else ("sube" if trend == "▲" else "estable")], U.SIZE_SMALL, U.RED if int(st["power"]) >= 6 else U.TEXT_SOFT, true))
 	col.add_child(top)
+	col.add_child(U.label("Poder %d/10 · %s" % [int(st["power"]), "baja" if trend == "▼" else ("sube" if trend == "▲" else "estable")], U.SIZE_SMALL, U.RED if int(st["power"]) >= 6 else U.TEXT_SOFT, true))
 	var zones := []
 	for z in r["zones"]:
 		zones.append(m.data.zone_by_id[z]["name"])
-	col.add_child(U.para("%s · %s · %s" % [r["sector"], r["behavior"], ", ".join(zones)], 9, U.TEXT_SOFT))
+	col.add_child(U.para("%s · %s · %s" % [r["sector"], r["behavior"], ", ".join(zones)], U.SIZE_SMALL, U.TEXT_SOFT))
 	var bar := U.progress("rojo", 6)
 	bar.value = float(st["power"]) / 10.0
 	col.add_child(bar)
 	if str(st.get("last", "")) != "":
-		col.add_child(U.para("Último movimiento: " + st["last"], 9, U.TEXT_SOFT))
+		col.add_child(U.para("Último movimiento: " + st["last"], U.SIZE_SMALL, U.TEXT_SOFT))
 	var presence := RivalSystem.presence(m, rid)
 	var cd := float(st.get("cooldown", 0.0))
-	var b := U.button("Campaña de marketing · " + Fmt.cost(RivalSystem.campaign_cost(m)), "violeta", "bandera", 24, 9)
+	var b := U.button("Campaña · " + Fmt.cost(RivalSystem.campaign_cost(m)), "violeta", "bandera", 36, U.SIZE_SMALL)
 	b.disabled = cd > 0.0 or int(st["power"]) <= 1
 	if cd > 0.0:
 		b.text = "Marketing descansa: " + Fmt.duration(cd)
 	U.on_press(b, func() -> void: Main.instance.result(RivalSystem.campaign(m, rid)), "")
 	col.add_child(b)
 	if presence == 0:
-		col.add_child(U.para("Hoy no compite con ninguno de tus negocios.", 9, U.TEXT_SOFT))
+		col.add_child(U.para("Hoy no compite con ninguno de tus negocios.", U.SIZE_SMALL, U.TEXT_SOFT))
 	return card

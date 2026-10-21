@@ -38,7 +38,7 @@ func data() -> GameData:
 
 
 ## Modelo nuevo con reloj controlable y semilla fija.
-func make_model(seed_value := 1) -> GameModel:
+func make_model(seed_value := 1, open_shop := true) -> GameModel:
 	clock_holder["t"] = 1_800_000_000.0
 	var holder := clock_holder
 	var m := GameModel.new(data(), func() -> float: return holder["t"])
@@ -46,6 +46,10 @@ func make_model(seed_value := 1) -> GameModel:
 		fail("no se pudo crear el GameModel (¿error de compilación?)")
 	m.rng.seed = seed_value
 	m.tz_bias_minutes = -180
+	if open_shop:
+		m.open_business("puesto")
+		for p in m.derive("puesto")["products"]:
+			m.biz["puesto"]["stock"][p["id"]] = float(p["cap"]) * 0.5
 	return m
 
 

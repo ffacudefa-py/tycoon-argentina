@@ -13,7 +13,7 @@ var _timer := 0.0
 
 func _ready() -> void:
 	theme_type_variation = "DarkCard"
-	custom_minimum_size.y = 50
+	custom_minimum_size.y = 60
 	var row := U.hbox(2)
 	add_child(row)
 	for i in Main.SECTIONS.size():
@@ -21,7 +21,7 @@ func _ready() -> void:
 		b.toggle_mode = true
 		b.focus_mode = Control.FOCUS_NONE
 		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		b.custom_minimum_size = Vector2(56, 40)
+		b.custom_minimum_size = Vector2(56, 50)
 		b.theme_type_variation = "Tab"
 		var v := U.vbox(0)
 		v.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -30,11 +30,11 @@ func _ready() -> void:
 		var ic := U.icon(ICONS[i])
 		ic.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 		v.add_child(ic)
-		var l := U.label(Main.SECTIONS[i].to_upper(), 9, U.TEXT, true, HORIZONTAL_ALIGNMENT_CENTER)
+		var l := U.label(Main.SECTIONS[i].to_upper(), U.SIZE_SMALL, U.TEXT, true, HORIZONTAL_ALIGNMENT_CENTER)
 		l.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		v.add_child(l)
 		b.add_child(v)
-		var badge := U.label("", 9, Color.WHITE, true, HORIZONTAL_ALIGNMENT_CENTER)
+		var badge := U.label("", U.SIZE_SMALL, Color.WHITE, true, HORIZONTAL_ALIGNMENT_CENTER)
 		badge.custom_minimum_size = Vector2(12, 10)
 		var sb := StyleBoxFlat.new()
 		sb.bg_color = Color("d94a4a")

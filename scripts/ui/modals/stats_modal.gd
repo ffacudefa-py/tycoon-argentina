@@ -31,7 +31,7 @@ static func open() -> void:
 	for r in rows:
 		body.add_child(U.stat_row(r[0], r[1]))
 	body.add_child(U.separator())
-	body.add_child(U.para("Patrimonio = efectivo + 50 % de lo invertido en cada negocio + mercadería en stock a costo + 50 % de lo pagado por zonas. Cada activo se cuenta una sola vez.", 9, U.TEXT_SOFT))
+	body.add_child(U.para("Patrimonio = efectivo + 50 % de lo invertido en cada negocio + mercadería en stock a costo + 50 % de lo pagado por zonas. Cada activo se cuenta una sola vez.", U.SIZE_SMALL, U.TEXT_SOFT))
 	if not m.economy.income_by_source.is_empty():
 		body.add_child(U.label("De dónde vino la plata (esta partida)", U.SIZE_SMALL, U.TEXT, true))
 		for k in m.economy.income_by_source:

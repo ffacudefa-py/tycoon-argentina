@@ -15,7 +15,7 @@ static func open(r: Dictionary) -> void:
 		var box := U.panel("GoldCard")
 		var bv := U.vbox(0)
 		bv.add_child(U.label("Tus negocios vendieron", U.SIZE_SMALL, U.TEXT, false, HORIZONTAL_ALIGNMENT_CENTER))
-		bv.add_child(U.label(Fmt.money(earned), 20, U.TEXT, true, HORIZONTAL_ALIGNMENT_CENTER))
+		bv.add_child(U.label(Fmt.money(earned), 28, U.TEXT, true, HORIZONTAL_ALIGNMENT_CENTER))
 		box.add_child(bv)
 		body.add_child(box)
 		if int(r["spent"]) > 0:

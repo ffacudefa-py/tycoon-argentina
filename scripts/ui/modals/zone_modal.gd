@@ -36,10 +36,10 @@ static func open(zid: String) -> void:
 			body.add_child(MapScreen.rival_card(rid))
 	var w_ref := []
 	if st["unlocked"]:
-		body.add_child(U.label("Zona desbloqueada. Abrí o mudá negocios acá desde Negocios o Administrar.", U.SIZE_SMALL, U.GREEN, true))
+		body.add_child(U.para("Zona desbloqueada. Abrí o mudá negocios acá desde Negocios o Administrar.", U.SIZE_SMALL, U.GREEN))
 	else:
 		for r in st["reasons"]:
-			body.add_child(U.label("Requiere: " + r, U.SIZE_SMALL, U.RED, true))
+			body.add_child(U.para("Requiere: " + r, U.SIZE_SMALL, U.RED))
 		var b := U.button("Desbloquear · " + Fmt.cost(st["cost"]), "verde", "candado", 32)
 		b.disabled = not st["available"] or not st["affordable"]
 		U.on_press(b, func() -> void:

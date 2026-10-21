@@ -13,10 +13,10 @@ const GREEN := Color("2f7d4a")
 const RED := Color("a8323a")
 const BG := Color("1b1830")
 
-const SIZE_SMALL := 10
-const SIZE_BODY := 12
-const SIZE_TITLE := 15
-const SIZE_BIG := 18
+const SIZE_SMALL := 12
+const SIZE_BODY := 14
+const SIZE_TITLE := 18
+const SIZE_BIG := 24
 
 static var _tex_cache := {}
 static var font_regular: Font
@@ -38,7 +38,8 @@ static func icon_tex(name: String) -> Texture2D:
 static func label(text: String, size := SIZE_BODY, color := TEXT, bold := false, align := HORIZONTAL_ALIGNMENT_LEFT) -> Label:
 	var l := Label.new()
 	l.text = text
-	l.add_theme_font_size_override("font_size", size)
+	# Nunca por debajo del mínimo legible (12 px virtuales ≈ 14 sp a ×3).
+	l.add_theme_font_size_override("font_size", maxi(size, SIZE_SMALL))
 	l.add_theme_color_override("font_color", color)
 	if bold and font_bold:
 		l.add_theme_font_override("font", font_bold)
@@ -72,15 +73,29 @@ static func button(text: String, style := "crema", icon_name := "", min_h := 26,
 	var b := Button.new()
 	b.text = text
 	b.theme_type_variation = "Btn_" + style
-	b.custom_minimum_size.y = min_h
-	b.add_theme_font_size_override("font_size", size)
+	b.custom_minimum_size.y = maxi(min_h, 32)   # objetivo táctil cómodo
+	b.add_theme_font_size_override("font_size", maxi(size, SIZE_SMALL))
 	if icon_name != "":
 		b.icon = icon_tex(icon_name)
 		b.expand_icon = false
 	b.focus_mode = Control.FOCUS_NONE
 	b.mouse_filter = Control.MOUSE_FILTER_STOP
 	b.action_mode = BaseButton.ACTION_MODE_BUTTON_RELEASE
+	press_feedback(b)
 	return b
+
+
+## Feedback al tocar: el botón se achica un instante (además del "hundido"
+## del estilo) y vibra apenas. Sólo visual: no cambia el área táctil.
+static func press_feedback(b: BaseButton) -> void:
+	b.button_down.connect(func() -> void:
+		b.pivot_offset = b.size / 2.0
+		var tw := b.create_tween()
+		tw.tween_property(b, "scale", Vector2(0.95, 0.95), 0.05)
+		Sfx.vibrate(10))
+	b.button_up.connect(func() -> void:
+		var tw := b.create_tween()
+		tw.tween_property(b, "scale", Vector2.ONE, 0.08))
 
 
 ## Conecta una acción protegida contra dobles toques accidentales.

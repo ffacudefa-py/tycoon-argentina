@@ -2,7 +2,7 @@ class_name ToastHost
 extends CanvasLayer
 ## Avisos breves arriba de la pantalla. No bloquean toques ni la interfaz.
 
-const MAX_VISIBLE := 2
+const MAX_VISIBLE := 1
 const ICONS := {"info": "info", "good": "check", "bad": "alerta", "reward": "regalo"}
 const COLORS := {"info": Color("f2f0e6"), "good": Color("f2f0e6"), "bad": Color("f2f0e6"), "reward": Color("2b2746")}
 
@@ -24,10 +24,11 @@ func _ready() -> void:
 	add_child(root)
 	_box = U.vbox(3)
 	_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_box.set_anchors_preset(Control.PRESET_TOP_WIDE)
+	_box.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
+	_box.grow_vertical = Control.GROW_DIRECTION_BEGIN
 	_box.offset_left = 10
 	_box.offset_right = -10
-	_box.offset_top = 52
+	_box.offset_bottom = -70
 	root.add_child(_box)
 
 
@@ -39,7 +40,7 @@ func show_toast(text: String, kind := "info") -> void:
 	_last_text = text
 	_last_time = now
 	if Main.instance and Main.instance._safe:
-		_box.offset_top = 50 + Main.instance._safe.get_theme_constant("margin_top")
+		_box.offset_bottom = -68 - Main.instance._safe.get_theme_constant("margin_bottom")
 	while _box.get_child_count() >= MAX_VISIBLE:
 		var old := _box.get_child(0)
 		_box.remove_child(old)
@@ -50,7 +51,8 @@ func show_toast(text: String, kind := "info") -> void:
 	var row := U.hbox(4)
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	row.add_child(U.icon(ICONS.get(kind, "info")))
-	var l := U.para(text, U.SIZE_SMALL, COLORS.get(kind, Color.WHITE))
+	var l := U.para(text, U.SIZE_BODY, COLORS.get(kind, Color.WHITE))
+	l.max_lines_visible = 2
 	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	row.add_child(l)
 	p.add_child(row)

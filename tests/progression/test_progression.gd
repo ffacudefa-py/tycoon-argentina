@@ -179,3 +179,30 @@ func test_prestige_franchise_and_seed_capital() -> void:
 	PrestigeSystem.perform(m)
 	check(m.biz["kiosco"]["owned"], "franquicia: arranca con kiosco")
 	eq(m.economy.money, 2000, "capital semilla")
+
+
+func test_onboarding_start_closed_and_affordable_first_stock() -> void:
+	var m := make_model(1, false)
+	check(m.biz["puesto"]["closed"], "arranca cerrado")
+	check(not m.has_stock("puesto"), "arranca sin mercadería")
+	check(not m.tap_sell("puesto")["ok"], "cerrado no vende")
+	check(m.open_business("puesto")["ok"], "abre")
+	var q := m.restock_quote("puesto")
+	check(q["total"] <= m.economy.money, "la primera mercadería completa se puede pagar (%d de %d)" % [q["total"], m.economy.money])
+	check(m.restock("puesto")["ok"], "compra mercadería")
+	run(m, 3.5)
+	check(m.tap_sell("puesto")["ok"], "con mercadería vende")
+
+
+func test_guided_tutorial_rewards_once() -> void:
+	var m := make_model(1, false)
+	m.open_business("puesto")
+	TutorialSteps.update(m)
+	eq(int(m.tutorial["step"]), 1, "paso 1 cumplido")
+	m.restock("puesto")
+	var money := m.economy.money
+	TutorialSteps.update(m)
+	eq(int(m.tutorial["step"]), 2, "paso 2 cumplido")
+	eq(m.economy.money, money + 10, "premio del paso 2")
+	check(not m.grant_tutorial_reward(1, {"money": 10}), "no se paga dos veces")
+	eq(m.economy.money, money + 10, "sin doble pago")

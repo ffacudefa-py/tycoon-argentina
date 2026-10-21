@@ -27,7 +27,7 @@ static func open() -> void:
 			else:
 				Main.instance.toast("Bloqueado. " + hint, "info"))
 		v.add_child(b)
-		var l := U.label(a["name"] if got else "???", 9, U.TEXT, false, HORIZONTAL_ALIGNMENT_CENTER)
+		var l := U.label(a["name"] if got else "???", U.SIZE_SMALL, U.TEXT, false, HORIZONTAL_ALIGNMENT_CENTER)
 		l.custom_minimum_size.x = 44
 		l.clip_text = true
 		v.add_child(l)

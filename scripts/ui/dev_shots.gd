@@ -40,26 +40,19 @@ func _run() -> void:
 	Game.reset_everything()
 	await get_tree().process_frame
 	main.modal_host.close_all()
-	await _shot("01_inicio_tutorial", 1.0)
-	# Toque real (evento de entrada) sobre ¡VENDER!: debe producir una venta.
-	var sell: Control = main.targets["sell"]
+	await _shot("01_paso1_abrir", 1.0)
+	# Misión guiada con TOQUES REALES (eventos de entrada) sobre el botón principal.
+	await _tap(main.targets["main"])
+	await _shot("02_paso2_reponer", 0.6)
+	print("TOQUE_ABRIR ", "OK" if not m.biz["puesto"]["closed"] else "FALLÓ")
+	await _tap(main.targets["main"])
+	await get_tree().create_timer(3.6).timeout
+	await _shot("03_paso3_vender", 0.3)
 	var before := m.counter("sales_total")
-	var center := sell.get_global_rect().get_center()
-	for pressed in [true, false]:
-		var ev := InputEventMouseButton.new()
-		ev.button_index = MOUSE_BUTTON_LEFT
-		ev.pressed = pressed
-		ev.position = center
-		ev.global_position = center
-		get_viewport().push_input(ev)
-		await get_tree().process_frame
+	await _tap(main.targets["main"])
 	await get_tree().create_timer(1.3).timeout
 	print("TOQUE_VENDER ", "OK" if m.counter("sales_total") > before else "FALLÓ")
-	for i in 6:
-		m.tap_sell("puesto")
-		m.simulate(1.1)
-	m.buy_levels("puesto", 1)
-	await _shot("02_primeras_ventas", 0.6)
+	await _shot("04_paso4_subir", 0.4)
 	# Partida avanzada para ver el resto de la interfaz
 	m.economy.earn(3_000_000, "dev")
 	m.update_progress()
@@ -79,9 +72,9 @@ func _run() -> void:
 	EventSystem.try_spawn(m, "ola_calor")
 	main.select_business("puesto")
 	main.tutorial._skip()
-	await _shot("03_imperio_automatizado", 1.2)
+	await _shot("03b_imperio_automatizado", 1.2)
 	main.select_business("comida")
-	await _shot("04_imperio_comida", 1.0)
+	await _shot("04b_imperio_comida", 1.0)
 	main.select_business("puesto")
 	for i in 5:
 		main.go_to(i)
@@ -113,3 +106,15 @@ func _run() -> void:
 	main.go_to(0)
 	await _shot("13_fx_venta", 0.2)
 	get_tree().quit()
+
+
+func _tap(target: Control) -> void:
+	var center := target.get_global_rect().get_center()
+	for pressed in [true, false]:
+		var ev := InputEventMouseButton.new()
+		ev.button_index = MOUSE_BUTTON_LEFT
+		ev.pressed = pressed
+		ev.position = center
+		ev.global_position = center
+		get_viewport().push_input(ev)
+		await get_tree().process_frame

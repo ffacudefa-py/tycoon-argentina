@@ -5,7 +5,7 @@ extends TestCase
 
 
 func test_early_game_pacing() -> void:
-	var m := make_model(42)
+	var m := make_model(42, false)
 	var bot := BalanceBot.new(m, clock_holder)
 	var hours := float(OS.get_environment("BALANCE_HOURS")) if OS.get_environment("BALANCE_HOURS") != "" else 1.5
 	bot.play(hours * 3600.0)

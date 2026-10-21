@@ -1,7 +1,7 @@
 {
  "_doc": "Constantes de balance, etapas, prestigio, recompensas diarias y avatares. Todo lo que hay acá se puede ajustar sin tocar código.",
  "balance": {
-  "start_money": 30,
+  "start_money": 120,
   "tick_seconds": 0.1,
   "offline_cap_hours": 8,
   "offline_step_seconds": 5,

@@ -35,6 +35,8 @@ var _safe: MarginContainer
 func _ready() -> void:
 	instance = self
 	m = Game.m
+	_fit_integer_scale()
+	get_window().size_changed.connect(_fit_integer_scale)
 	theme = ThemeBuilder.build()
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 	var bg := ColorRect.new()
@@ -50,6 +52,7 @@ func _ready() -> void:
 	_safe.add_child(col)
 	top_bar = TopBar.new()
 	col.add_child(top_bar)
+	col.add_child(U.margin(ObjectiveStrip.new(), 6, 4, 6, 2))
 	content = Control.new()
 	content.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	content.clip_contents = true
@@ -92,6 +95,23 @@ func _ready() -> void:
 		var r := Game.pending_offline
 		Game.pending_offline = {}
 		OfflineReport.open.call_deferred(r)
+
+
+## Escala entera SIN bandas negras: el modo "integer" de Godot ajusta la
+## proporción antes de redondear la escala y deja franjas sin usar (en un
+## teléfono de 1280 px de ancho perdía 200 px). Acá se calcula la escala
+## entera según la pantalla real y la resolución virtual se agranda para
+## cubrirla entera (mínimo 360x640, píxeles siempre cuadrados y enteros).
+func _fit_integer_scale() -> void:
+	var win := get_window()
+	var ws := DisplayServer.window_get_size()
+	if ws.x <= 0 or ws.y <= 0:
+		return
+	var k := maxi(1, int(floor(minf(ws.x / 360.0, ws.y / 640.0))))
+	var target := Vector2i(ws.x / k, ws.y / k)
+	if win.content_scale_size != target:
+		win.content_scale_size = target
+		win.content_scale_aspect = Window.CONTENT_SCALE_ASPECT_KEEP
 
 
 func _apply_safe_area() -> void:

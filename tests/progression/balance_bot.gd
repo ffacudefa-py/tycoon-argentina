@@ -15,6 +15,7 @@ var _decide_timer := 0.0
 func _init(model: GameModel, holder: Dictionary) -> void:
 	m = model
 	clock_holder = holder
+	m.open_business("puesto")
 
 
 func mark(key: String) -> void:

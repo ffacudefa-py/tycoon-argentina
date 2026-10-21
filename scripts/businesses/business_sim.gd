@@ -19,7 +19,7 @@ static func advance(m: GameModel, id: String, dt: float) -> void:
 	while t > 0.0 and guard < 4:
 		guard += 1
 		if not s["running"]:
-			if d["auto_sell"] and m.has_stock(id):
+			if d["auto_sell"] and m.has_stock(id) and not s.get("closed", false):
 				s["running"] = true
 				s["progress"] = 0.0
 			else:

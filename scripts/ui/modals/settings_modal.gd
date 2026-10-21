@@ -25,10 +25,10 @@ static func open() -> void:
 	body.add_child(_toggle("Ahorro de energía (30 FPS, menos animaciones)", "power_saver", "rayo"))
 	body.add_child(_toggle("Confirmar acciones irreversibles", "confirm_irreversible", "alerta"))
 	body.add_child(_toggle("Inflación ficticia (experimental)", "inflation", "fuego"))
-	body.add_child(U.para("Con inflación activada, cada 10 minutos se anuncia una remarcación: la mercadería sube y tus precios acompañan un rato después. Reponer antes del aumento conviene. Los costos de niveles y mejoras no cambian.", 9, U.TEXT_SOFT))
-	body.add_child(U.para("Música: esta versión no tiene música, sólo efectos de sonido.", 9, U.TEXT_SOFT))
+	body.add_child(U.para("Con inflación activada, cada 10 minutos se anuncia una remarcación: la mercadería sube y tus precios acompañan un rato después. Reponer antes del aumento conviene. Los costos de niveles y mejoras no cambian.", U.SIZE_SMALL, U.TEXT_SOFT))
+	body.add_child(U.para("Música: esta versión no tiene música, sólo efectos de sonido.", U.SIZE_SMALL, U.TEXT_SOFT))
 	body.add_child(U.separator())
-	body.add_child(U.para("Tu progreso se guarda automáticamente en este teléfono (cada 30 s y al salir). No hay sincronización en la nube todavía.", 9, U.TEXT_SOFT))
+	body.add_child(U.para("Tu progreso se guarda automáticamente en este teléfono (cada 30 s y al salir). No hay sincronización en la nube todavía.", U.SIZE_SMALL, U.TEXT_SOFT))
 	var reset := U.button("Reiniciar partida", "rojo", "alerta", 28, U.SIZE_SMALL)
 	U.on_press(reset, func() -> void:
 		ConfirmDialog.open("¿Reiniciar TODO?", "Se borra la partida completa: dinero, negocios, logros, prestigio y perfil. No se puede deshacer.", "Borrar todo",

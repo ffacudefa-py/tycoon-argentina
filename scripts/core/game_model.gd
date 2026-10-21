@@ -95,7 +95,11 @@ func new_game() -> void:
 	time_state = {"last_active": now(), "max_seen": now()}
 	economy.lifetime_earned = 0
 	_reset_run()
-	add_milestone("Abriste tu primer puestito en el Barrio Villa Esperanza.")
+	# Primera partida: el puesto arranca cerrado y sin mercadería; la misión
+	# guiada enseña abrir → comprar mercadería → vender.
+	biz["puesto"]["closed"] = true
+	for pid in biz["puesto"]["stock"]:
+		biz["puesto"]["stock"][pid] = 0.0
 
 
 ## Reinicia lo que se pierde al fundar un nuevo grupo (y al empezar).
@@ -139,7 +143,7 @@ func _new_business_state(id: String) -> Dictionary:
 		"progress": 0.0, "running": false, "carry": 0.0,
 		"invested": 0, "earned": 0, "sales": 0,
 		"candidates": [], "cand_timer": 0.0, "reroll_cd": 0.0,
-		"stockout": false,
+		"stockout": false, "closed": false,
 	}
 
 
@@ -450,11 +454,36 @@ static func fail(msg: String) -> Dictionary:
 	return {"ok": false, "msg": msg}
 
 
+## Abre el negocio (sólo el puesto empieza cerrado en la primera partida).
+func open_business(id: String) -> Dictionary:
+	var s: Dictionary = biz[id]
+	if not s.get("closed", false):
+		return fail("Ya está abierto.")
+	s["closed"] = false
+	add_milestone("Abriste tu primer puestito en el Barrio Villa Esperanza.")
+	celebrate.emit("unlock", {"business": id})
+	business_changed.emit(id)
+	return ok()
+
+
+## Premio de un paso del tutorial guiado: se entrega una sola vez.
+func grant_tutorial_reward(step: int, reward: Dictionary) -> bool:
+	var given: Dictionary = tutorial.get("rewarded", {})
+	if given.has(str(step)) or reward.is_empty():
+		return false
+	given[str(step)] = true
+	tutorial["rewarded"] = given
+	ProgressionSystem.grant(self, reward, "tutorial")
+	return true
+
+
 ## Vender a mano: arranca un ciclo si el negocio no está automatizado.
 func tap_sell(id: String) -> Dictionary:
 	var s: Dictionary = biz[id]
 	if not s["owned"]:
 		return fail("No tenés este negocio.")
+	if s.get("closed", false):
+		return fail("El puesto está cerrado: tocá ABRIR.")
 	if s["running"]:
 		return fail("Ya estás atendiendo.")
 	if not has_stock(id):
@@ -1054,6 +1083,7 @@ func _sanitize_business(id: String, src: Dictionary) -> Dictionary:
 	s["candidates"] = src.get("candidates", []) if src.get("candidates") is Array else []
 	s["cand_timer"] = float(src.get("cand_timer", 0.0))
 	s["reroll_cd"] = maxf(0.0, float(src.get("reroll_cd", 0.0)))
+	s["closed"] = bool(src.get("closed", false)) and s["owned"]
 	return s
 
 

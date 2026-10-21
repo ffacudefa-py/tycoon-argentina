@@ -32,7 +32,7 @@ static func open(id: String, start_tab := 0) -> void:
 func _ready() -> void:
 	m = Game.m
 	add_theme_constant_override("separation", 6)
-	add_child(U.tabs(["Mejoras", "Empleados", "Mercadería", "Datos"], func(i: int) -> void:
+	add_child(U.tabs(["Mejoras", "Equipo", "Stock", "Datos"], func(i: int) -> void:
 		tab = i
 		_build(), tab))
 	_content = U.vbox(5)
@@ -67,7 +67,7 @@ func _build() -> void:
 # ------------------------------------------------------------------ mejoras
 
 func _build_upgrades() -> void:
-	_content.add_child(U.para("Cada mejora cambia de verdad los números del negocio. Las más avanzadas piden nivel y otras mejoras.", 9, U.TEXT_SOFT))
+	_content.add_child(U.para("Cada mejora cambia de verdad los números del negocio. Las más avanzadas piden nivel y otras mejoras.", U.SIZE_SMALL, U.TEXT_SOFT))
 	for u in m.data.upgrades:
 		var uid: String = u["id"]
 		var st := m.upgrade_status(bid, uid)
@@ -83,10 +83,10 @@ func _build_upgrades() -> void:
 		head.add_child(name)
 		head.add_child(U.label("Nv %d/%d" % [st["level"], st["max"]], U.SIZE_SMALL, U.GOLD if light else U.TEXT_SOFT, true))
 		col.add_child(head)
-		col.add_child(U.para(u["description"], 9, Color("c2c0d6") if light else U.TEXT_SOFT))
+		col.add_child(U.para(u["description"], U.SIZE_SMALL, Color("c2c0d6") if light else U.TEXT_SOFT))
 		col.add_child(U.para(_effect_text(u, int(st["level"])), 9, Color("8fd47a") if light else U.GREEN))
 		for r in st["reasons"]:
-			col.add_child(U.label(r, 9, Color("f07c6c"), true))
+			col.add_child(U.label(r, U.SIZE_SMALL, Color("f07c6c"), true))
 		if not st["maxed"]:
 			var row := U.hbox(4)
 			var gain := m.preview_profit_gain(bid, func(s: Dictionary) -> void: s["upgrades"][uid] = int(s["upgrades"].get(uid, 0)) + 1)
@@ -142,7 +142,7 @@ func _build_employees() -> void:
 	head.add_child(reroll)
 	_content.add_child(head)
 	if team.size() >= int(d["slots"]):
-		_content.add_child(U.para("No hay puestos libres. Se suman en los niveles 10, 50 y 100 y con la mejora 'Empleado de confianza'.", 9, U.RED))
+		_content.add_child(U.para("No hay puestos libres. Se suman en los niveles 10, 50 y 100 y con la mejora 'Empleado de confianza'.", U.SIZE_SMALL, U.RED))
 	EmployeeSystem.ensure_candidates(m, bid)
 	var cands: Array = m.biz[bid]["candidates"]
 	for i in cands.size():
@@ -152,8 +152,10 @@ func _build_employees() -> void:
 func _employee_row(e: Dictionary, hired: bool, index: int) -> Control:
 	var role: Dictionary = m.data.role_by_id[e["role"]]
 	var card := U.panel("Inset")
+	var outer := U.vbox(4)
+	card.add_child(outer)
 	var row := U.hbox(6)
-	card.add_child(row)
+	outer.add_child(row)
 	var at := AtlasTexture.new()
 	at.atlas = U.tex("characters/worker_%d.png" % int(e["variant"]))
 	at.region = Rect2(4 * 16, 0, 16, 24)
@@ -169,32 +171,32 @@ func _employee_row(e: Dictionary, hired: bool, index: int) -> Control:
 	n.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	n.clip_text = true
 	top.add_child(n)
-	top.add_child(U.label(role["name"], U.SIZE_SMALL, U.GREEN, true))
 	col.add_child(top)
+	col.add_child(U.label(role["name"], U.SIZE_SMALL, U.GREEN, true))
 	var eff := m.employee_efficiency(e) if hired else float(e["eff"])
 	var info := "Eficiencia %d %%" % int(round(eff * 100))
 	if hired:
 		info += " · Experiencia nv %d" % EmployeeSystem.xp_level(m, e)
-	info += " · Sueldo %s" % Fmt.per_sec(e["salary"])
-	col.add_child(U.label(info, 9, U.TEXT_SOFT))
-	col.add_child(U.para(_benefit(role, eff), 9, U.TEXT))
+	col.add_child(U.para(info, U.SIZE_SMALL, U.TEXT_SOFT))
+	col.add_child(U.label("Sueldo -" + Fmt.per_sec(e["salary"]), U.SIZE_SMALL, U.RED, true))
+	col.add_child(U.para(_benefit(role, eff), U.SIZE_SMALL, U.TEXT))
 	row.add_child(col)
 	if hired:
-		var fire := U.button("Despedir", "rojo", "", 22, 9)
+		var fire := U.button("Despedir", "rojo", "", 22, U.SIZE_SMALL)
 		var eid: String = e["id"]
 		U.on_press(fire, func() -> void:
 			Main.instance.confirm("¿Despedir a %s?" % e["name"],
 				"Se paga una indemnización de %s. El negocio pierde los beneficios de este empleado." % Fmt.cost(EmployeeSystem.severance(m, eid)),
 				"Despedir", func() -> void: Main.instance.result(EmployeeSystem.fire(m, eid))))
-		row.add_child(fire)
+		outer.add_child(fire)
 	else:
-		var hire := U.button("Contratar\n" + Fmt.cost(e["hire"]), "verde", "", 30, 9)
+		var hire := U.button("CONTRATAR · " + Fmt.cost(e["hire"]), "verde", "persona", 36, U.SIZE_BODY)
 		U.on_press(hire, func() -> void: Main.instance.result(EmployeeSystem.hire(m, bid, index)), "")
 		var cost: int = e["hire"]
 		_refreshers.append(func() -> void:
 			var dd := m.derive(bid)
 			hire.disabled = not m.economy.can_afford(cost) or int(dd["team_size"]) >= int(dd["slots"]))
-		row.add_child(hire)
+		outer.add_child(hire)
 	return card
 
 
@@ -225,7 +227,7 @@ func _benefit(role: Dictionary, eff: float) -> String:
 func _build_stock() -> void:
 	var d := m.derive(bid)
 	var s: Dictionary = m.biz[bid]
-	_content.add_child(U.para("Cada ciclo atiende %s clientes repartidos según la demanda. Si un producto se agota, esa venta se pierde." % Fmt.num(d["units"]), 9, U.TEXT_SOFT))
+	_content.add_child(U.para("Cada ciclo atiende %s clientes repartidos según la demanda. Si un producto se agota, esa venta se pierde." % Fmt.num(d["units"]), U.SIZE_SMALL, U.TEXT_SOFT))
 	for p in d["products"]:
 		var card := U.panel("Inset")
 		var col := U.vbox(2)
@@ -241,7 +243,7 @@ func _build_stock() -> void:
 		var dem_txt := "Demanda %d %%" % int(round(float(p["u"]) / maxf(float(d["units"]), 0.0001) * 100))
 		if float(p["demand_mult"]) != 1.0:
 			dem_txt += " (evento x%s)" % str(snappedf(p["demand_mult"], 0.1))
-		col.add_child(U.label("Venta %s · Compra %s · %s" % [Fmt.money(p["price"]), Fmt.money(p["cost"]), dem_txt], 9, U.TEXT_SOFT))
+		col.add_child(U.label("Venta %s · Compra %s · %s" % [Fmt.money(p["price"]), Fmt.money(p["cost"]), dem_txt], U.SIZE_SMALL, U.TEXT_SOFT))
 		var bar_row := U.hbox(4)
 		var bar := U.progress("amarillo", 6)
 		var have := float(s["stock"].get(p["id"], 0.0))
@@ -305,11 +307,11 @@ func _build_data() -> void:
 		for zid in m.zones:
 			if zid == s["zone"]:
 				continue
-			var b := U.button("Mudar a %s · %s" % [m.data.zone_by_id[zid]["name"], Fmt.cost(cost)], "crema", "mudanza", 24, 9)
+			var b := U.button("Mudar a %s · %s" % [m.data.zone_by_id[zid]["name"], Fmt.cost(cost)], "crema", "mudanza", 24, U.SIZE_SMALL)
 			var z: String = zid
 			U.on_press(b, func() -> void:
 				Main.instance.confirm("¿Mudar el negocio?", "Cuesta %s. La demanda y la competencia cambian según la zona." % Fmt.cost(cost), "Mudar",
 					func() -> void: Main.instance.result(m.relocate(bid, z)), false))
 			_content.add_child(b)
 	else:
-		_content.add_child(U.para("Desbloqueá zonas en el Mapa para poder mudarte.", 9, U.TEXT_SOFT))
+		_content.add_child(U.para("Desbloqueá zonas en el Mapa para poder mudarte.", U.SIZE_SMALL, U.TEXT_SOFT))

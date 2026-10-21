@@ -57,7 +57,7 @@ func _build_daily() -> void:
 		var cell := U.panel("Inset" if i != idx else "WhiteCard")
 		cell.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		var v := U.vbox(0)
-		v.add_child(U.label("Día %d" % int(dr["day"]), 9, U.TEXT, i == idx, HORIZONTAL_ALIGNMENT_CENTER))
+		v.add_child(U.label("Día %d" % int(dr["day"]), U.SIZE_SMALL, U.TEXT, i == idx, HORIZONTAL_ALIGNMENT_CENTER))
 		var r: Dictionary = dr["reward"]
 		var ic := "regalo"
 		if r.has("boost"):
@@ -83,8 +83,8 @@ func _build_daily() -> void:
 		rebuild(), "")
 	col.add_child(b)
 	if not can["ok"] and ProgressionSystem.clock_suspicious(m):
-		col.add_child(U.para(can["msg"], 9, U.RED))
-	col.add_child(U.para("Si faltás algunos días no perdés la racha: seguís desde donde quedaste.", 9, U.TEXT_SOFT))
+		col.add_child(U.para(can["msg"], U.SIZE_SMALL, U.RED))
+	col.add_child(U.para("Si faltás algunos días no perdés la racha: seguís desde donde quedaste.", U.SIZE_SMALL, U.TEXT_SOFT))
 	_daily_box.add_child(card)
 
 
@@ -153,7 +153,7 @@ func _mission_card(mis: Dictionary, kind: String) -> Control:
 	var row := U.hbox(4)
 	var bar := U.progress("verde" if not completed else "amarillo", 8)
 	row.add_child(bar)
-	var pl := U.label("", 9, U.TEXT, true)
+	var pl := U.label("", U.SIZE_SMALL, U.TEXT, true)
 	pl.custom_minimum_size.x = 70
 	pl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	row.add_child(pl)
@@ -167,7 +167,7 @@ func _mission_card(mis: Dictionary, kind: String) -> Control:
 		return m.metric(metric)
 	_bars.append([bar, pl, prog, target, money_label, completed])
 	var foot := U.hbox(4)
-	var rl := U.label("Premio: " + ProgressionSystem.describe(m, reward), 9, U.GREEN, true)
+	var rl := U.label("Premio: " + ProgressionSystem.describe(m, reward), U.SIZE_SMALL, U.GREEN, true)
 	rl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	rl.clip_text = true
 	foot.add_child(rl)
@@ -192,7 +192,7 @@ func _upcoming_card(mis: Dictionary) -> Control:
 	row.add_child(U.icon("candado"))
 	var v := U.vbox(0)
 	v.add_child(U.label("Próxima: " + mis["title"], U.SIZE_SMALL, U.TEXT_LIGHT, true))
-	v.add_child(U.para(mis["description"], 9, Color("c2c0d6")))
+	v.add_child(U.para(mis["description"], U.SIZE_SMALL, Color("c2c0d6")))
 	v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(v)
 	card.add_child(row)
