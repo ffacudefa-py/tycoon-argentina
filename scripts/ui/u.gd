@@ -35,6 +35,20 @@ static func icon_tex(name: String) -> Texture2D:
 	return t if t else tex("icons/estrella.png")
 
 
+## Ícono 2.0 de 32x32 (navegación, fichas, botones grandes). Si no existe
+## la versión grande, usa la de 16x16.
+static func icon32_tex(name: String) -> Texture2D:
+	var t := tex("icons32/%s.png" % name)
+	return t if t else icon_tex(name)
+
+
+static func icon32(name: String) -> TextureRect:
+	var r := icon("")
+	r.texture = icon32_tex(name)
+	r.custom_minimum_size = r.texture.get_size()
+	return r
+
+
 static func label(text: String, size := SIZE_BODY, color := TEXT, bold := false, align := HORIZONTAL_ALIGNMENT_LEFT) -> Label:
 	var l := Label.new()
 	l.text = text

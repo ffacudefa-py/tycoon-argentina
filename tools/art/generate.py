@@ -16,8 +16,10 @@ OUT = os.path.join(ROOT, "assets", "pixel_art")
 DATA = os.path.join(ROOT, "data")
 
 import backgrounds  # noqa: E402
-import buildings  # noqa: E402
-import characters  # noqa: E402
+import buildings2  # noqa: E402
+import chars2  # noqa: E402
+import icons32  # noqa: E402
+import logo  # noqa: E402
 import fx_art  # noqa: E402
 import map_avatars  # noqa: E402
 import ui_art  # noqa: E402
@@ -53,7 +55,7 @@ def contact_sheet():
     sheet = Image.new("RGBA", (5 * 200, len(biz) * 150 + 220), (43, 39, 70, 255))
     for j, b in enumerate(biz):
         for t in range(5):
-            im = Image.open(os.path.join(OUT, "businesses", f"{b['id']}_{t}.png"))
+            im = Image.open(os.path.join(OUT, "businesses", f"{b['id']}_{t}.png")).crop((0, 0, 192, 150))
             sheet.alpha_composite(im, (t * 200, j * 150))
     x = 0
     for name in sorted(ICONS):
@@ -62,7 +64,7 @@ def contact_sheet():
         x += 1
     for i in range(8):
         im = Image.open(os.path.join(OUT, "characters", f"customer_{i}.png"))
-        sheet.alpha_composite(im, (4 + (i % 4) * 170, len(biz) * 150 + 80 + (i // 4) * 26))
+        sheet.alpha_composite(im.crop((0, 0, 160, 48)), (4 + (i % 4) * 170, len(biz) * 150 + 80 + (i // 4) * 50))
     for i, z in enumerate(["barrio", "centro", "costanera", "industrial"]):
         im = Image.open(os.path.join(OUT, "backgrounds", f"street_{z}.png")).crop((0, 0, 240, 200)).resize((120, 100))
         sheet.alpha_composite(im, (700 + (i % 2) * 150, len(biz) * 150 + 10 + (i // 2) * 105))
@@ -75,9 +77,12 @@ def main():
     os.makedirs(OUT, exist_ok=True)
     problems = gen_icons()
     ui_art.generate(OUT)
-    characters.generate(OUT)
+    chars2.generate(OUT)          # personajes 2.0 (32x48)
+    icons32.generate(OUT)         # íconos 2.0 (32x32)
     fx_art.generate(OUT)
-    buildings.generate(OUT, DATA)
+    fixed = buildings2.generate(OUT, DATA)   # edificios 2.0 (192x150, 2 cuadros)
+    print(f"Píxeles huérfanos corregidos en edificios: {fixed}")
+    logo.main()
     world = json.load(open(os.path.join(DATA, "world.json"), encoding="utf-8"))
     backgrounds.generate(OUT, [z["id"] for z in world["zones"]])
     map_avatars.generate(OUT, DATA)

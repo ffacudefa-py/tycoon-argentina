@@ -10,8 +10,12 @@ extends Control
 const H := 170
 const ART_H := 200          ## alto del arte; se recorta el cielo de arriba
 const BG_W := 480
-const BUILDING_BASE_Y := 163
-const WALK_Y := 172
+## Escala 2.0: 1 m = 24 px. Edificios 192x150 (2 cuadros), personas 32x48.
+const BUILDING_BASE_Y := 168
+const WALK_Y := 178          ## pies de los peatones (borde de la vereda)
+const WORKER_Y := 171        ## pies de los empleados, frente al local
+const CHAR_W := 32
+const CHAR_FEET := 46        ## fila de los pies dentro del cuadro
 const MAX_WALKERS := [2, 5, 9]
 
 var bid := ""
@@ -82,6 +86,7 @@ func refresh() -> void:
 	_bg.texture = U.tex("backgrounds/street_%s.png" % s["zone"])
 	var tier: int = d["tier"]
 	_building.texture = U.tex("businesses/%s_%d.png" % [bid, tier])
+	_building.hframes = 2 if _building.texture and _building.texture.get_width() >= 384 else 1
 	if _last_tier >= 0 and tier > _last_tier:
 		_tier_flash()
 	_last_tier = tier
@@ -93,11 +98,11 @@ func refresh() -> void:
 func _layout() -> void:
 	var w := size.x
 	_bg.position = Vector2(floor((w - BG_W) / 2.0), 0)
-	_building.position = Vector2(floor(w / 2.0) - 100, BUILDING_BASE_Y - 149)
+	_building.position = Vector2(floor(w / 2.0) - 96, BUILDING_BASE_Y - 149)
 	var team := Game.m.employees_of(bid) if bid != "" else []
 	for i in _workers.size():
-		var off: int = [-28, 30, -56, 58, -84, 86][i % 6]
-		_workers[i].position = Vector2(floor(w / 2.0) + off - 8, BUILDING_BASE_Y + 3 - 24)
+		var off: int = [-44, 40, -78, 74][i % 4]
+		_workers[i].position = Vector2(floor(w / 2.0) + off - CHAR_W / 2, WORKER_Y - CHAR_FEET)
 
 
 func _rebuild_workers() -> void:
@@ -131,6 +136,9 @@ func _process(delta: float) -> void:
 	var s: Dictionary = m.biz[bid]
 	_anim_t += delta
 	var tick := int(_anim_t / 0.25)
+	if _building.hframes > 1:
+		# toldo que flamea, luces y humo: 2 cuadros a ~2,5 fps (con baja calidad, quieto)
+		_building.frame = int(_anim_t * 2.5) % 2 if Settings.fx_level() > 0 else 0
 	var busy: bool = s["running"]
 	for i in _workers.size():
 		_workers[i].frame = (6 + (tick + i) % 2) if busy else (4 + int(_anim_t / 0.8 + i) % 2)
@@ -160,11 +168,11 @@ func _spawn_walker() -> void:
 	sp.centered = false
 	var dir := 1.0 if randf() < 0.5 else -1.0
 	var w := size.x
-	sp.position = Vector2(-16.0 if dir > 0 else w, WALK_Y - 24 + randi() % 3)
+	sp.position = Vector2(-float(CHAR_W) if dir > 0 else w, WALK_Y - CHAR_FEET + randi() % 3)
 	sp.flip_h = dir < 0
 	_people.add_child(sp)
-	var stop_x: float = floor(w / 2.0) + randf_range(-20, 20) - 8
-	_walkers.append({"sprite": sp, "dir": dir, "speed": randf_range(18, 28), "state": "walk", "stop_x": stop_x, "t": 0.0, "shop": randf() < 0.75})
+	var stop_x: float = floor(w / 2.0) + randf_range(-30, 30) - CHAR_W / 2
+	_walkers.append({"sprite": sp, "dir": dir, "speed": randf_range(26, 40), "state": "walk", "stop_x": stop_x, "t": 0.0, "shop": randf() < 0.75})
 
 
 func _update_walkers(delta: float) -> void:
@@ -190,7 +198,7 @@ func _update_walkers(delta: float) -> void:
 				sp.position.x += float(wk["dir"]) * float(wk["speed"]) * delta
 				sp.frame = int(float(wk["t"]) * 8.0) % 4
 		sp.position.x = round(sp.position.x * 1.0)
-		if sp.position.x < -20 or sp.position.x > w + 4:
+		if sp.position.x < -CHAR_W - 4 or sp.position.x > w + 4:
 			sp.queue_free()
 			_walkers.remove_at(i)
 

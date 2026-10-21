@@ -20,7 +20,7 @@ func _ready() -> void:
 	var row := U.hbox(6)
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(row)
-	_icon = U.icon("bandera")
+	_icon = U.icon32("bandera")
 	row.add_child(_icon)
 	var col := U.vbox(2)
 	col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -63,7 +63,7 @@ func _refresh() -> void:
 		_bar.value = float(step) / TutorialSteps.STEPS.size()
 		_progress.text = "Paso %d/%d" % [step + 1, TutorialSteps.STEPS.size()]
 		_reward.text = ("Premio: " + ProgressionSystem.describe(m, st["reward"])) if not st["reward"].is_empty() else ""
-		_icon.texture = U.icon_tex("bandera")
+		_icon.texture = U.icon32_tex("bandera")
 		return
 	var pending := ProgressionSystem.unclaimed_count(m)
 	if pending > 0:
@@ -71,7 +71,7 @@ func _refresh() -> void:
 		_bar.value = 1.0
 		_progress.text = "Tocá acá"
 		_reward.text = ""
-		_icon.texture = U.icon_tex("regalo")
+		_icon.texture = U.icon32_tex("regalo")
 		return
 	var idx := int(m.missions["main_index"])
 	if idx >= m.data.missions_main.size():
@@ -88,4 +88,4 @@ func _refresh() -> void:
 	var money: bool = mis["metric"] in ["money", "net_worth"]
 	_progress.text = ("%s/%s" % [Fmt.money(minf(v, target)), Fmt.money(target)]) if money else ("%s/%s" % [Fmt.num(floorf(minf(v, target))), Fmt.num(target)])
 	_reward.text = "Premio: " + ProgressionSystem.describe(m, mis["reward"])
-	_icon.texture = U.icon_tex("bandera")
+	_icon.texture = U.icon32_tex("bandera")

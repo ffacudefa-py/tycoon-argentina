@@ -202,10 +202,11 @@ func _employee_row(e: Dictionary, hired: bool, index: int) -> Control:
 	outer.add_child(row)
 	var at := AtlasTexture.new()
 	at.atlas = U.tex("characters/worker_%d.png" % int(e["variant"]))
-	at.region = Rect2(4 * 16, 0, 16, 24)
+	var fw := at.atlas.get_width() / 10
+	at.region = Rect2(4 * fw, 0, fw, at.atlas.get_height())
 	var face := TextureRect.new()
 	face.texture = at
-	face.custom_minimum_size = Vector2(16, 24)
+	face.custom_minimum_size = Vector2(fw, at.atlas.get_height())
 	face.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	row.add_child(face)
 	var col := U.vbox(2)

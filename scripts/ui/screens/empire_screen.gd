@@ -94,7 +94,8 @@ func _ready() -> void:
 	var chips := U.hbox(6)
 	_chip_sale = _chip(chips, "moneda", "por venta")
 	_chip_cycle = _chip(chips, "reloj", "cada venta")
-	_chip_stock = U.button("", "crema", "caja", 52, U.SIZE_BODY)
+	_chip_stock = U.button("", "crema", "", 52, U.SIZE_BODY)
+	_chip_stock.icon = U.icon32_tex("caja")
 	_chip_stock.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_chip_stock.size_flags_stretch_ratio = 1.0
 	U.on_press(_chip_stock, _on_restock, "")
@@ -114,7 +115,8 @@ func _ready() -> void:
 	Main.instance.register_target("sell", _main_btn)
 
 	var lvl_row := U.hbox(6)
-	_level_btn = U.button("", "celeste", "flecha_arriba", 44, U.SIZE_BODY)
+	_level_btn = U.button("", "celeste", "", 44, U.SIZE_BODY)
+	_level_btn.icon = U.icon32_tex("flecha_arriba")
 	_level_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_level_btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
 	U.on_press(_level_btn, _on_level, "")
@@ -150,7 +152,7 @@ func _chip(parent: HBoxContainer, icon_name: String, caption: String) -> Label:
 	var v := U.vbox(0)
 	v.alignment = BoxContainer.ALIGNMENT_CENTER
 	var t := U.hbox(4)
-	t.add_child(U.icon(icon_name))
+	t.add_child(U.icon32(icon_name))
 	var val := U.label("", U.SIZE_BODY, U.TEXT, true)
 	val.clip_text = true
 	val.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -323,7 +325,7 @@ func _set_main(action: String, text: String, style: String, icon_name: String, d
 	_main_action = action
 	_main_btn.text = text
 	_main_btn.theme_type_variation = "Btn_" + style
-	_main_btn.icon = U.icon_tex(icon_name)
+	_main_btn.icon = U.icon32_tex(icon_name)
 	# "Vende solo" se muestra como estado (verde), no como botón apagado gris.
 	_main_btn.disabled = disabled and style != "verde"
 	_main_btn.mouse_filter = Control.MOUSE_FILTER_IGNORE if disabled else Control.MOUSE_FILTER_STOP
