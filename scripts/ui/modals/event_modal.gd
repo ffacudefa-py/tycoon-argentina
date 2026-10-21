@@ -18,7 +18,7 @@ static func open(index: int) -> void:
 	for c in e.get("choices", []):
 		var cost := EventSystem.resolve_cost(m, index, c["id"])
 		var label: String = c["label"] + ((" · " + Fmt.cost(cost)) if cost > 0 else "")
-		var b := U.button(label, "verde" if c["result"] == "end" else "crema", "", 28, U.SIZE_SMALL)
+		var b := U.button(label, "celeste" if c["result"] == "end" else "crema", "", 40, U.SIZE_BODY)
 		var cid: String = c["id"]
 		U.on_press(b, func() -> void:
 			if Main.instance.result(EventSystem.resolve(m, index, cid)):

@@ -26,7 +26,7 @@ static func open(r: Dictionary) -> void:
 			body.add_child(U.para("Ningún negocio vende solo todavía. Contratá un vendedor en Administrar para ganar mientras no jugás.", U.SIZE_SMALL, U.TEXT))
 		for so in r["stockouts"]:
 			body.add_child(U.para("%s se quedó sin mercadería a los %s. Un repositor lo evita." % [m.data.business_by_id[so["business"]]["name"], Fmt.duration(so["after"])], U.SIZE_SMALL, U.RED))
-	var ok := U.button("¡A seguir!", "verde", "", 30)
+	var ok := U.button("¡A seguir!", "celeste", "", 44)
 	body.add_child(ok)
 	var w := Main.instance.modal_host.open("Mientras no estabas", body, true, 300)
 	U.on_press(ok, w.close, "coin")

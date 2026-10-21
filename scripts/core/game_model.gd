@@ -672,6 +672,36 @@ func pending_order_eta(id: String) -> float:
 	return eta
 
 
+## Requisitos con progreso, para mostrar barras ("Kiosco nivel 10: 3/10").
+## Cada uno: {text, current, target, met, money (si se muestra como plata)}.
+func requirements_for_business(id: String) -> Array:
+	var u: Dictionary = data.business_by_id[id]["unlock"]
+	var out := []
+	if stage < int(u["stage"]):
+		out.append(_stage_requirement(int(u["stage"])))
+	var req = u.get("requires")
+	if req != null:
+		var rs: Dictionary = biz[req["business"]]
+		var lvl := int(rs["level"]) if rs["owned"] else 0
+		out.append({"text": "%s nivel %d" % [data.business_by_id[req["business"]]["name"], int(req["level"])],
+			"current": float(lvl), "target": float(req["level"]), "met": lvl >= int(req["level"]), "money": false})
+	return out
+
+
+func requirements_for_zone(zid: String) -> Array:
+	var z: Dictionary = data.zone_by_id[zid]
+	return [_stage_requirement(int(z["stage"]))] if stage < int(z["stage"]) else []
+
+
+func _stage_requirement(target_stage: int) -> Dictionary:
+	var need := 0.0
+	for st in data.stages:
+		if int(st["id"]) == target_stage:
+			need = float(st["earnings"])
+	return {"text": "Etapa %d: %s (ganá %s en total)" % [target_stage, data.stage_name(target_stage), Fmt.money(need)],
+		"current": float(economy.run_earned), "target": need, "met": false, "money": true}
+
+
 ## Requisitos para comprar un negocio.
 func unlock_status(id: String) -> Dictionary:
 	var def: Dictionary = data.business_by_id[id]

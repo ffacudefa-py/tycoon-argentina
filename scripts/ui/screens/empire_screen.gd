@@ -292,7 +292,7 @@ func _update() -> void:
 	# Botón principal contextual
 	var has := m.has_stock(bid)
 	if s.get("closed", false):
-		_set_main("open", "ABRIR EL PUESTO", "verde", "tienda", false)
+		_set_main("open", "ABRIR EL PUESTO", "celeste", "tienda", false)
 	elif not has and eta <= 0.0 and not d["auto_restock"]:
 		_set_main("restock", "REPONER MERCADERÍA · " + Fmt.cost(q["total"]), "amarillo", "camion", q["items"].is_empty())
 	elif not has:

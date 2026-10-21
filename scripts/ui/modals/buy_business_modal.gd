@@ -21,7 +21,7 @@ static func open(id: String) -> void:
 		v.add_child(U.label(z["name"], U.SIZE_SMALL, U.TEXT, true))
 		v.add_child(U.label("Demanda +%d %% · Competencia %d %%" % [int(bonus * 100), int(_comp(m, id, zid) * 100)], 9, U.TEXT_SOFT))
 		h.add_child(v)
-		var b := U.button("Abrir acá", "verde", "", 24, U.SIZE_SMALL)
+		var b := U.button("Abrir acá", "celeste", "tienda", 36, U.SIZE_SMALL)
 		var z_id: String = zid
 		U.on_press(b, func() -> void:
 			if Main.instance.result(m.buy_business(id, z_id)):

@@ -38,12 +38,11 @@ static func open(zid: String) -> void:
 	if st["unlocked"]:
 		body.add_child(U.para("Zona desbloqueada. Abrí o mudá negocios acá desde Negocios o Administrar.", U.SIZE_SMALL, U.GREEN))
 	else:
-		for r in st["reasons"]:
-			body.add_child(U.para("Requiere: " + r, U.SIZE_SMALL, U.RED))
-		var b := U.button("Desbloquear · " + Fmt.cost(st["cost"]), "verde", "candado", 32)
-		b.disabled = not st["available"] or not st["affordable"]
-		U.on_press(b, func() -> void:
+		for req in m.requirements_for_zone(zid):
+			body.add_child(UiColors.requirement_row(req))
+		var b := UiColors.buy_button("DESBLOQUEAR", st["cost"], func() -> void:
 			if Main.instance.result(m.unlock_zone(zid)):
-				w_ref[0].close(), "")
+				w_ref[0].close(), 44)
+		UiColors.set_cost(b, st["cost"], "" if st["available"] else "Falta cumplir lo de arriba")
 		body.add_child(b)
 	w_ref.append(Main.instance.modal_host.open(z["name"], body))

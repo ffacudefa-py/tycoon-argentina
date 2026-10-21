@@ -14,7 +14,7 @@ static func open() -> void:
 	le.virtual_keyboard_enabled = true
 	le.select_all_on_focus = true
 	body.add_child(le)
-	var ok := U.button("Guardar", "verde", "check", 30)
+	var ok := U.button("Guardar", "celeste", "check", 40)
 	body.add_child(ok)
 	var w := Main.instance.modal_host.open("Nombre de la empresa", body, true, 290)
 	var save := func() -> void:

@@ -109,14 +109,10 @@ func _locked_card(id: String) -> Control:
 	for p in def["products"]:
 		products.append(p["name"])
 	col.add_child(U.para("Vende: " + ", ".join(products) + ". Ciclo de %s." % Fmt.cycle(def["cycle"]), U.SIZE_SMALL, Color("c2c0d6") if dark else U.TEXT_SOFT))
-	for r in st["reasons"]:
-		var rr := U.hbox(3)
-		rr.add_child(U.icon("candado"))
-		rr.add_child(U.label("Requiere: " + r, U.SIZE_SMALL, Color("f07c6c"), true))
-		col.add_child(rr)
-	var buy := U.button("Abrir por " + Fmt.cost(st["cost"]), "verde", "tienda", 30)
-	buy.disabled = not st["available"] or not st["affordable"]
-	U.on_press(buy, func() -> void: BuyBusinessModal.open(id), "")
+	for req in m.requirements_for_business(id):
+		col.add_child(UiColors.requirement_row(req, dark))
+	var buy := UiColors.buy_button("ABRIR", st["cost"], func() -> void: BuyBusinessModal.open(id), 40)
+	UiColors.set_cost(buy, st["cost"], "" if st["available"] else "Falta cumplir lo de arriba")
 	col.add_child(buy)
 	_rows[id] = {"buy": buy}
 	return card
@@ -136,13 +132,19 @@ func _refresh() -> void:
 		var r: Dictionary = _rows[id]
 		if r.has("buy"):
 			var st := m.unlock_status(id)
-			r["buy"].disabled = not st["available"] or not st["affordable"]
+			UiColors.set_cost(r["buy"], st["cost"], "" if st["available"] else "Falta cumplir lo de arriba")
 			continue
 		var d := m.derive(id)
 		var s: Dictionary = m.biz[id]
 		r["level"].text = "Nv %d" % int(s["level"])
-		var state := "auto" if d["auto_sell"] else "manual"
+		var state := "vende solo" if d["auto_sell"] else "manual"
+		var color := UiColors.GAIN
 		if not m.has_stock(id) and s["orders"].is_empty():
-			state = "¡sin stock!"
-		r["info"].text = "%s · %s · %s" % [Fmt.per_sec(d["profit_sec"]), state, m.data.zone_by_id[s["zone"]]["name"]]
+			state = "¡SIN STOCK!"
+			color = UiColors.LOSS
+		elif m.stock_ratio(id) < 0.3 and not d["auto_restock"]:
+			state = "poco stock"
+			color = UiColors.WARN
+		r["info"].text = "+%s · %s" % [Fmt.per_sec(d["profit_sec"]), state]
+		r["info"].add_theme_color_override("font_color", color)
 		r["bar"].value = float(s["progress"]) / float(d["cycle"]) if s["running"] else 0.0

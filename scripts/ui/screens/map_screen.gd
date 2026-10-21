@@ -150,11 +150,13 @@ static func rival_card(rid: String) -> Control:
 		col.add_child(U.para("Último movimiento: " + st["last"], U.SIZE_SMALL, U.TEXT_SOFT))
 	var presence := RivalSystem.presence(m, rid)
 	var cd := float(st.get("cooldown", 0.0))
-	var b := U.button("Campaña · " + Fmt.cost(RivalSystem.campaign_cost(m)), "violeta", "bandera", 36, U.SIZE_SMALL)
-	b.disabled = cd > 0.0 or int(st["power"]) <= 1
+	var b := UiColors.buy_button("CAMPAÑA", RivalSystem.campaign_cost(m), func() -> void: Main.instance.result(RivalSystem.campaign(m, rid)), 36)
+	var why := ""
 	if cd > 0.0:
-		b.text = "Marketing descansa: " + Fmt.duration(cd)
-	U.on_press(b, func() -> void: Main.instance.result(RivalSystem.campaign(m, rid)), "")
+		why = "Marketing descansa: " + Fmt.duration(cd)
+	elif int(st["power"]) <= 1:
+		why = "Ya está en su mínimo"
+	UiColors.set_cost(b, RivalSystem.campaign_cost(m), why)
 	col.add_child(b)
 	if presence == 0:
 		col.add_child(U.para("Hoy no compite con ninguno de tus negocios.", U.SIZE_SMALL, U.TEXT_SOFT))

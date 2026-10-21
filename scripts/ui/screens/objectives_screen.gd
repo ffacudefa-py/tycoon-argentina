@@ -174,7 +174,7 @@ func _mission_card(mis: Dictionary, kind: String) -> Control:
 	if claimed:
 		foot.add_child(U.label("Reclamada", U.SIZE_SMALL, U.TEXT_SOFT, true))
 	elif completed:
-		var b := U.button("Reclamar", "verde", "regalo", 24, U.SIZE_SMALL)
+		var b := U.button("RECLAMAR", "verde", "regalo", 40, U.SIZE_BODY)
 		var mid: String = mis["id"]
 		U.on_press(b, func() -> void:
 			var r := ProgressionSystem.claim_daily_mission(m, mid) if kind == "daily" else ProgressionSystem.claim_mission(m, mid)
