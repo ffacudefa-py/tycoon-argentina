@@ -9,7 +9,7 @@ extends RefCounted
 ##
 ## done(image: Image, error: String). Si el usuario cancela: (null, "").
 
-const FILTERS := PackedStringArray(["*.png, *.jpg, *.jpeg, *.webp ; Imágenes"])
+const FILTERS := ["*.png, *.jpg, *.jpeg, *.webp ; Imágenes"]
 
 
 static func pick(host: Node, done: Callable) -> void:
@@ -17,7 +17,7 @@ static func pick(host: Node, done: Callable) -> void:
 	if use_native:
 		var start_dir := OS.get_system_dir(OS.SYSTEM_DIR_PICTURES)
 		var err := DisplayServer.file_dialog_show("Elegí una imagen", start_dir, "", false,
-			DisplayServer.FILE_DIALOG_MODE_OPEN_FILE, FILTERS,
+			DisplayServer.FILE_DIALOG_MODE_OPEN_FILE, PackedStringArray(FILTERS),
 			func(status: bool, paths: PackedStringArray, _filter: int) -> void:
 				# El resultado llega cuando Android devuelve el control al juego.
 				_on_picked.call_deferred(status, paths, done))
@@ -50,7 +50,7 @@ static func _godot_dialog(host: Node, done: Callable) -> void:
 	dlg.file_mode = FileDialog.FILE_MODE_OPEN_FILE
 	dlg.access = FileDialog.ACCESS_FILESYSTEM
 	dlg.use_native_dialog = false
-	dlg.filters = FILTERS
+	dlg.filters = PackedStringArray(FILTERS)
 	dlg.title = "Elegí una imagen"
 	dlg.current_dir = OS.get_system_dir(OS.SYSTEM_DIR_PICTURES)
 	var vp := host.get_viewport().get_visible_rect().size

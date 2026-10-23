@@ -26,6 +26,7 @@ config/icon="res://assets/pixel_art/logo/icono_192.png"
 Settings="*res://scripts/settings/settings.gd"
 Sfx="*res://scripts/audio/sfx.gd"
 Monetization="*res://scripts/monetization/monetization.gd"
+Auth="*res://scripts/auth/auth_service.gd"
 Game="*res://scripts/core/game.gd"
 
 [display]

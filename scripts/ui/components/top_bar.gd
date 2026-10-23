@@ -21,7 +21,8 @@ func _ready() -> void:
 	av_btn.focus_mode = Control.FOCUS_NONE
 	av_btn.custom_minimum_size = Vector2(36, 36)
 	_avatar = U.avatar(Game.m.profile["avatar"])
-	_avatar.position = Vector2(6, 6)
+	_avatar.position = Vector2(4, 4)
+	_avatar.size = Vector2(28, 28)
 	av_btn.add_child(_avatar)
 	U.on_press(av_btn, func() -> void: Main.instance.go_to(4))
 	row.add_child(av_btn)
@@ -58,7 +59,7 @@ func _ready() -> void:
 func _refresh_names() -> void:
 	var m := Game.m
 	_company.text = "%s · Etapa %d" % [m.profile["company"], m.stage]
-	_avatar.texture = U.tex("avatars/%s.png" % m.profile["avatar"])
+	ProfileWidgets.apply_avatar(_avatar)
 
 
 func _refresh_income() -> void:

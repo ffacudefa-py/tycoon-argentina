@@ -51,26 +51,52 @@ func rebuild() -> void:
 
 
 func _header() -> Control:
-	var card := U.panel("Card")
+	var card := U.panel("Card", 0)
+	var outer := U.vbox(0)
+	card.add_child(outer)
+	# Banner 3:1 con botón para cambiarlo
+	var banner_box := Control.new()
+	banner_box.custom_minimum_size.y = 96
+	banner_box.clip_contents = true
+	var banner := TextureRect.new()
+	ProfileWidgets.apply_banner(banner)
+	banner.set_anchors_preset(Control.PRESET_FULL_RECT)
+	banner.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	banner_box.add_child(banner)
+	var bbtn := U.button("Cambiar banner", "crema", "", 26, U.SIZE_SMALL)
+	bbtn.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+	bbtn.position = Vector2(-112, 6)
+	bbtn.custom_minimum_size.x = 106
+	U.on_press(bbtn, ProfileWidgets.banner_menu)
+	banner_box.add_child(bbtn)
+	outer.add_child(banner_box)
 	var row := U.hbox(8)
-	card.add_child(row)
+	outer.add_child(U.margin(row, 6, 6, 6, 6))
+	# Foto circular (o avatar pixel) que se toca para cambiar
 	var av := Button.new()
 	av.flat = true
 	av.focus_mode = Control.FOCUS_NONE
-	av.custom_minimum_size = Vector2(52, 52)
+	av.custom_minimum_size = Vector2(60, 60)
+	var ring := Panel.new()
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color("2e2b48")
+	sb.set_corner_radius_all(30)
+	sb.border_color = Color("f0eee6")
+	sb.set_border_width_all(2)
+	ring.add_theme_stylebox_override("panel", sb)
+	ring.set_anchors_preset(Control.PRESET_FULL_RECT)
+	ring.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	av.add_child(ring)
 	var big := TextureRect.new()
-	big.texture = U.tex("avatars/%s.png" % m.profile["avatar"])
-	big.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-	big.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	big.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	ProfileWidgets.apply_avatar(big)
 	big.set_anchors_preset(Control.PRESET_FULL_RECT)
-	big.offset_left = 2
-	big.offset_top = 2
-	big.offset_right = -2
-	big.offset_bottom = -2
+	big.offset_left = 3
+	big.offset_top = 3
+	big.offset_right = -3
+	big.offset_bottom = -3
 	big.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	av.add_child(big)
-	U.on_press(av, AvatarPicker.open)
+	U.on_press(av, ProfileWidgets.photo_menu)
 	row.add_child(av)
 	var col := U.vbox(2)
 	col.size_flags_horizontal = Control.SIZE_EXPAND_FILL

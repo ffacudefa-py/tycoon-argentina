@@ -25,6 +25,8 @@ func _ready() -> void:
 func _budget(n: int) -> int:
 	var q := Settings.fx_level()
 	var scaled: int = [n / 3, n * 2 / 3, n][q]
+	if Settings.get_value("reduce_motion"):
+		scaled = mini(scaled, 2)
 	return mini(scaled, MAX_PARTICLES - _alive)
 
 

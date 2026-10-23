@@ -103,6 +103,9 @@ static func button(text: String, style := "crema", icon_name := "", min_h := 26,
 ## del estilo) y vibra apenas. Sólo visual: no cambia el área táctil.
 static func press_feedback(b: BaseButton) -> void:
 	b.button_down.connect(func() -> void:
+		if Settings.get_value("reduce_motion"):
+			Sfx.vibrate(10)
+			return
 		b.pivot_offset = b.size / 2.0
 		var tw := b.create_tween()
 		tw.tween_property(b, "scale", Vector2(0.95, 0.95), 0.05)

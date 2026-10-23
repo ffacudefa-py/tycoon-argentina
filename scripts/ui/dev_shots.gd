@@ -40,6 +40,19 @@ func _run() -> void:
 	Game.reset_everything()
 	await get_tree().process_frame
 	main.modal_host.close_all()
+	main.start.open(false)
+	await _shot("00_inicio", 1.2)
+	LoginModal.open()
+	await _shot("00b_login", 0.5)
+	main.modal_host.close_all()
+	SettingsModal.open()
+	await _shot("00c_configuracion_inicio", 0.5)
+	main.modal_host.close_all()
+	main.start.enter_game()
+	await get_tree().create_timer(0.5).timeout
+	print("ENTRAR_JUEGO ", "OK" if not main.start.is_open() else "FALLÓ")
+	main.modal_host.close_all()          # resumen de "mientras no estabas"
+	await get_tree().create_timer(0.4).timeout   # que termine la animación de cierre
 	await _shot("01_paso1_abrir", 1.0)
 	# Misión guiada con TOQUES REALES (eventos de entrada) sobre el botón principal.
 	await _tap(main.targets["main"])
@@ -110,6 +123,31 @@ func _run() -> void:
 	main.modal_host.close_all()
 	main.go_to(0)
 	await _shot("13_fx_venta", 0.2)
+	AdsModal.open("puesto")
+	await _shot("14_bonos_anuncio", 0.5)
+	main.modal_host.close_all()
+	# Recorte con una imagen sintética (degradé + cuadrícula, 1200x800)
+	var img := Image.create(1200, 800, false, Image.FORMAT_RGBA8)
+	for y in 800:
+		for x in 1200:
+			img.set_pixel(x, y, Color.from_hsv(float(x) / 1200.0, 0.5, 0.6 + 0.4 * float(y) / 800.0) if (x / 100 + y / 100) % 2 == 0 else Color(0.95, 0.93, 0.9))
+	var crop := CropScreen.open("photo", img)
+	await _shot("15_recorte_foto", 0.6)
+	crop._zoom(1.6, crop._frame_center())
+	crop._confirm()
+	var crop2 := CropScreen.open("banner", img)
+	await _shot("16_recorte_banner", 0.6)
+	crop2._confirm()
+	main.go_to(4)
+	await _shot("17_perfil_con_foto", 0.6)
+	print("FOTO_GUARDADA ", "OK" if ProfileWidgets.has_photo() and ProfileWidgets.has_banner() else "FALLÓ")
+	ProfileImages.clear("photo")
+	ProfileImages.clear("banner")
+	m.set_profile_image("photo", false)
+	m.set_profile_image("banner", false)
+	main.go_to(0)
+	main.start.open(false)
+	await _shot("18_volver_al_inicio", 0.6)
 	get_tree().quit()
 
 

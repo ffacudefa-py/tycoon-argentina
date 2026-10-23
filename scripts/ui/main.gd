@@ -29,7 +29,9 @@ var modal_host: ModalHost
 var toasts: ToastHost
 var fx: FxLayer
 var tutorial: TutorialOverlay
+var start: StartScreen
 var _safe: MarginContainer
+var _back_armed := 0
 
 
 func _ready() -> void:
@@ -76,10 +78,12 @@ func _ready() -> void:
 	add_child(tutorial)
 	toasts = ToastHost.new()
 	add_child(toasts)
+	start = StartScreen.new()
+	add_child(start)
 
 	m.notify.connect(func(text: String, kind: String) -> void: toasts.show_toast(text, kind))
 	m.celebrate.connect(_on_celebrate)
-	Game.offline_report.connect(func(r: Dictionary) -> void: OfflineReport.open(r))
+	Game.offline_report.connect(_show_offline)
 	Game.model_reset.connect(_on_model_reset)
 	get_viewport().size_changed.connect(_apply_safe_area)
 	_apply_safe_area()
@@ -91,10 +95,19 @@ func _ready() -> void:
 			var shots := DevShots.new()
 			shots.out_dir = a.substr(8)
 			add_child(shots)
-	if not Game.pending_offline.is_empty():
-		var r := Game.pending_offline
-		Game.pending_offline = {}
-		OfflineReport.open.call_deferred(r)
+	# El resumen de "mientras no estabas" se muestra al entrar al juego.
+	start.entered.connect(func() -> void:
+		if not Game.pending_offline.is_empty():
+			var r := Game.pending_offline
+			Game.pending_offline = {}
+			OfflineReport.open(r))
+
+
+func _show_offline(r: Dictionary) -> void:
+	if start and start.is_open():
+		Game.pending_offline = r
+	else:
+		OfflineReport.open(r)
 
 
 ## Escala entera SIN bandas negras: el modo "integer" de Godot ajusta la
@@ -230,5 +243,18 @@ func _notification(what: int) -> void:
 	if what == NOTIFICATION_WM_GO_BACK_REQUEST:
 		if modal_host.close_top():
 			return
+		if start.is_open():
+			# En el inicio: dos toques de "atrás" seguidos para salir.
+			var now := Time.get_ticks_msec()
+			if now - _back_armed < 2000:
+				Game.save()
+				get_tree().quit()
+			else:
+				_back_armed = now
+				toast("Tocá atrás otra vez para salir.", "info")
+			return
 		if section != 0:
 			go_to(0)
+		else:
+			Game.save()
+			start.open()
