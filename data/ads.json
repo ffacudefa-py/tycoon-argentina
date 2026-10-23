@@ -1,0 +1,18 @@
+{
+ "_doc": "Anuncios recompensados (configuración centralizada). environment: 'auto' usa 'test' en builds de debug y 'production' en release. Los IDs de 'test' son los oficiales de prueba de Google AdMob y NUNCA deben usarse en producción. Para producción completá app_id y rewarded_unit con los de tu cuenta de AdMob (ver docs/ANUNCIOS.md) y poné el mismo app_id en Project Settings > admob/general/android/app_id.",
+ "environment": "auto",
+ "environments": {
+  "development": {"enabled": false, "app_id": "", "rewarded_unit": ""},
+  "test": {"enabled": true, "app_id": "ca-app-pub-3940256099942544~3347511713", "rewarded_unit": "ca-app-pub-3940256099942544/5224354917"},
+  "production": {"enabled": true, "app_id": "", "rewarded_unit": ""}
+ },
+ "official_test_ids": ["ca-app-pub-3940256099942544~3347511713", "ca-app-pub-3940256099942544/5224354917"],
+ "daily_limit": 12,
+ "retry_seconds": [5, 15, 30, 60, 120, 300],
+ "offers": [
+  {"id": "cash", "icon": "billete", "kind": "money", "title": "Ver anuncio y ganar {amount}", "description": "Recibís {amount} (5 minutos de tus ganancias) al terminar el anuncio.", "income_seconds": 300, "min": 500, "cooldown": 300},
+  {"id": "turbo", "icon": "rayo", "kind": "boost", "title": "Duplicar ganancias durante 10 minutos", "description": "Tus ingresos se multiplican x2 durante 10 minutos (no se acumula con otros turbos: suma tiempo).", "mult": 2.0, "seconds": 600, "cooldown": 900},
+  {"id": "restock", "icon": "camion", "kind": "restock", "title": "Mercadería gratis para {business}", "description": "Llena el depósito del negocio que estás viendo, sin costo y al instante (vale {amount}).", "cooldown": 600},
+  {"id": "daily_extra", "icon": "regalo", "kind": "daily_extra", "title": "Reclamar recompensa extra del día", "description": "Volvé a cobrar la recompensa diaria de hoy ({amount}). Una vez por día, después de reclamarla.", "income_seconds": 300, "min": 300, "cooldown": 0}
+ ]
+}

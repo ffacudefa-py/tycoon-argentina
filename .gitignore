@@ -3,3 +3,6 @@ build/
 *.tmp
 export_credentials.cfg
 .idea/
+/android/
+addons/admob/ios/
+addons/admob/downloads/

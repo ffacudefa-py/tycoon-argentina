@@ -4,7 +4,7 @@ extends SceneTree
 ## Opcional: -- --only=economy   (filtra por nombre de archivo)
 ## Sale con código 1 si alguna prueba falla.
 
-const DIRS := ["res://tests/economy", "res://tests/progression", "res://tests/persistence", "res://tests/ui"]
+const DIRS := ["res://tests/economy", "res://tests/progression", "res://tests/persistence", "res://tests/ads", "res://tests/profile", "res://tests/ui"]
 
 
 func _init() -> void:

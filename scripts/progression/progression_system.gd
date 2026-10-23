@@ -215,6 +215,7 @@ static func claim_daily_reward(m: GameModel) -> Dictionary:
 	m.daily_reward["last_day"] = day_index(m)
 	m.daily_reward["index"] = (int(m.daily_reward["index"]) + 1) % m.data.daily_rewards.size()
 	m._count("daily_claims", 1)
+	m.daily_reward["last_money"] = reward_money(m, entry["reward"])   # para el extra por anuncio
 	grant(m, entry["reward"], "recompensas")
 	m.celebrate.emit("daily", {"day": entry["day"]})
 	m.progress_changed.emit()

@@ -204,12 +204,9 @@ func _store() -> Control:
 	head.add_child(U.label("Tienda y bonos", U.SIZE_BODY, U.TEXT_LIGHT, true))
 	col.add_child(head)
 	col.add_child(U.para(Monetization.status_text(), U.SIZE_SMALL, Color("c2c0d6")))
-	if Monetization.rewarded_available():
-		for key in Monetization.REWARDED_PLACEMENTS:
-			var b := U.button(Monetization.REWARDED_PLACEMENTS[key]["title"], "amarillo", "", 26, U.SIZE_SMALL)
-			var k: String = key
-			U.on_press(b, func() -> void: Monetization.show_rewarded(k))
-			col.add_child(b)
+	var b := U.button("Bonos por anuncio", "amarillo", "regalo", 32, U.SIZE_SMALL)
+	U.on_press(b, func() -> void: AdsModal.open())
+	col.add_child(b)
 	return card
 
 

@@ -39,6 +39,7 @@ var missions := {}
 var daily_missions := {}
 var achievements := {}        ## id -> unix time de desbloqueo
 var daily_reward := {}
+var ads := {}                 ## registro de recompensas por anuncio (ver AdRewards)
 var events := {}
 var inflation := {}
 var rivals := {}
@@ -85,10 +86,12 @@ func now() -> float:
 func new_game() -> void:
 	prestige = {"points": 0, "spent": 0, "count": 0, "perks": {}}
 	achievements = {}
-	profile = {"company": "Mi Emprendimiento", "avatar": "emprendedor", "avatars": _default_avatars(), "milestones": []}
+	profile = {"company": "Mi Emprendimiento", "avatar": "emprendedor", "avatars": _default_avatars(), "milestones": [],
+		"photo": false, "banner": false}
 	counters = {}
 	stats = {"play_time": 0.0, "best_income": 0.0, "created": now()}
 	daily_reward = {"last_day": -1, "index": 0}
+	ads = {"granted": [], "day": -1, "today": 0, "cooldowns": {}}
 	tutorial = {"step": 0, "done": false}
 	missions = {"main_index": 0, "completed": {}, "claimed": {}}
 	daily_missions = {"day": -1, "list": [], "baseline": {}, "completed": {}, "claimed": {}}
@@ -839,6 +842,14 @@ func set_avatar(aid: String) -> Dictionary:
 	return ok()
 
 
+## Marca si el jugador tiene foto/banner propios (los archivos los maneja
+## ProfileImages en user://profile/).
+func set_profile_image(kind: String, on: bool) -> void:
+	if kind in ["photo", "banner"]:
+		profile[kind] = on
+		profile_changed.emit()
+
+
 func unlock_avatar(aid: String) -> bool:
 	if profile["avatars"].has(aid) or not data.avatar_by_id.has(aid):
 		return false
@@ -1005,6 +1016,7 @@ func to_dict() -> Dictionary:
 		"daily_missions": daily_missions.duplicate(true),
 		"achievements": achievements.duplicate(true),
 		"daily_reward": daily_reward.duplicate(true),
+		"ads": ads.duplicate(true),
 		"events": events.duplicate(true),
 		"inflation": inflation.duplicate(true),
 		"rivals": rivals.duplicate(true),
@@ -1059,6 +1071,11 @@ func from_dict(d: Dictionary) -> void:
 	daily_missions = _merge(daily_missions, d.get("daily_missions"))
 	achievements = _dict_or(d.get("achievements"), {})
 	daily_reward = _merge(daily_reward, d.get("daily_reward"))
+	ads = _merge(ads, d.get("ads"))
+	if not ads["granted"] is Array:
+		ads["granted"] = []
+	if not ads["cooldowns"] is Dictionary:
+		ads["cooldowns"] = {}
 	events = _merge(events, d.get("events"))
 	var valid_events := []
 	for ev in events.get("active", []):

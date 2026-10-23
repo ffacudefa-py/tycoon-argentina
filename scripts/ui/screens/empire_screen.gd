@@ -78,6 +78,13 @@ func _ready() -> void:
 		_update_view_btn())
 	scene_wrap.add_child(_view_btn)
 	_update_view_btn()
+	# Bonos voluntarios por anuncio (siempre visible; el modal explica el estado).
+	var ads_btn := U.button("BONOS", "amarillo", "regalo", 32, U.SIZE_SMALL)
+	ads_btn.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+	ads_btn.position = Vector2(-96, 42)
+	ads_btn.custom_minimum_size.x = 90
+	U.on_press(ads_btn, func() -> void: AdsModal.open(bid))
+	scene_wrap.add_child(ads_btn)
 	col.add_child(scene_wrap)
 
 	# --- Panel ---

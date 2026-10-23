@@ -1,7 +1,15 @@
 class_name NotConfiguredAdProvider
 extends AdProvider
-## Proveedor por defecto: no hay SDK de anuncios integrado todavía.
-## Nunca simula un anuncio ni entrega recompensas.
+## Proveedor nulo: anuncios desactivados (entorno de desarrollo, falta de
+## IDs en producción o plataforma sin SDK). Nunca simula un anuncio.
+
+var reason := "Los anuncios no están configurados."
+
+
+func _init(p_reason := "") -> void:
+	if p_reason != "":
+		reason = p_reason
+	last_error = reason
 
 
 func provider_name() -> String:
