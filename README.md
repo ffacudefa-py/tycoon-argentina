@@ -18,7 +18,7 @@ Godot 4.7.2 está instalado sin root en `~/.local/opt/godot` (`~/.local/bin/godo
 ## Pruebas
 
 ```bash
-tools/run_tests.sh                # 48 pruebas + humo de UI headless + toque real
+tools/run_tests.sh                # 74 pruebas + humo de UI headless + toques reales
 tools/run_tests.sh --only=balance # sólo la simulación de balance
 BALANCE_HOURS=4 tools/run_tests.sh --only=balance   # corrida más larga
 tools/screenshots.sh              # capturas reales de todas las pantallas (abre ventana)
@@ -26,18 +26,14 @@ tools/screenshots.sh              # capturas reales de todas las pantallas (abre
 
 ## Exportar a Android
 
-```bash
-godot --headless --path . --export-debug "Android" build/tycoon-argentina-debug.apk
-adb install -r build/tycoon-argentina-debug.apk
-```
-Requisitos (ya configurados en esta PC, ver `docs/ANDROID.md`):
-plantillas de exportación 4.7.2 (sólo los APK de Android), Android SDK en
-`~/Android/Sdk`, JDK 21 y keystore de debug en `~/.local/share/godot/keystores/`.
+Export con Gradle (por el SDK de anuncios). Comando completo, plantilla y firma en
+`docs/ANDROID.md`. Resultado: `build/tycoon-argentina-<versión>.apk`.
 
 ## Regenerar arte y sonido
 
 ```bash
-python3 tools/art/generate.py   # todo el pixel art + docs/art_preview.png
+python3 tools/art/pxl/build.py  # interiores, calles, inicio y efectos (PXL)
+python3 tools/art/generate.py   # personajes, íconos, logo, edificios de fachada
 python3 tools/sfx.py            # efectos de sonido sintetizados
 ```
 
@@ -47,6 +43,8 @@ python3 tools/sfx.py            # efectos de sonido sintetizados
 - `docs/ECONOMIA.md` — fórmulas, números grandes, balance y simulaciones.
 - `docs/ARTE.md` — dirección pixel art, resolución, spritesheets.
 - `docs/ANDROID.md` — exportación, firma, release.
-- `docs/MONETIZACION.md` — qué falta para anuncios/compras reales.
+- `docs/MONETIZACION.md` — anuncios recompensados (AdMob): estado, pruebas y producción.
+- `docs/CUENTAS.md` — cuentas con Firebase Auth.
+- `docs/PERFIL.md` — foto de perfil, banner, recorte y cómo probarlo.
 - `docs/PASSIDLE.md` — qué se tomó de PassIdle y qué no.
 - `docs/PENDIENTES.md` — lo que queda para próximas versiones.

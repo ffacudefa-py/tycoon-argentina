@@ -1,12 +1,15 @@
 # Android
 
-## Estado
+## Estado (v0.5.0)
 
-- APK de debug generado y firmado: `build/tycoon-argentina-debug.apk` (≈87 MB,
-  arm64-v8a + armeabi-v7a + x86_64, targetSdk 36, sólo permiso `VIBRATE`, vertical).
-- **No se probó todavía en un dispositivo ni en un emulador**: el AVD `Pixel_10_Pro`
-  de esta PC fue borrado (sólo quedó su `.ini`) y con ~1,5 GB libres no conviene crear
-  otro. La UI sí se probó renderizada a 360×699 y 1250×640 en escritorio.
+- Export **con Gradle** (necesario para el SDK de AdMob). APK
+  `build/tycoon-argentina-0.5.0.apk`: arm64-v8a + armeabi-v7a + x86_64,
+  librerías nativas comprimidas, targetSdk 36, vertical.
+- Permisos: `VIBRATE`, `INTERNET` y `ACCESS_NETWORK_STATE` (cuentas y anuncios).
+  La galería NO necesita permisos (selector del sistema).
+- Firmado con el keystore de debug de esta PC (el mismo de las versiones
+  anteriores), así que se instala **encima** de la 0.4 sin perder la partida.
+- Etiqueta `beta` en el preset → anuncios de prueba de Google (ver MONETIZACION.md).
 
 ## Instalar en un teléfono
 
@@ -25,27 +28,37 @@ adb install -r build/tycoon-argentina-debug.apk
   `export/android/android_sdk_path = ~/Android/Sdk`,
   keystore de debug `~/.local/share/godot/keystores/debug.keystore` (alias
   `androiddebugkey`, clave `android`). JDK 21 del sistema.
-- Preset en `export_presets.cfg` sin Gradle (no requiere `android_source.zip`).
+- Plantilla Gradle: `android/build/` (NO se versiona, 207 MB). Para recrearla:
+  `mkdir -p android/build && cd android/build && unzip ~/.local/share/godot/export_templates/4.7.2.stable/android_source.zip && cd .. && echo 4.7.2.stable > .build_version && touch build/.gdignore`
+  (o Editor → Proyecto → Instalar plantilla de compilación de Android).
+- Plugin AdMob en `addons/admob/` con sus AAR en `addons/admob/android/bin/`;
+  el editor lo activa desde `[editor_plugins]` en `project.godot`.
 
 ## Exportar
 
 ```bash
-godot --headless --path . --export-debug "Android" build/tycoon-argentina-debug.apk
+# APK beta (firma de debug, la misma de siempre; anuncios de prueba)
+GODOT_ANDROID_KEYSTORE_RELEASE_PATH=~/.local/share/godot/keystores/debug.keystore \
+GODOT_ANDROID_KEYSTORE_RELEASE_USER=androiddebugkey \
+GODOT_ANDROID_KEYSTORE_RELEASE_PASSWORD=android \
+godot --headless --path . --export-release "Android" build/tycoon-argentina-0.5.0.apk
 ```
+La primera compilación Gradle baja dependencias (~5–10 min); después tarda ~3 min.
 
-## Release (pendiente)
+## Publicar en Play Store (pendiente)
 
 1. Crear un keystore propio y guardarlo FUERA del repo:
    `keytool -genkeypair -keystore tycoon-release.jks -alias tycoon -keyalg RSA -keysize 2048 -validity 10000`
-2. En el preset (o variables `GODOT_ANDROID_KEYSTORE_RELEASE_PATH/USER/PASSWORD`)
-   configurar la firma release.
-3. `godot --headless --path . --export-release "Android" build/tycoon-argentina.apk`
-4. Para Play Store se necesita AAB: activar Gradle Build, bajar `android_source.zip`
-   de las plantillas (~215 MB) e instalar la plantilla en el proyecto.
+   (ojo: cambiar de firma obliga a desinstalar la versión beta).
+2. Usarlo con las variables `GODOT_ANDROID_KEYSTORE_RELEASE_*`.
+3. `gradle_build/export_format=1` para generar AAB.
+4. Quitar `beta` de `custom_features` y completar los IDs reales de AdMob.
 
 ## Detalles de plataforma
 
-- Botón "atrás": cierra el modal superior o vuelve a Imperio; nunca cierra el juego.
+- Botón "atrás": cierra el modal superior; si no hay, vuelve a Imperio; en Imperio
+  abre el menú principal; en el menú principal, dos toques seguidos cierran el juego
+  (guardando antes).
 - Guarda al pasar a segundo plano (`NOTIFICATION_APPLICATION_PAUSED`) y calcula el
   progreso offline al volver.
 - Respeta el área segura (notch y barra de gestos) con `get_display_safe_area()`.

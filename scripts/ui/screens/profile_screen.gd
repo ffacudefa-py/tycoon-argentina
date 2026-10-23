@@ -77,6 +77,7 @@ func _header() -> Control:
 	av.flat = true
 	av.focus_mode = Control.FOCUS_NONE
 	av.custom_minimum_size = Vector2(60, 60)
+	av.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	var ring := Panel.new()
 	var sb := StyleBoxFlat.new()
 	sb.bg_color = Color("2e2b48")

@@ -28,8 +28,9 @@ static func apply_avatar(tr: TextureRect) -> void:
 		tr.texture = U.tex("avatars/%s.png" % Game.m.profile["avatar"])
 		tr.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 		tr.material = null
+	# Centrado (nunca recortado): la foto es cuadrada, así el círculo queda entero.
 	tr.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	tr.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED if has_photo() else TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	tr.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 
 
 static func apply_banner(tr: TextureRect) -> void:

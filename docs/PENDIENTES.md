@@ -17,9 +17,9 @@
 
 ## Plataforma
 - Firma release y AAB para Play Store (ANDROID.md).
-- Cuentas y nube: el modelo se serializa con `GameModel.to_dict()`, así que basta un
-  servicio que suba/baje ese payload; no hay botones de login en esta versión.
-- Anuncios y compras reales (MONETIZACION.md).
+- Progreso y foto en la nube (hay cuentas reales desde la 0.5; ver CUENTAS.md).
+- IDs reales de AdMob y consentimiento UMP (MONETIZACION.md). Compras.
+- Probar anuncios de prueba y el selector de la galería en un teléfono físico.
 
 ## Conocido
 - Las capturas automáticas (`tools/screenshots.sh`) abren una ventana; el gestor de

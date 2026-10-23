@@ -1,5 +1,5 @@
 {
- "_doc": "Anuncios recompensados (configuración centralizada). environment: 'auto' usa 'test' en builds de debug y 'production' en release. Los IDs de 'test' son los oficiales de prueba de Google AdMob y NUNCA deben usarse en producción. Para producción completá app_id y rewarded_unit con los de tu cuenta de AdMob (ver docs/ANUNCIOS.md) y poné el mismo app_id en Project Settings > admob/general/android/app_id.",
+ "_doc": "Anuncios recompensados (configuración centralizada). environment: 'auto' usa 'test' en el APK beta (etiqueta 'beta' en custom_features del preset) y en builds de debug, y 'production' en release. Los IDs de 'test' son los oficiales de prueba de Google AdMob y NUNCA deben usarse en producción. Para producción completá app_id y rewarded_unit con los de tu cuenta de AdMob (ver docs/ANUNCIOS.md) y poné el mismo app_id en Project Settings > admob/general/android/app_id.",
  "environment": "auto",
  "environments": {
   "development": {"enabled": false, "app_id": "", "rewarded_unit": ""},

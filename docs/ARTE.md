@@ -52,3 +52,33 @@ calculan nada; con calidad baja o ahorro de energía se reducen.
 | Personajes (clientes y empleados) | 2.0 |
 | Los 12 negocios × 5 niveles, con animación | 2.0 (`buildings2.py`, limpieza automática de píxeles huérfanos) |
 | Íconos de productos 16×16, fondos de calle, mapa, avatares, marcos de UI | Paleta 1.0, pendientes (P2/P3 en docs/REDISENO.md) |
+
+
+## Pixel art con PXL (v0.5.0)
+
+Desde la 0.5 los escenarios se dibujan con **PXL** (skill `pxl-pixel-art`,
+`~/.claude/skills/pxl-pixel-art`, DSL de JavaScript que renderiza PNG; Node 22).
+Todo se regenera con:
+
+```bash
+python3 tools/art/pxl/build.py
+```
+
+| Fuente (`tools/art/pxl/`) | Qué dibuja |
+|---|---|
+| `palette.px.js` | Paleta 2.0 de 32 colores y rampas de sombreado |
+| `furniture.px.js` | ~65 muebles y equipos (mostradores, cajas, parrilla, cafetera, góndolas, autos, elevador, cintas, máquinas de gimnasio…) y animaciones `fx_*` |
+| `street.px.js` | Generador de fachadas porteñas (persianas, toldos, balcones, carteles, antenas, caños), baldosas con grietas y manchas, mobiliario urbano, colectivo animado |
+| `locations.px.js` | Las 7 calles de zona (480×200) y el fondo de inicio (400×720) |
+| `rooms.px.js` + `gen_interiors.py` | Los 60 interiores (12 rubros × 5 niveles, 400×170) en dos capas (`back` detrás de los empleados, `front` mostradores adelante) y `data/interiors.json` con puestos de trabajo, fila de clientes y efectos |
+
+Salida (`assets/pixel_art/`): `interiors/<negocio>_<nivel>_{back,front}.png`,
+`locations/street_<zona>.png`, `locations/start_bg.png`,
+`effects/<anim>.png` + `.json` (cuadros y duración).
+
+- La escena del negocio (`business_scene.gd`) tiene dos vistas: **adentro del
+  local** (por defecto) y **fachada** (botón FACHADA/ADENTRO o Configuración).
+- Los empleados contratados se paran en los puestos de `interiors.json` y usan
+  los cuadros de "trabajar"; los clientes entran y hacen fila según las ventas reales.
+- Escala entera siempre (filtro nearest), escenas centradas sin estirar.
+- Los fondos viejos (`backgrounds/`) quedan sólo como respaldo si falta una calle nueva.

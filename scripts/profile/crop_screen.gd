@@ -128,14 +128,17 @@ func _safe(side: String) -> int:
 	return Main.instance._safe.get_theme_constant("margin_" + side) if Main.instance and Main.instance._safe else 0
 
 
+## Máscara circular. `region` es la parte de la textura que se dibuja (en
+## coordenadas 0..1): con un AtlasTexture la UV recorre sólo esa región.
 static func circle_material() -> ShaderMaterial:
 	var sh := Shader.new()
 	sh.code = """shader_type canvas_item;
+uniform vec4 region = vec4(0.0, 0.0, 1.0, 1.0);
 void fragment() {
-	vec2 d = UV - vec2(0.5);
-	float r = length(d);
+	vec2 local = (UV - region.xy) / region.zw;
+	float r = length(local - vec2(0.5));
 	vec4 c = texture(TEXTURE, UV);
-	COLOR = vec4(c.rgb, c.a * (1.0 - smoothstep(0.49, 0.5, r)));
+	COLOR = vec4(c.rgb, c.a * (1.0 - smoothstep(0.485, 0.5, r)));
 }"""
 	var m := ShaderMaterial.new()
 	m.shader = sh
@@ -177,6 +180,9 @@ func _update_preview() -> void:
 	at.atlas = _img_rect.texture
 	at.region = Rect2(r)
 	_preview.texture = at
+	if _preview.material:
+		var isz := Vector2(image.get_size())
+		_preview.material.set_shader_parameter("region", Vector4(r.position.x / isz.x, r.position.y / isz.y, r.size.x / isz.x, r.size.y / isz.y))
 
 
 func _frame_center() -> Vector2:

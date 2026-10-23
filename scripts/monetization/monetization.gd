@@ -42,6 +42,7 @@ func _ready() -> void:
 	else:
 		# Se carga por ruta: las clases del plugin sólo existen con el SDK nativo.
 		use_provider(load("res://scripts/monetization/admob_ad_provider.gd").new())
+	print("[Anuncios] entorno=%s beta=%s proveedor=%s %s" % [cfg.environment, OS.has_feature("beta"), ads.provider_name(), ads.last_error])
 
 
 func use_provider(p: AdProvider) -> void:
