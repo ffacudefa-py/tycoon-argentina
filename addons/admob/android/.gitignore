@@ -1,2 +1,1 @@
-# Remove /bin folder line if you want to commit
-/bin
+# bin/ se versiona: contiene los AAR que necesita el export Gradle
