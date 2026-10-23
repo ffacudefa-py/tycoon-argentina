@@ -1,0 +1,64 @@
+{
+ "frames": {
+  "fx_neon_0": {
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 16
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 16
+   },
+   "duration": 1800
+  },
+  "fx_neon_1": {
+   "frame": {
+    "x": 48,
+    "y": 0,
+    "w": 48,
+    "h": 16
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 16
+   },
+   "duration": 200
+  }
+ },
+ "meta": {
+  "app": "pxl",
+  "image": "fx_neon.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 96,
+   "h": 16
+  },
+  "scale": "1",
+  "frameTags": [
+   {
+    "name": "fx_neon",
+    "from": 0,
+    "to": 1,
+    "direction": "forward"
+   }
+  ]
+ }
+}

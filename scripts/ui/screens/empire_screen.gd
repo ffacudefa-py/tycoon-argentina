@@ -34,6 +34,11 @@ var _holding := false
 var _timer := 0.0
 var _event_timer := 0
 var _main_action := ""
+var _view_btn: Button
+
+
+func _update_view_btn() -> void:
+	_view_btn.text = "FACHADA" if Settings.get_value("scene_view") == "interior" else "ADENTRO"
 
 
 func _ready() -> void:
@@ -63,6 +68,16 @@ func _ready() -> void:
 	_events_row = U.hbox(4)
 	_events_row.position = Vector2(6, 6)
 	scene_wrap.add_child(_events_row)
+	# Cambiar entre ver el local por dentro y la fachada en la calle.
+	_view_btn = U.button("", "crema", "", 32, U.SIZE_SMALL)
+	_view_btn.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+	_view_btn.position = Vector2(-96, 6)
+	_view_btn.custom_minimum_size.x = 90
+	U.on_press(_view_btn, func() -> void:
+		Settings.set_value("scene_view", "fachada" if Settings.get_value("scene_view") == "interior" else "interior")
+		_update_view_btn())
+	scene_wrap.add_child(_view_btn)
+	_update_view_btn()
 	col.add_child(scene_wrap)
 
 	# --- Panel ---

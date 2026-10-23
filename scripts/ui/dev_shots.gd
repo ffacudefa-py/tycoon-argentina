@@ -75,6 +75,11 @@ func _run() -> void:
 	await _shot("03b_imperio_automatizado", 1.2)
 	main.select_business("comida")
 	await _shot("04b_imperio_comida", 1.0)
+	main.select_business("kiosco")
+	await _shot("04c_imperio_kiosco_interior", 1.5)
+	Settings.set_value("scene_view", "fachada")
+	await _shot("04d_imperio_kiosco_fachada", 1.0)
+	Settings.set_value("scene_view", "interior")
 	main.select_business("puesto")
 	for i in 5:
 		main.go_to(i)

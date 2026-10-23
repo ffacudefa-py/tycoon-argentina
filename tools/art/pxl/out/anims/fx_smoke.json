@@ -1,0 +1,106 @@
+{
+ "frames": {
+  "fx_smoke_0": {
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 24,
+    "h": 34
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 24,
+    "h": 34
+   },
+   "sourceSize": {
+    "w": 24,
+    "h": 34
+   },
+   "duration": 200
+  },
+  "fx_smoke_1": {
+   "frame": {
+    "x": 24,
+    "y": 0,
+    "w": 24,
+    "h": 34
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 24,
+    "h": 34
+   },
+   "sourceSize": {
+    "w": 24,
+    "h": 34
+   },
+   "duration": 200
+  },
+  "fx_smoke_2": {
+   "frame": {
+    "x": 48,
+    "y": 0,
+    "w": 24,
+    "h": 34
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 24,
+    "h": 34
+   },
+   "sourceSize": {
+    "w": 24,
+    "h": 34
+   },
+   "duration": 200
+  },
+  "fx_smoke_3": {
+   "frame": {
+    "x": 72,
+    "y": 0,
+    "w": 24,
+    "h": 34
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 24,
+    "h": 34
+   },
+   "sourceSize": {
+    "w": 24,
+    "h": 34
+   },
+   "duration": 200
+  }
+ },
+ "meta": {
+  "app": "pxl",
+  "image": "fx_smoke.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 96,
+   "h": 34
+  },
+  "scale": "1",
+  "frameTags": [
+   {
+    "name": "fx_smoke",
+    "from": 0,
+    "to": 3,
+    "direction": "forward"
+   }
+  ]
+ }
+}

@@ -29,6 +29,11 @@ func set_value(key: String, value: Variant) -> void:
 
 func _apply(key: String) -> void:
 	match key:
+		"master_volume", "mute":
+			var master := AudioServer.get_bus_index("Master")
+			var mv := float(get_value("master_volume"))
+			AudioServer.set_bus_mute(master, bool(get_value("mute")) or mv <= 0.001)
+			AudioServer.set_bus_volume_db(master, linear_to_db(maxf(mv, 0.001)))
 		"sfx_enabled", "sfx_volume":
 			var bus := AudioServer.get_bus_index("SFX")
 			var vol := float(get_value("sfx_volume"))

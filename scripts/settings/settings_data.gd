@@ -4,6 +4,8 @@ extends RefCounted
 ## partida: sobreviven a reinicios y al prestigio).
 
 const DEFAULTS := {
+	"master_volume": 1.0,       ## volumen general
+	"mute": false,              ## silenciar todo
 	"sfx_enabled": true,
 	"sfx_volume": 0.8,
 	"vibration": true,
@@ -11,6 +13,9 @@ const DEFAULTS := {
 	"power_saver": false,       ## 30 FPS y menos animaciones ambientales
 	"confirm_irreversible": true,
 	"inflation": false,         ## inflación ficticia (experimental)
+	"scene_view": "interior",   ## vista del negocio: "interior" o "fachada"
+	"scene_anim": true,         ## animaciones del escenario (clientes, humo, neón...)
+	"reduce_motion": false,     ## accesibilidad: sin sacudidas ni rebotes de la interfaz
 }
 
 var path: String
@@ -31,6 +36,9 @@ func load() -> void:
 		if typeof(v) == typeof(DEFAULTS[k]) or (DEFAULTS[k] is float and v is int):
 			values[k] = v
 	values["sfx_volume"] = clampf(float(values["sfx_volume"]), 0.0, 1.0)
+	values["master_volume"] = clampf(float(values["master_volume"]), 0.0, 1.0)
+	if values["scene_view"] not in ["interior", "fachada"]:
+		values["scene_view"] = "interior"
 	values["fx_quality"] = clampi(int(values["fx_quality"]), 0, 2)
 
 

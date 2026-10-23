@@ -1,0 +1,106 @@
+{
+ "frames": {
+  "fx_foam_0": {
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 30,
+    "h": 16
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 30,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 30,
+    "h": 16
+   },
+   "duration": 167
+  },
+  "fx_foam_1": {
+   "frame": {
+    "x": 30,
+    "y": 0,
+    "w": 30,
+    "h": 16
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 30,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 30,
+    "h": 16
+   },
+   "duration": 167
+  },
+  "fx_foam_2": {
+   "frame": {
+    "x": 60,
+    "y": 0,
+    "w": 30,
+    "h": 16
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 30,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 30,
+    "h": 16
+   },
+   "duration": 167
+  },
+  "fx_foam_3": {
+   "frame": {
+    "x": 90,
+    "y": 0,
+    "w": 30,
+    "h": 16
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 30,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 30,
+    "h": 16
+   },
+   "duration": 167
+  }
+ },
+ "meta": {
+  "app": "pxl",
+  "image": "fx_foam.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 120,
+   "h": 16
+  },
+  "scale": "1",
+  "frameTags": [
+   {
+    "name": "fx_foam",
+    "from": 0,
+    "to": 3,
+    "direction": "forward"
+   }
+  ]
+ }
+}

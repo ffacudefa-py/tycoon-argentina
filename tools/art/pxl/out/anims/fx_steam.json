@@ -1,0 +1,85 @@
+{
+ "frames": {
+  "fx_steam_0": {
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 12,
+    "h": 18
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 12,
+    "h": 18
+   },
+   "sourceSize": {
+    "w": 12,
+    "h": 18
+   },
+   "duration": 250
+  },
+  "fx_steam_1": {
+   "frame": {
+    "x": 12,
+    "y": 0,
+    "w": 12,
+    "h": 18
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 12,
+    "h": 18
+   },
+   "sourceSize": {
+    "w": 12,
+    "h": 18
+   },
+   "duration": 250
+  },
+  "fx_steam_2": {
+   "frame": {
+    "x": 24,
+    "y": 0,
+    "w": 12,
+    "h": 18
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 12,
+    "h": 18
+   },
+   "sourceSize": {
+    "w": 12,
+    "h": 18
+   },
+   "duration": 250
+  }
+ },
+ "meta": {
+  "app": "pxl",
+  "image": "fx_steam.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 36,
+   "h": 18
+  },
+  "scale": "1",
+  "frameTags": [
+   {
+    "name": "fx_steam",
+    "from": 0,
+    "to": 2,
+    "direction": "forward"
+   }
+  ]
+ }
+}

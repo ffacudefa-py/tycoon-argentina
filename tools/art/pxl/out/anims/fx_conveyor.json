@@ -1,0 +1,106 @@
+{
+ "frames": {
+  "fx_conveyor_0": {
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 110,
+    "h": 10
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 110,
+    "h": 10
+   },
+   "sourceSize": {
+    "w": 110,
+    "h": 10
+   },
+   "duration": 125
+  },
+  "fx_conveyor_1": {
+   "frame": {
+    "x": 110,
+    "y": 0,
+    "w": 110,
+    "h": 10
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 110,
+    "h": 10
+   },
+   "sourceSize": {
+    "w": 110,
+    "h": 10
+   },
+   "duration": 125
+  },
+  "fx_conveyor_2": {
+   "frame": {
+    "x": 220,
+    "y": 0,
+    "w": 110,
+    "h": 10
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 110,
+    "h": 10
+   },
+   "sourceSize": {
+    "w": 110,
+    "h": 10
+   },
+   "duration": 125
+  },
+  "fx_conveyor_3": {
+   "frame": {
+    "x": 330,
+    "y": 0,
+    "w": 110,
+    "h": 10
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 110,
+    "h": 10
+   },
+   "sourceSize": {
+    "w": 110,
+    "h": 10
+   },
+   "duration": 125
+  }
+ },
+ "meta": {
+  "app": "pxl",
+  "image": "fx_conveyor.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 440,
+   "h": 10
+  },
+  "scale": "1",
+  "frameTags": [
+   {
+    "name": "fx_conveyor",
+    "from": 0,
+    "to": 3,
+    "direction": "forward"
+   }
+  ]
+ }
+}

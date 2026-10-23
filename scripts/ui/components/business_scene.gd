@@ -1,36 +1,52 @@
 class_name BusinessScene
 extends Control
-## Diorama pixel art del negocio seleccionado: calle de su zona, edificio
-## según su nivel visual, empleados trabajando y clientes que van y vienen.
+## Escena pixel art del negocio seleccionado. Dos vistas:
 ##
-## Todo es DECORATIVO: la cantidad de clientes refleja la actividad real
-## (ventas por segundo) pero no calcula nada. Con calidad baja o ahorro de
-## energía se reduce la cantidad de personajes.
+## - INTERIOR (por defecto): corte del local hecho con PXL (pared, piso y
+##   muebles según el rubro y el nivel), empleados en sus puestos de trabajo
+##   (data/interiors.json), mostradores en primer plano, animaciones del
+##   ambiente (humo, vapor, neón, TV...) y clientes que entran y hacen fila.
+## - FACHADA: la calle de la zona con el edificio del negocio y peatones.
+##
+## Todo es DECORATIVO: la cantidad de clientes sigue las ventas reales, pero
+## nada de esto calcula la economía. Con calidad baja o "animaciones del
+## escenario" desactivadas se reducen los personajes y se congelan los efectos.
 
 const H := 170
-const ART_H := 200          ## alto del arte; se recorta el cielo de arriba
+## Fachada: el arte de la calle mide 480x200 y se recorta el cielo.
+const ART_H := 200
 const BG_W := 480
-## Escala 2.0: 1 m = 24 px. Edificios 192x150 (2 cuadros), personas 32x48.
 const BUILDING_BASE_Y := 168
-const WALK_Y := 178          ## pies de los peatones (borde de la vereda)
-const WORKER_Y := 171        ## pies de los empleados, frente al local
+const WALK_Y := 178
+const WORKER_Y := 171
+## Interior: lienzo 400x170.
+const INT_W := 400
 const CHAR_W := 32
-const CHAR_FEET := 46        ## fila de los pies dentro del cuadro
-const MAX_WALKERS := [2, 5, 9]
+const CHAR_FEET := 46
+const MAX_WALKERS := [2, 5, 8]
+
+static var _interiors := {}
 
 var bid := ""
+var view := "interior"
+var _world: Node2D
 var _bg: Sprite2D
 var _building: Sprite2D
+var _int_back: Sprite2D
+var _int_front: Sprite2D
+var _fx_layer: Node2D
 var _people: Node2D
-var _workers: Array[Sprite2D] = []
+var _customers: Node2D
+var _workers: Array = []          ## [{sprite, station}]
 var _walkers: Array = []
+var _fx: Array = []               ## [{sprite, durations, t}]
+var _bus: Sprite2D
+var _bus_t := 12.0
 var _spawn_t := 0.0
 var _anim_t := 0.0
 var _last_tier := -1
 var _last_float := 0
-var _dog: Sprite2D
-var _dog_dir := 1.0
-var _world: Node2D
+var _closed: Label
 
 
 func _init() -> void:
@@ -41,29 +57,57 @@ func _init() -> void:
 
 func _ready() -> void:
 	_world = Node2D.new()
-	_world.position = Vector2(0, H - ART_H)
 	add_child(_world)
-	_bg = Sprite2D.new()
-	_bg.centered = false
-	_world.add_child(_bg)
-	_building = Sprite2D.new()
-	_building.centered = false
-	_world.add_child(_building)
+	_bg = _sprite(_world)
+	_bus = _sprite(_world)
+	_bus.texture = U.tex("effects/colectivo_anim.png")
+	if _bus.texture:
+		_bus.hframes = 2
+	_bus.visible = false
+	_building = _sprite(_world)
+	_int_back = _sprite(_world)
+	_fx_layer = Node2D.new()
+	_world.add_child(_fx_layer)
 	_people = Node2D.new()
 	_world.add_child(_people)
-	_dog = Sprite2D.new()
-	_dog.texture = U.tex("characters/dog.png")
-	_dog.hframes = 4
-	_dog.centered = false
-	_dog.visible = false
-	_world.add_child(_dog)
+	_int_front = _sprite(_world)
+	_customers = Node2D.new()
+	_world.add_child(_customers)
 	resized.connect(_layout)
+	view = str(Settings.get_value("scene_view"))
 	var m := Game.m
-	m.business_changed.connect(func(id: String) -> void:
-		if id == bid:
-			refresh())
+	m.business_changed.connect(_on_business_changed)
 	m.sale.connect(_on_sale)
 	m.businesses_changed.connect(refresh)
+	Settings.changed.connect(_on_setting)
+
+
+func _sprite(parent: Node) -> Sprite2D:
+	var s := Sprite2D.new()
+	s.centered = false
+	s.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	parent.add_child(s)
+	return s
+
+
+func _on_business_changed(id: String) -> void:
+	if id == bid:
+		refresh()
+
+
+func _on_setting(key: String, _v: Variant) -> void:
+	if key == "scene_view":
+		set_view(str(Settings.get_value("scene_view")))
+
+
+static func interiors_data() -> Dictionary:
+	if _interiors.is_empty():
+		var f := FileAccess.open("res://data/interiors.json", FileAccess.READ)
+		if f:
+			var d = JSON.parse_string(f.get_as_text())
+			if d is Dictionary:
+				_interiors = d
+	return _interiors
 
 
 func set_business(id: String) -> void:
@@ -71,10 +115,22 @@ func set_business(id: String) -> void:
 		return
 	bid = id
 	_last_tier = -1
+	_clear_walkers()
+	refresh()
+
+
+func set_view(v: String) -> void:
+	if v == view:
+		return
+	view = v
+	_clear_walkers()
+	refresh()
+
+
+func _clear_walkers() -> void:
 	for w in _walkers:
 		w["sprite"].queue_free()
 	_walkers.clear()
-	refresh()
 
 
 func refresh() -> void:
@@ -83,50 +139,137 @@ func refresh() -> void:
 	var m := Game.m
 	var s: Dictionary = m.biz[bid]
 	var d := m.derive(bid)
-	_bg.texture = U.tex("backgrounds/street_%s.png" % s["zone"])
 	var tier: int = d["tier"]
-	_building.texture = U.tex("businesses/%s_%d.png" % [bid, tier])
-	_building.hframes = 2 if _building.texture and _building.texture.get_width() >= 384 else 1
+	var interior := view == "interior"
+	_bg.visible = not interior
+	_building.visible = not interior
+	_int_back.visible = interior
+	_int_front.visible = interior
+	_bus.visible = false
+	if interior:
+		_int_back.texture = U.tex("interiors/%s_%d_back.png" % [bid, tier])
+		_int_front.texture = U.tex("interiors/%s_%d_front.png" % [bid, tier])
+	else:
+		var loc := "locations/street_%s.png" % s["zone"]
+		_bg.texture = U.tex(loc) if ResourceLoader.exists(U.PA + loc) else U.tex("backgrounds/street_%s.png" % s["zone"])
+		_building.texture = U.tex("businesses/%s_%d.png" % [bid, tier])
+		_building.hframes = 2 if _building.texture and _building.texture.get_width() >= 384 else 1
 	if _last_tier >= 0 and tier > _last_tier:
 		_tier_flash()
 	_last_tier = tier
+	_rebuild_fx(tier)
+	_rebuild_workers(tier)
 	_closed_sign(s.get("closed", false))
-	_rebuild_workers()
 	_layout()
+
+
+func _tier_info(tier: int) -> Dictionary:
+	var all: Dictionary = interiors_data().get("businesses", {})
+	var tiers: Array = all.get(bid, [])
+	return tiers[tier] if tier < tiers.size() else {"stations": [], "queue": [], "fx": []}
+
+
+func _origin_x() -> float:
+	return floor((size.x - INT_W) / 2.0)
 
 
 func _layout() -> void:
 	var w := size.x
-	_bg.position = Vector2(floor((w - BG_W) / 2.0), 0)
-	_building.position = Vector2(floor(w / 2.0) - 96, BUILDING_BASE_Y - 149)
-	var team := Game.m.employees_of(bid) if bid != "" else []
-	for i in _workers.size():
-		var off: int = [-44, 40, -78, 74][i % 4]
-		_workers[i].position = Vector2(floor(w / 2.0) + off - CHAR_W / 2, WORKER_Y - CHAR_FEET)
+	if view == "interior":
+		_world.position = Vector2.ZERO
+		_int_back.position = Vector2(_origin_x(), 0)
+		_int_front.position = _int_back.position
+	else:
+		_world.position = Vector2(0, H - ART_H)
+		_bg.position = Vector2(floor((w - BG_W) / 2.0), 0)
+		_building.position = Vector2(floor(w / 2.0) - 96, BUILDING_BASE_Y - 149)
+	_place_workers()
+	_place_fx()
 
 
-func _rebuild_workers() -> void:
+# ---------------------------------------------------------------- empleados
+
+func _rebuild_workers(tier: int) -> void:
 	for wk in _workers:
-		wk.queue_free()
+		wk["sprite"].queue_free()
 	_workers.clear()
 	var team := Game.m.employees_of(bid)
 	var shown := []
 	if team.is_empty():
-		# Sin empleados atiende el dueño (vos).
-		shown.append({"variant": 0, "owner": true})
+		shown.append({"variant": 0})          # sin empleados atiende el dueño (vos)
 	else:
-		for e in team.slice(0, 4):
-			shown.append({"variant": int(e["variant"]), "owner": false})
-	for info in shown:
-		var sp := Sprite2D.new()
-		sp.texture = U.tex("characters/worker_%d.png" % info["variant"])
+		for e in team:
+			shown.append({"variant": int(e["variant"]), "role": e["role"]})
+	var stations: Array = _tier_info(tier).get("stations", [])
+	var limit: int = stations.size() if view == "interior" else 4
+	for i in mini(shown.size(), maxi(1, limit)):
+		var sp := _sprite(_people)
+		sp.texture = U.tex("characters/worker_%d.png" % shown[i]["variant"])
 		sp.hframes = 10
 		sp.frame = 4
-		sp.centered = false
-		_people.add_child(sp)
-		_workers.append(sp)
-	_layout()
+		var st: Dictionary = stations[i] if i < stations.size() else {}
+		sp.flip_h = bool(st.get("flip", false))
+		_workers.append({"sprite": sp, "station": st, "index": i})
+	_place_workers()
 
+
+func _place_workers() -> void:
+	var w := size.x
+	for wk in _workers:
+		var sp: Sprite2D = wk["sprite"]
+		if view == "interior" and not wk["station"].is_empty():
+			var st: Dictionary = wk["station"]
+			sp.position = Vector2(_origin_x() + float(st["x"]) - CHAR_W / 2, float(st["y"]) - CHAR_FEET)
+		else:
+			var off: int = [-44, 40, -78, 74][int(wk["index"]) % 4]
+			sp.position = Vector2(floor(w / 2.0) + off - CHAR_W / 2, WORKER_Y - CHAR_FEET)
+
+
+# ---------------------------------------------------------------- efectos
+
+func _rebuild_fx(tier: int) -> void:
+	for f in _fx:
+		f["sprite"].queue_free()
+	_fx.clear()
+	if view != "interior":
+		return
+	for e in _tier_info(tier).get("fx", []):
+		var path := "effects/%s.png" % e["anim"]
+		var tex := U.tex(path)
+		if tex == null:
+			continue
+		var meta := {"frames": 1, "durations_ms": [100]}
+		var jf := FileAccess.open(U.PA + "effects/%s.json" % e["anim"], FileAccess.READ)
+		if jf:
+			var parsed = JSON.parse_string(jf.get_as_text())
+			if parsed is Dictionary:
+				meta = parsed
+		var sp := _sprite(_fx_layer)
+		sp.texture = tex
+		sp.hframes = maxi(1, int(meta["frames"]))
+		_fx.append({"sprite": sp, "x": float(e["x"]), "y": float(e["y"]), "durations": meta["durations_ms"], "t": randf() * 0.5, "frame": 0})
+	_place_fx()
+
+
+func _place_fx() -> void:
+	for f in _fx:
+		f["sprite"].position = Vector2(_origin_x() + f["x"], f["y"])
+
+
+func _animate_fx(delta: float) -> void:
+	if Settings.fx_level() == 0 or not Settings.get_value("scene_anim"):
+		return
+	for f in _fx:
+		var durs: Array = f["durations"]
+		f["t"] = float(f["t"]) + delta
+		var cur: int = f["frame"]
+		if f["t"] * 1000.0 >= float(durs[cur % durs.size()]):
+			f["t"] = 0.0
+			f["frame"] = (cur + 1) % maxi(1, durs.size())
+			f["sprite"].frame = f["frame"]
+
+
+# ---------------------------------------------------------------- bucle
 
 func _process(delta: float) -> void:
 	if bid == "" or not is_visible_in_tree():
@@ -136,43 +279,53 @@ func _process(delta: float) -> void:
 	var s: Dictionary = m.biz[bid]
 	_anim_t += delta
 	var tick := int(_anim_t / 0.25)
-	if _building.hframes > 1:
-		# toldo que flamea, luces y humo: 2 cuadros a ~2,5 fps (con baja calidad, quieto)
-		_building.frame = int(_anim_t * 2.5) % 2 if Settings.fx_level() > 0 else 0
-	var busy: bool = s["running"]
-	for i in _workers.size():
-		_workers[i].frame = (6 + (tick + i) % 2) if busy else (4 + int(_anim_t / 0.8 + i) % 2)
+	var anim_on := Settings.fx_level() > 0 and bool(Settings.get_value("scene_anim"))
+	if _building.visible and _building.hframes > 1:
+		_building.frame = int(_anim_t * 2.5) % 2 if anim_on else 0
+	var busy: bool = s["running"] or (d["auto_sell"] and m.has_stock(bid))
+	for wk in _workers:
+		var i: int = wk["index"]
+		wk["sprite"].frame = (6 + (tick + i) % 2) if busy else (4 + int(_anim_t / 0.8 + i) % 2)
+	_animate_fx(delta)
+	_update_bus(delta, anim_on)
 
 	# Clientes: frecuencia según ventas reales por segundo (sólo visual).
 	var level := Settings.fx_level()
-	var max_w: int = MAX_WALKERS[level]
-	var rate := 0.0
-	if d["auto_sell"] and m.has_stock(bid):
-		rate = clampf(1.0 / float(d["cycle"]), 0.15, 0.9)
-	elif busy:
+	var max_w: int = MAX_WALKERS[level] if anim_on else 1
+	var rate := 0.08
+	if s.get("closed", false):
+		rate = 0.0
+	elif d["auto_sell"] and m.has_stock(bid):
+		rate = clampf(1.0 / float(d["cycle"]), 0.15, 0.8)
+	elif s["running"]:
 		rate = 0.6
-	else:
-		rate = 0.08
 	_spawn_t += delta * rate
 	if _spawn_t >= 1.0 and _walkers.size() < max_w:
 		_spawn_t = 0.0
 		_spawn_walker()
 	_update_walkers(delta)
-	_update_dog(delta, level)
 
 
 func _spawn_walker() -> void:
-	var sp := Sprite2D.new()
+	var w := size.x
+	var parent: Node2D = _customers if view == "interior" else _people
+	var sp := _sprite(parent)
 	sp.texture = U.tex("characters/customer_%d.png" % (randi() % 8))
 	sp.hframes = 10
-	sp.centered = false
 	var dir := 1.0 if randf() < 0.5 else -1.0
-	var w := size.x
-	sp.position = Vector2(-float(CHAR_W) if dir > 0 else w, WALK_Y - CHAR_FEET + randi() % 3)
+	var y: float
+	var stop_x: float
+	if view == "interior":
+		var q: Array = _tier_info(_last_tier).get("queue", [[INT_W / 2, 164]])
+		var spot: Array = q[randi() % q.size()]
+		y = float(spot[1]) - CHAR_FEET + randi() % 3
+		stop_x = _origin_x() + float(spot[0]) - CHAR_W / 2 + randf_range(-10, 10)
+	else:
+		y = WALK_Y - CHAR_FEET + randi() % 3
+		stop_x = floor(w / 2.0) + randf_range(-30, 30) - CHAR_W / 2
+	sp.position = Vector2(-float(CHAR_W) if dir > 0 else w, y)
 	sp.flip_h = dir < 0
-	_people.add_child(sp)
-	var stop_x: float = floor(w / 2.0) + randf_range(-30, 30) - CHAR_W / 2
-	_walkers.append({"sprite": sp, "dir": dir, "speed": randf_range(26, 40), "state": "walk", "stop_x": stop_x, "t": 0.0, "shop": randf() < 0.75})
+	_walkers.append({"sprite": sp, "dir": dir, "speed": randf_range(26, 40), "state": "walk", "stop_x": stop_x, "t": 0.0, "shop": randf() < 0.8})
 
 
 func _update_walkers(delta: float) -> void:
@@ -189,41 +342,48 @@ func _update_walkers(delta: float) -> void:
 				if wk["shop"] and passed:
 					wk["state"] = "shop"
 					wk["t"] = 0.0
+					sp.flip_h = false if view == "interior" else sp.flip_h
 			"shop":
 				sp.frame = 4 + int(float(wk["t"]) * 2.0) % 2
-				if float(wk["t"]) > randf_range(0.8, 1.6):
+				if float(wk["t"]) > randf_range(1.0, 2.0):
 					wk["state"] = "leave"
 					wk["shop"] = false
+					sp.flip_h = float(wk["dir"]) < 0
 			"leave":
 				sp.position.x += float(wk["dir"]) * float(wk["speed"]) * delta
 				sp.frame = int(float(wk["t"]) * 8.0) % 4
-		sp.position.x = round(sp.position.x * 1.0)
+		sp.position.x = round(sp.position.x)
 		if sp.position.x < -CHAR_W - 4 or sp.position.x > w + 4:
 			sp.queue_free()
 			_walkers.remove_at(i)
 
 
-func _update_dog(delta: float, level: int) -> void:
-	if level < 2 or Game.m.biz[bid]["zone"] not in ["barrio", "universidad", "costanera"]:
-		_dog.visible = false
+## Colectivo que pasa por la calle cada tanto (sólo en la vista de fachada).
+func _update_bus(delta: float, anim_on: bool) -> void:
+	if view == "interior" or not anim_on or _bus.texture == null:
+		_bus.visible = false
 		return
-	if not _dog.visible:
-		if randf() < delta * 0.03:
-			_dog.visible = true
-			_dog_dir = 1.0 if randf() < 0.5 else -1.0
-			_dog.position = Vector2(-16.0 if _dog_dir > 0 else size.x, WALK_Y + 6)
-			_dog.flip_h = _dog_dir < 0
+	if not _bus.visible:
+		_bus_t -= delta
+		if _bus_t <= 0.0:
+			_bus.visible = true
+			_bus.position = Vector2(size.x + 10, 140)
 		return
-	_dog.position.x = round(_dog.position.x + _dog_dir * 34.0 * delta)
-	_dog.frame = int(_anim_t * 10.0) % 4
-	if _dog.position.x < -20 or _dog.position.x > size.x + 4:
-		_dog.visible = false
+	_bus.position.x = round(_bus.position.x - 70.0 * delta)
+	_bus.frame = int(_anim_t * 6.0) % 2
+	if _bus.position.x < -130:
+		_bus.visible = false
+		_bus_t = randf_range(20.0, 40.0)
 
 
 func _on_sale(id: String, revenue: int) -> void:
 	if id != bid or not is_visible_in_tree() or Main.instance == null:
 		return
-	var center := get_global_rect().position + Vector2(size.x / 2.0, 90 - (ART_H - H))
+	var center := get_global_rect().position + Vector2(size.x / 2.0, 60)
+	if view == "interior":
+		var q: Array = _tier_info(_last_tier).get("queue", [])
+		if not q.is_empty():
+			center = get_global_rect().position + Vector2(_origin_x() + float(q[0][0]), 96)
 	var now := Time.get_ticks_msec()
 	if now - _last_float > 350:
 		_last_float = now
@@ -235,14 +395,12 @@ func _on_sale(id: String, revenue: int) -> void:
 func _tier_flash() -> void:
 	if Main.instance == null:
 		return
-	var center := get_global_rect().position + Vector2(size.x / 2.0, 80)
+	var center := get_global_rect().position + Vector2(size.x / 2.0, 70)
 	Main.instance.fx.sparkle_burst(center, 10)
-	_building.modulate = Color(2, 2, 2)
-	var tw := create_tween()
-	tw.tween_property(_building, "modulate", Color.WHITE, 0.4)
-
-
-var _closed: Label
+	for n in [_building, _int_back, _int_front]:
+		n.modulate = Color(2, 2, 2)
+		var tw := create_tween()
+		tw.tween_property(n, "modulate", Color.WHITE, 0.4)
 
 
 ## Cartel "CERRADO" mientras el puesto no se abrió (misión guiada, paso 1).
@@ -259,4 +417,7 @@ func _closed_sign(on: bool) -> void:
 		add_child(_closed)
 	_closed.visible = on
 	_closed.position = Vector2(floor(size.x / 2.0) - 44, 54)
-	_building.modulate = Color(0.6, 0.6, 0.7) if on else Color.WHITE
+	var dim := Color(0.6, 0.6, 0.7) if on else Color.WHITE
+	_building.modulate = dim
+	_int_back.modulate = dim
+	_int_front.modulate = dim

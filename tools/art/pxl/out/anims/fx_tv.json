@@ -1,0 +1,85 @@
+{
+ "frames": {
+  "fx_tv_0": {
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 36,
+    "h": 24
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 36,
+    "h": 24
+   },
+   "sourceSize": {
+    "w": 36,
+    "h": 24
+   },
+   "duration": 333
+  },
+  "fx_tv_1": {
+   "frame": {
+    "x": 36,
+    "y": 0,
+    "w": 36,
+    "h": 24
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 36,
+    "h": 24
+   },
+   "sourceSize": {
+    "w": 36,
+    "h": 24
+   },
+   "duration": 333
+  },
+  "fx_tv_2": {
+   "frame": {
+    "x": 72,
+    "y": 0,
+    "w": 36,
+    "h": 24
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 36,
+    "h": 24
+   },
+   "sourceSize": {
+    "w": 36,
+    "h": 24
+   },
+   "duration": 333
+  }
+ },
+ "meta": {
+  "app": "pxl",
+  "image": "fx_tv.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 108,
+   "h": 24
+  },
+  "scale": "1",
+  "frameTags": [
+   {
+    "name": "fx_tv",
+    "from": 0,
+    "to": 2,
+    "direction": "forward"
+   }
+  ]
+ }
+}
