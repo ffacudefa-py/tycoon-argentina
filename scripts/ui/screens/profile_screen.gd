@@ -46,7 +46,7 @@ func rebuild() -> void:
 	U.on_press(se, func() -> void: SettingsModal.open())
 	row.add_child(se)
 	_col.add_child(row)
-	_col.add_child(U.para("Tycoon Argentina v%s · Progreso guardado sólo en este dispositivo (sin cuentas ni nube por ahora). Fuente Pixelify Sans (licencia OFL). Arte, sonidos y nombres originales y ficticios." % ProjectSettings.get_setting("application/config/version"), U.SIZE_SMALL, Color("8c8aa8")))
+	_col.add_child(U.para("Tycoon Argentina v%s · Progreso guardado en este dispositivo (la cuenta todavía no sube la partida a la nube). Fuente Pixelify Sans (licencia OFL). Arte, sonidos y nombres originales y ficticios." % ProjectSettings.get_setting("application/config/version"), U.SIZE_SMALL, Color("8c8aa8")))
 	_refresh()
 
 
