@@ -186,7 +186,7 @@ func _profile_card() -> Control:
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var av := TextureRect.new()
 	ProfileWidgets.apply_avatar(av)
-	av.custom_minimum_size = Vector2(40, 40)
+	av.custom_minimum_size = Vector2(32, 32)
 	av.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	av.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	row.add_child(av)
@@ -196,6 +196,7 @@ func _profile_card() -> Control:
 	info.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var n := U.label(Game.m.profile["company"], U.SIZE_BODY, U.TEXT, true)
 	n.clip_text = true
+	n.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	info.add_child(n)
 	var e := U.label(Auth.email, U.SIZE_SMALL, U.TEXT_SOFT)
 	e.clip_text = true

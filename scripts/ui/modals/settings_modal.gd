@@ -21,6 +21,7 @@ static func open() -> void:
 	body.add_child(_toggle("Animaciones del escenario (clientes, humo, neón)", "scene_anim", "persona"))
 	body.add_child(_toggle("Ahorro de energía (30 FPS, menos animaciones)", "power_saver", "rayo"))
 	body.add_child(U.label("Vista del negocio", U.SIZE_SMALL, U.TEXT, true))
+	body.add_child(U.para("Los puestos al aire libre (mesita, carrito, lavadero abierto) se ven siempre desde la calle.", U.SIZE_SMALL, U.TEXT_SOFT))
 	body.add_child(U.tabs(["Adentro del local", "Fachada"], func(i: int) -> void: Settings.set_value("scene_view", ["interior", "fachada"][i]), 0 if Settings.get_value("scene_view") == "interior" else 1))
 	# --- Juego y accesibilidad
 	body.add_child(_section("Juego y accesibilidad", "estrella"))

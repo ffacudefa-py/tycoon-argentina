@@ -18,6 +18,10 @@ const ART_H := 200
 const BG_W := 480
 const BUILDING_BASE_Y := 168
 const WALK_Y := 178
+## Calzada de la calle (asfalto entre y=186 y 200 del arte): el colectivo apoya
+## las ruedas acá y se dibuja DELANTE del negocio y de los peatones.
+const ROAD_Y := 198
+const BUS_SPEED := 110.0
 const WORKER_Y := 171
 ## Interior: lienzo 400x170.
 const INT_W := 400
@@ -28,6 +32,9 @@ const MAX_WALKERS := [2, 5, 8]
 static var _interiors := {}
 
 var bid := ""
+## Vista elegida en Configuración; `view` es la que se muestra de verdad
+## (los niveles sin local cerrado siempre se ven desde la calle).
+var preferred_view := "interior"
 var view := "interior"
 var _world: Node2D
 var _bg: Sprite2D
@@ -59,11 +66,6 @@ func _ready() -> void:
 	_world = Node2D.new()
 	add_child(_world)
 	_bg = _sprite(_world)
-	_bus = _sprite(_world)
-	_bus.texture = U.tex("effects/colectivo_anim.png")
-	if _bus.texture:
-		_bus.hframes = 2
-	_bus.visible = false
 	_building = _sprite(_world)
 	_int_back = _sprite(_world)
 	_fx_layer = Node2D.new()
@@ -73,8 +75,14 @@ func _ready() -> void:
 	_int_front = _sprite(_world)
 	_customers = Node2D.new()
 	_world.add_child(_customers)
+	_bus = _sprite(_world)
+	_bus.texture = U.tex("effects/colectivo_anim.png")
+	if _bus.texture:
+		_bus.hframes = 2
+	_bus.visible = false
 	resized.connect(_layout)
-	view = str(Settings.get_value("scene_view"))
+	preferred_view = str(Settings.get_value("scene_view"))
+	view = preferred_view
 	var m := Game.m
 	m.business_changed.connect(_on_business_changed)
 	m.sale.connect(_on_sale)
@@ -100,6 +108,15 @@ func _on_setting(key: String, _v: Variant) -> void:
 		set_view(str(Settings.get_value("scene_view")))
 
 
+## ¿El nivel visual tiene local con interior? La mesita, el carrito y el
+## lavadero a cielo abierto no: ahí no se puede cambiar a "adentro".
+static func has_interior(id: String, tier: int) -> bool:
+	var tiers: Array = interiors_data().get("businesses", {}).get(id, [])
+	if tier < 0 or tier >= tiers.size():
+		return true
+	return bool(tiers[tier].get("has_interior", true))
+
+
 static func interiors_data() -> Dictionary:
 	if _interiors.is_empty():
 		var f := FileAccess.open("res://data/interiors.json", FileAccess.READ)
@@ -120,10 +137,7 @@ func set_business(id: String) -> void:
 
 
 func set_view(v: String) -> void:
-	if v == view:
-		return
-	view = v
-	_clear_walkers()
+	preferred_view = v
 	refresh()
 
 
@@ -140,6 +154,10 @@ func refresh() -> void:
 	var s: Dictionary = m.biz[bid]
 	var d := m.derive(bid)
 	var tier: int = d["tier"]
+	var shown := preferred_view if has_interior(bid, tier) else "fachada"
+	if shown != view:
+		view = shown
+		_clear_walkers()
 	var interior := view == "interior"
 	_bg.visible = not interior
 	_building.visible = not interior
@@ -367,11 +385,11 @@ func _update_bus(delta: float, anim_on: bool) -> void:
 		_bus_t -= delta
 		if _bus_t <= 0.0:
 			_bus.visible = true
-			_bus.position = Vector2(size.x + 10, 140)
+			_bus.position = Vector2(size.x + 10, ROAD_Y - _bus.texture.get_height())
 		return
-	_bus.position.x = round(_bus.position.x - 70.0 * delta)
+	_bus.position.x = round(_bus.position.x - BUS_SPEED * delta)
 	_bus.frame = int(_anim_t * 6.0) % 2
-	if _bus.position.x < -130:
+	if _bus.position.x < -float(_bus.texture.get_width()) / _bus.hframes - 10:
 		_bus.visible = false
 		_bus_t = randf_range(20.0, 40.0)
 
@@ -387,9 +405,11 @@ func _on_sale(id: String, revenue: int) -> void:
 	var now := Time.get_ticks_msec()
 	if now - _last_float > 350:
 		_last_float = now
-		Main.instance.fx.coin_burst(center, 3)
+		Main.instance.fx.coin_burst(center, 2)
 		Main.instance.fx.float_text(center + Vector2(randf_range(-20, 20), -10), "+" + Fmt.money(revenue))
-		Sfx.play("coin", randf_range(0.95, 1.1), 0.12)
+		# Las monedas vuelan al saldo; el "clinc" suena cuando llegan.
+		var bar := Main.instance.top_bar
+		Main.instance.fx.coin_fly(center, bar.money_anchor(), 2, bar.coin_landed)
 
 
 func _tier_flash() -> void:

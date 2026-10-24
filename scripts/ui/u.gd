@@ -13,10 +13,12 @@ const GREEN := Color("2f7d4a")
 const RED := Color("a8323a")
 const BG := Color("1b1830")
 
-const SIZE_SMALL := 12
-const SIZE_BODY := 14
-const SIZE_TITLE := 18
-const SIZE_BIG := 24
+## Tamaños pensados para VT323 (alta y angosta): mismo ancho de línea que
+## la fuente anterior, letras más altas.
+const SIZE_SMALL := 16
+const SIZE_BODY := 18
+const SIZE_TITLE := 24
+const SIZE_BIG := 32
 
 static var _tex_cache := {}
 static var font_regular: Font
@@ -52,7 +54,7 @@ static func icon32(name: String) -> TextureRect:
 static func label(text: String, size := SIZE_BODY, color := TEXT, bold := false, align := HORIZONTAL_ALIGNMENT_LEFT) -> Label:
 	var l := Label.new()
 	l.text = text
-	# Nunca por debajo del mínimo legible (12 px virtuales ≈ 14 sp a ×3).
+	# Nunca por debajo del mínimo legible (16 px virtuales de VT323).
 	l.add_theme_font_size_override("font_size", maxi(size, SIZE_SMALL))
 	l.add_theme_color_override("font_color", color)
 	if bold and font_bold:

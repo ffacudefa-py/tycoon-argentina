@@ -11,6 +11,7 @@ Empleados detrás del mostrador: pies en y=134. Clientes: pies en y~164.
 """
 import json
 import os
+import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(HERE, "..", "..", ".."))
@@ -195,7 +196,7 @@ def lavadero(t):
     if t >= 3:
         L.counter("_counter_metal", 300, 1)
         L.put("_desk_pc", 296, WALL)
-        L.wall_item("_poster", 330, 20)
+        L.wall_item("_poster", 300, 20)
     if t >= 4:
         L.wall_item("_fileteado_sign", 150, 6)
         L.put("_plant", 376, 150)
@@ -218,7 +219,7 @@ def almacen(t):
         L.wall_item("_clock", 210, 18)
         L.put("_shelf_almacen", 290, WALL)
     if t >= 3:
-        L.put("_fridge_drinks", 352, WALL)
+        L.put("_fridge_drinks", 30, WALL)
         L.wall_item("_fileteado_sign", 150, 8)
         L.on_counter("_mate_set", 1)
         L.counter("_counter_glass", 220, 1)
@@ -297,7 +298,7 @@ def supermercado(t):
         L.counter("_checkout", 230, 1)
         L.wall_item("_poster", 180, 10)
     if t >= 4:
-        L.put("_fridge_drinks", 340, WALL)
+        L.put("_fridge_drinks", 40, WALL)
         L.put("_cart", 370, 160)
         L.fx_at("fx_tv", 160, 12)
     ceiling_lamps(L, min(4, 2 + t))
@@ -365,7 +366,7 @@ def mensajeria(t):
     if t >= 3:
         L.put("_conveyor", 30, 156)
         L.fx_at("fx_conveyor", 31, 128)
-        L.put("_scooter", 350, 156)
+        L.put("_scooter", 296, 156)
     if t >= 4:
         L.wall_item("_clock", 200, 16)
         L.put("_water_cooler", 360, WALL)
@@ -383,8 +384,8 @@ def distribuidora(t):
         L.put("_forklift", 160, 146)
         L.station(186, 128, "stand")
     if t >= 2:
-        L.put("_dock_door", 300, WALL - 4)
-        L.put("_pallet_rack", 210, WALL + 10)
+        L.put("_dock_door", 262, WALL - 4)
+        L.put("_pallet_rack", 176, WALL + 10)
     if t >= 3:
         L.put("_conveyor", 110, 156)
         L.fx_at("fx_conveyor", 111, 128)
@@ -426,6 +427,33 @@ def add_wall_shelves(L, n):
             placed += 1
 
 
+## Niveles sin local cerrado (mesita, carrito, lavadero a cielo abierto): el
+## juego muestra sólo la vista de calle y oculta el botón FACHADA/ADENTRO.
+NO_INTERIOR = {"puesto": 2, "comida": 2, "lavadero": 2}
+
+
+## Objetos con letras: no pueden quedar cortados por el borde de la pantalla
+## (en 360 px de ancho se ven x=20..380 del lienzo) ni debajo de los botones
+## FACHADA/BONOS (íconos) de arriba a la derecha (x=338..380, y<80).
+TEXT_PARTS = {"_chalkboard", "_dock_door", "_freezer", "_fridge_drinks", "_gondola", "_jersey", "_neon_open",
+              "_poster", "_price_board", "_scooter", "_vacuum", "fx_neon"}
+VISIBLE_X = (20, 380)
+BUTTONS = (338, 0, 380, 80)
+
+
+def check_text_items(name, L):
+    errs = []
+    items = [(p, x, y, *SZ[p]) for p, x, y in L.back + L.front if p in TEXT_PARTS]
+    items += [(e["anim"], e["x"], e["y"], *FX[e["anim"]]) for e in L.fx if e["anim"] in TEXT_PARTS]
+    for p, x, y, w, h in items:
+        if x < VISIBLE_X[0] or x + w > VISIBLE_X[1]:
+            errs.append(f"{name}: {p} en x={x} queda cortado por el borde")
+        bx0, by0, bx1, by1 = BUTTONS
+        if x < bx1 and x + w > bx0 and y < by1 and y + h > by0:
+            errs.append(f"{name}: {p} en ({x},{y}) queda debajo de los botones")
+    return errs
+
+
 def js_items(items):
     return ", ".join(f'stamp("{p}", {x}, {y})' for p, x, y in items)
 
@@ -434,6 +462,7 @@ def main():
     js = ['// GENERADO por gen_interiors.py — no editar a mano.', 'include("furniture.px.js")', 'include("rooms.px.js")', ""]
     meta = {"_doc": "Generado por tools/art/pxl/gen_interiors.py. Coordenadas en píxeles del lienzo 400x170 de cada interior.",
             "size": [W, H], "behind_y": BEHIND, "queue_y": QUEUE_Y, "businesses": {}}
+    errors = []
     for bid, fn in BUSINESSES.items():
         tiers = []
         for t in range(5):
@@ -441,6 +470,7 @@ def main():
             if not L.outdoor and bid in RETAIL:
                 add_wall_shelves(L, 1 if t < 2 else 2)
             name = f"int_{bid}_{t}"
+            errors += check_text_items(name, L)
             js.append(f'scene("{name}", {{ w: {W}, h: {H}, bg: "u", layers: true }},')
             js.append(f'  layer("back", room("{L.wall}", "{L.floor}", {str(L.outdoor).lower()}, {t}), {js_items(L.back) or "px(0, 0, \".\")"}),')
             js.append(f'  layer("front", {js_items(L.front) or "px(0, 0, \".\")"}))')
@@ -448,11 +478,14 @@ def main():
                 L.queue.append([W // 2, QUEUE_Y])
             if not L.stations:
                 L.station(W // 2, BEHIND, "counter")
-            tiers.append({"stations": L.stations, "queue": L.queue, "fx": L.fx, "outdoor": L.outdoor})
+            tiers.append({"stations": L.stations, "queue": L.queue, "fx": L.fx, "outdoor": L.outdoor,
+                          "has_interior": t > NO_INTERIOR.get(bid, -1)})
         meta["businesses"][bid] = tiers
-    open(os.path.join(HERE, "interiors.px.js"), "w").write("\n".join(js) + "\n")
-    with open(os.path.join(ROOT, "data", "interiors.json"), "w", encoding="utf-8") as f:
+    open(os.path.join(HERE, "interiors.px.js"), "w", encoding="utf-8", newline="\n").write("\n".join(js) + "\n")
+    with open(os.path.join(ROOT, "data", "interiors.json"), "w", encoding="utf-8", newline="\n") as f:
         json.dump(meta, f, ensure_ascii=False, indent=1)
+    if errors:
+        sys.exit("Carteles fuera de lugar:\n  " + "\n  ".join(errors))
     print("ok:", len(BUSINESSES) * 5, "interiores")
 
 

@@ -212,16 +212,18 @@ def awning(cv, x, y, w, ramp_a, f, depth=11):
 
 
 def sign(cv, cx, y, label, ramp="noche", ornate=False, lit_frame=None):
+    # Marco interior a 2 px del borde y 2 px de aire alrededor del texto (con
+    # sombra y tilde incluidas), así ninguna letra pisa ni cruza el marco.
     tw = text_width(label)
-    w = tw + 14
-    h = 15
+    w = tw + 16
+    h = 17
     x = cx - w // 2
     s, m, l, hi = RAMP[ramp]
     cv.rect(x, y, w, h, m)
     cv.hline(x, y, w, l)
     cv.hline(x, y + h - 1, w, s)
     cv.frame(x + 2, y + 2, w - 4, h - 4, "Y2")
-    text(cv, label, x + 7, y + 4, "Y3", "o")
+    text(cv, label, x + 8, y + 6, "Y3", "o")
     cv.frame(x - 1, y - 1, w + 2, h + 2, "o")
     if ornate:   # fileteado: volutas en los extremos
         for ex, d in ((x - 2, -1), (x + w + 1, 1)):
@@ -378,10 +380,12 @@ def storefront(cv, cx, w, floors, mat, sign_text, sign_ramp, aw_ramp, kind, t, f
             balcony(cv, x + 6, fy + 52, w - 12)
     sign(cv, cx, y + 5, sign_text, sign_ramp, ornate=t >= 2, lit_frame=f if t >= 3 else None)
     if neon:
-        nx = x + 6
-        ny = gy - 2 if floors == 1 else G - floor_h - 14
-        on = f == 0
         tw = text_width(neon)
+        # Cartel de neón colgado en la vidriera de planta baja, dentro de la fachada.
+        nx = x + 10
+        ny = gy + 21
+        assert nx + tw + 7 <= x + w - 36, f"neón '{neon}' no entra en la fachada"
+        on = f == 0
         cv.rect(nx, ny, tw + 6, 11, "u")
         cv.frame(nx - 1, ny - 1, tw + 8, 13, "o")
         text(cv, neon, nx + 3, ny + 2, "R3" if on else "R1", "u")
@@ -518,10 +522,10 @@ def kiosco(t, f):
         cv.hline(x + 4, G - 32, w - 8, "M4")
         for yy in range(G - 26, G):
             cv.hline(x + 6, yy, w - 12, "g" if yy % 2 else "d")    # persiana baja del mostrador
-        sign(cv, cx, G - h + 8, "KIOSCO", "rojo", ornate=t >= 2, lit_frame=f if t >= 2 else None)
         if t >= 1:
-            awning(cv, x + 2, G - 82, w - 4, "rojo", f, 9)
+            awning(cv, x + 2, G - 80, w - 4, "rojo", f, 9)
             fridge(cv, x + w + 4, G - 42, "rojo")
+        sign(cv, cx, G - h + 7, "KIOSCO", "rojo", ornate=t >= 2, lit_frame=f if t >= 2 else None)
         if t >= 2:
             # revistero con figuritas
             cv.rect(x - 24, G - 26, 18, 27, "M2")

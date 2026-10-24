@@ -37,8 +37,12 @@ var _main_action := ""
 var _view_btn: Button
 
 
+## El botón sólo aparece si el nivel actual tiene local por dentro.
 func _update_view_btn() -> void:
-	_view_btn.text = "FACHADA" if Settings.get_value("scene_view") == "interior" else "ADENTRO"
+	_view_btn.visible = BusinessScene.has_interior(bid, int(m.derive(bid)["tier"]))
+	var inside: bool = Settings.get_value("scene_view") == "interior"
+	_view_btn.icon = U.icon_tex("edificio" if inside else "mostrador")
+	_view_btn.tooltip_text = "Ver la fachada" if inside else "Ver adentro del local"
 
 
 func _ready() -> void:
@@ -57,32 +61,32 @@ func _ready() -> void:
 	_scene.set_anchors_preset(Control.PRESET_FULL_RECT)
 	scene_wrap.add_child(_scene)
 	_prev_btn = U.icon_button("izquierda", "crema", 36)
-	_prev_btn.position = Vector2(6, 64)
+	_prev_btn.position = Vector2(6, 90)
 	U.on_press(_prev_btn, func() -> void: _cycle_business(-1))
 	scene_wrap.add_child(_prev_btn)
 	_next_btn = U.icon_button("derecha", "crema", 36)
 	_next_btn.set_anchors_preset(Control.PRESET_TOP_RIGHT)
-	_next_btn.position = Vector2(-42, 64)
+	_next_btn.position = Vector2(-42, 90)
 	U.on_press(_next_btn, func() -> void: _cycle_business(1))
 	scene_wrap.add_child(_next_btn)
 	_events_row = U.hbox(4)
 	_events_row.position = Vector2(6, 6)
 	scene_wrap.add_child(_events_row)
-	# Cambiar entre ver el local por dentro y la fachada en la calle.
-	_view_btn = U.button("", "crema", "", 32, U.SIZE_SMALL)
+	# Cambiar entre ver el local por dentro y la fachada en la calle. Botones
+	# de ícono chicos para tapar lo menos posible del escenario.
+	_view_btn = U.icon_button("edificio", "crema", 34)
 	_view_btn.set_anchors_preset(Control.PRESET_TOP_RIGHT)
-	_view_btn.position = Vector2(-96, 6)
-	_view_btn.custom_minimum_size.x = 90
+	_view_btn.position = Vector2(-40, 6)
 	U.on_press(_view_btn, func() -> void:
 		Settings.set_value("scene_view", "fachada" if Settings.get_value("scene_view") == "interior" else "interior")
 		_update_view_btn())
 	scene_wrap.add_child(_view_btn)
 	_update_view_btn()
 	# Bonos voluntarios por anuncio (siempre visible; el modal explica el estado).
-	var ads_btn := U.button("BONOS", "amarillo", "regalo", 32, U.SIZE_SMALL)
+	var ads_btn := U.icon_button("regalo", "amarillo", 34)
+	ads_btn.tooltip_text = "Bonos por anuncio"
 	ads_btn.set_anchors_preset(Control.PRESET_TOP_RIGHT)
-	ads_btn.position = Vector2(-96, 42)
-	ads_btn.custom_minimum_size.x = 90
+	ads_btn.position = Vector2(-40, 44)
 	U.on_press(ads_btn, func() -> void: AdsModal.open(bid))
 	scene_wrap.add_child(ads_btn)
 	col.add_child(scene_wrap)
@@ -120,6 +124,8 @@ func _ready() -> void:
 	_chip_stock.icon = U.icon32_tex("caja")
 	_chip_stock.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_chip_stock.size_flags_stretch_ratio = 1.0
+	_chip_stock.clip_text = true
+	_chip_stock.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	U.on_press(_chip_stock, _on_restock, "")
 	chips.add_child(_chip_stock)
 	body.add_child(chips)
@@ -285,6 +291,7 @@ func _update() -> void:
 	var s: Dictionary = m.biz[bid]
 	var d := m.derive(bid)
 	_name.text = def["name"]
+	_update_view_btn()
 	_level.text = "Nv %d" % int(s["level"])
 	_sub.text = ["Atendés vos", "Vende solo", "Vende y repone solo", "Gestión total"][int(d["automation"])] + " · " + m.data.zone_by_id[s["zone"]]["name"]
 	if _stars.get_child_count() == 0:
@@ -309,7 +316,7 @@ func _update() -> void:
 		_chip_stock.text = "%s\nlleno" % pct
 		_chip_stock.theme_type_variation = "Btn_crema"
 	else:
-		_chip_stock.text = "%s\nreponer %s" % [pct, Fmt.cost(q["total"])]
+		_chip_stock.text = "%s · reponer\n%s" % [pct, Fmt.cost(q["total"])]
 		# amarillo = aviso (stock bajo), rojo = sin stock
 		_chip_stock.theme_type_variation = "Btn_rojo" if ratio <= 0.001 else ("Btn_amarillo" if ratio < 0.3 else "Btn_crema")
 

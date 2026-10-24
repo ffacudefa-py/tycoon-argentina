@@ -2,13 +2,29 @@ class_name TopBar
 extends PanelContainer
 ## Barra superior: la plata es lo más grande de la pantalla; debajo, la
 ## ganancia por segundo en verde. Avatar (→ Perfil) y ajustes a los costados.
+##
+## El saldo es un contador de tragamonedas (SlotCounter): las monedas de cada
+## venta vuelan hasta acá, el número da un saltito al recibirlas y los
+## premios grandes (misiones, anuncios, ganancias offline...) hacen girar
+## todos los rodillos con lluvia de monedas. Todo es sólo visual.
 
-var _money_label: Label
+## Un ingreso que no es una venta común cuenta como "premio grande" si suma
+## al menos esta fracción del saldo anterior (y un mínimo absoluto).
+const JACKPOT_RATIO := 0.2
+const JACKPOT_MIN := 100
+## Cada cuánto se actualizan los rodillos con las ventas automáticas.
+const ROLL_EVERY := 0.3
+
+var _money: SlotCounter
+var _coin: TextureRect
 var _income_label: Label
 var _company: Label
 var _avatar: TextureRect
-var _shown_money := 0.0
 var _timer := 0.0
+var _roll_t := 0.0
+var _combo := 0
+var _last_land := 0
+var _jackpot_until := 0
 
 
 func _ready() -> void:
@@ -21,8 +37,8 @@ func _ready() -> void:
 	av_btn.focus_mode = Control.FOCUS_NONE
 	av_btn.custom_minimum_size = Vector2(36, 36)
 	_avatar = U.avatar(Game.m.profile["avatar"])
-	_avatar.position = Vector2(4, 4)
-	_avatar.size = Vector2(28, 28)
+	_avatar.position = Vector2(2, 2)
+	_avatar.size = Vector2(32, 32)
 	av_btn.add_child(_avatar)
 	U.on_press(av_btn, func() -> void: Main.instance.go_to(4))
 	row.add_child(av_btn)
@@ -31,11 +47,15 @@ func _ready() -> void:
 	center.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_company = U.label("", U.SIZE_SMALL, Color("c9c7da"))
 	_company.clip_text = true
+	_company.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	center.add_child(_company)
 	var mrow := U.hbox(4)
-	mrow.add_child(U.icon("moneda"))
-	_money_label = U.label("$0", U.SIZE_BIG, Color.WHITE, true)
-	mrow.add_child(_money_label)
+	_coin = U.icon("moneda")
+	mrow.add_child(_coin)
+	_money = SlotCounter.new()
+	_money.font_size = U.SIZE_BIG
+	_money.reel_stopped.connect(_on_reel_stopped)
+	mrow.add_child(_money)
 	_income_label = U.label("", U.SIZE_SMALL, Color("8ccb6c"), true)
 	_income_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_income_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
@@ -50,10 +70,16 @@ func _ready() -> void:
 
 	var m := Game.m
 	m.profile_changed.connect(_refresh_names)
-	Game.model_reset.connect(_refresh_names)
-	_shown_money = float(m.economy.money)
+	m.money_changed.connect(_on_money_changed)
+	Game.model_reset.connect(_on_reset)
+	_money.set_text(Fmt.money(m.economy.money), false)
 	_refresh_names()
 	_refresh_income()
+
+
+func _on_reset() -> void:
+	_money.set_text(Fmt.money(Game.m.economy.money), false)
+	_refresh_names()
 
 
 func _refresh_names() -> void:
@@ -74,17 +100,73 @@ func _refresh_income() -> void:
 	_refresh_names()
 
 
-## El saldo "corre" hasta el valor real en vez de saltar (sólo visual).
+## Centro del saldo en pantalla: ahí van a parar las monedas que vuelan.
+func money_anchor() -> Vector2:
+	return _coin.get_global_rect().get_center()
+
+
+func _animations_on() -> bool:
+	return not Settings.get_value("reduce_motion")
+
+
 func _process(delta: float) -> void:
-	var target := float(Game.m.economy.money)
-	if absf(_shown_money - target) > 0.5:
-		_shown_money = lerpf(_shown_money, target, minf(1.0, delta * 10.0))
-		if absf(_shown_money - target) < 1.0:
-			_shown_money = target
-	else:
-		_shown_money = target
-	_money_label.text = Fmt.money(_shown_money)
+	_roll_t += delta
+	var now := Time.get_ticks_msec()
+	if _roll_t >= ROLL_EVERY and now >= _jackpot_until:
+		_roll_t = 0.0
+		_money.set_text(Fmt.money(Game.m.economy.money), _animations_on())
 	_timer += delta
 	if _timer > 0.5:
 		_timer = 0.0
 		_refresh_income()
+
+
+func _on_money_changed(money: int, delta: int) -> void:
+	if delta <= 0:
+		return
+	var ledger: Array = Game.m.economy.ledger
+	var cat: String = ledger[-1]["cat"] if not ledger.is_empty() else ""
+	var before := money - delta
+	if cat != "ventas" and delta >= JACKPOT_MIN and float(delta) >= float(before) * JACKPOT_RATIO:
+		jackpot(delta)
+
+
+## Una moneda de una venta llegó al saldo: saltito y "clinc" que sube de tono
+## si llegan varias seguidas (como las fichas que caen en la bandeja).
+func coin_landed() -> void:
+	var now := Time.get_ticks_msec()
+	_combo = mini(_combo + 1, 8) if now - _last_land < 600 else 0
+	_last_land = now
+	Sfx.play("coin", 1.0 + _combo * 0.06, 0.04)
+	_bump(1.12, 0.18)
+
+
+## Premio grande: todos los rodillos giran varias vueltas, lluvia de monedas
+## sobre el saldo y caja registradora.
+func jackpot(_amount: int) -> void:
+	var anim := _animations_on()
+	_jackpot_until = Time.get_ticks_msec() + int(SlotCounter.SPIN_TIME * 1000) + 300
+	_money.set_text(Fmt.money(Game.m.economy.money), anim, anim)
+	Sfx.play("register")
+	Sfx.vibrate(40)
+	if not anim or Main.instance == null:
+		return
+	_bump(1.3, 0.35)
+	Main.instance.fx.coin_shower(_money.get_global_rect().get_center(), 14)
+	Main.instance.fx.sparkle_burst(_money.get_global_rect().get_center(), 8)
+
+
+func _on_reel_stopped(_i: int) -> void:
+	if Time.get_ticks_msec() < _jackpot_until:
+		Sfx.play("tap", 1.2 + randf() * 0.3, 0.03)
+
+
+func _bump(peak: float, time: float) -> void:
+	if not _animations_on():
+		return
+	for n in [_money, _coin]:
+		var c: Control = n
+		c.pivot_offset = c.size / 2.0
+		var tw := c.create_tween()
+		tw.tween_property(c, "scale", Vector2(peak, peak), time * 0.35).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		tw.tween_property(c, "scale", Vector2.ONE, time * 0.65).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN_OUT)

@@ -823,12 +823,17 @@ func businesses_in_zone(zid: String) -> Array:
 # Perfil
 # ---------------------------------------------------------------------------
 
+## Largo máximo del nombre de la empresa (se muestra completo en Perfil, en
+## hasta dos líneas, y recortado con "…" en la barra superior).
+const COMPANY_MAX := 32
+
+
 func set_company_name(text: String) -> Dictionary:
 	var clean := text.strip_edges().replace("\n", " ")
 	if clean.length() < 2:
 		return fail("El nombre es muy corto.")
-	if clean.length() > 24:
-		clean = clean.substr(0, 24)
+	if clean.length() > COMPANY_MAX:
+		clean = clean.substr(0, COMPANY_MAX).strip_edges()
 	profile["company"] = clean
 	profile_changed.emit()
 	return ok()

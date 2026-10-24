@@ -15,7 +15,7 @@ static func open() -> void:
 		var b := Button.new()
 		b.theme_type_variation = "Btn_" + ("amarillo" if a["id"] == m.profile["avatar"] else ("crema" if got else "gris"))
 		b.focus_mode = Control.FOCUS_NONE
-		b.custom_minimum_size = Vector2(44, 40)
+		b.custom_minimum_size = Vector2(48, 44)
 		b.icon = U.tex("avatars/%s.png" % a["id"]) if got else U.icon_tex("candado")
 		b.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		var aid: String = a["id"]
@@ -28,7 +28,7 @@ static func open() -> void:
 				Main.instance.toast("Bloqueado. " + hint, "info"))
 		v.add_child(b)
 		var l := U.label(a["name"] if got else "???", U.SIZE_SMALL, U.TEXT, false, HORIZONTAL_ALIGNMENT_CENTER)
-		l.custom_minimum_size.x = 44
+		l.custom_minimum_size.x = 48
 		l.clip_text = true
 		v.add_child(l)
 		grid.add_child(v)

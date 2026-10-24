@@ -7,6 +7,7 @@ static func open(zid: String) -> void:
 	var z: Dictionary = m.data.zone_by_id[zid]
 	var st := m.zone_status(zid)
 	var body := U.vbox(5)
+	body.add_child(_preview(z["map"]))
 	body.add_child(U.para(z["description"], U.SIZE_SMALL, U.TEXT))
 	var dem := []
 	for t in z["demand"]:
@@ -46,3 +47,21 @@ static func open(zid: String) -> void:
 		UiColors.set_cost(b, st["cost"], "" if st["available"] else "Falta cumplir lo de arriba")
 		body.add_child(b)
 	w_ref.append(Main.instance.modal_host.open(z["name"], body))
+
+
+## Vista de la zona: su recorte del mapa de la ciudad, ampliado a escala
+## entera (x2 si entra en el modal) para que el pixel art se vea nítido.
+static func _preview(r: Dictionary) -> Control:
+	var at := AtlasTexture.new()
+	at.atlas = U.tex("map/city_map.png")
+	at.region = Rect2(r["x"], r["y"], r["w"], r["h"])
+	var k := 2 if int(r["w"]) * 2 <= 280 and int(r["h"]) * 2 <= 220 else 1
+	var tr := TextureRect.new()
+	tr.texture = at
+	tr.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	tr.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	tr.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	tr.custom_minimum_size = Vector2(r["w"], r["h"]) * k
+	tr.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	tr.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	return tr

@@ -4,8 +4,10 @@
   `scale_mode=integer`: el escalado siempre es entero (×2, ×3, ×4) y la pantalla se
   extiende en alto/ancho en vez de deformarse. Un teléfono de 1080×2400 ve 360×800 a ×3.
 - Texturas con filtro **nearest** (proyecto) y snap a píxel en transformaciones y vértices.
-- Fuente: Pixelify Sans (OFL, `assets/fonts/OFL.txt`) sin antialiasing ni hinting.
-  Tamaño mínimo 9 px virtuales (27 px físicos a ×3).
+- Fuente: **VT323** (OFL, `assets/fonts/OFL.txt`) sin antialiasing ni hinting; la
+  negrita se simula con `variation_embolden`. Es alta y angosta: tamaños 16 / 18 / 24 / 32
+  (`U.SIZE_*`), mínimo 16 px virtuales.
+- Las capturas se revisan a ×2 con `--shots-scale=2` (ver `scripts/ui/dev_shots.gd`).
 - Paleta cerrada de 36 colores (`tools/art/px.py`), contornos oscuros de 1 px, luz
   arriba/izquierda. Todo el arte se genera con `python3 tools/art/generate.py`
   (hoja de contacto en `docs/art_preview.png`).
@@ -19,9 +21,9 @@
 | `icons32/` | **2.0:** 24 íconos de 32×32 para navegación, fichas y botones grandes |
 | `logo/` | **2.0:** logo 128×128 e ícono 64×64 (+ adaptativo Android) |
 | `backgrounds/` | `street_<zona>.png` 480×200 (vereda en y=150, base de edificio y=163, peatones y=172) |
-| `map/` | `city_map.png` 360×540 (rectángulos de zonas en `data/world.json`) |
+| `map/` | `city_map.png` 360×540 hecho con PXL (`tools/art/pxl/map.px.js`); los rectángulos de las zonas son los de `data/world.json` |
 | `icons/` | íconos 16×16 dibujados a mano + `app_icon*.png` |
-| `avatars/` | avatares 24×24 |
+| `avatars/` | avatares 32×32 hechos con PXL (`tools/art/pxl/avatars.px.js`); se muestran a ×1 (barra) y ×2 (Perfil) |
 | `ui/` | marcos 9-slice: botones 16×16 (márgenes 4/4/4/6), paneles 24×24 (6), barras 8×8 (2), interruptores, mano del tutorial |
 | `particles/` | `coin_spin.png` (4×8×8), `sparkle.png` (4×8×8), `smoke.png`, `confetti.png`, `star.png` |
 
@@ -70,7 +72,9 @@ python3 tools/art/pxl/build.py
 | `furniture.px.js` | ~65 muebles y equipos (mostradores, cajas, parrilla, cafetera, góndolas, autos, elevador, cintas, máquinas de gimnasio…) y animaciones `fx_*` |
 | `street.px.js` | Generador de fachadas porteñas (persianas, toldos, balcones, carteles, antenas, caños), baldosas con grietas y manchas, mobiliario urbano, colectivo animado |
 | `locations.px.js` | Las 7 calles de zona (480×200) y el fondo de inicio (400×720) |
-| `rooms.px.js` + `gen_interiors.py` | Los 60 interiores (12 rubros × 5 niveles, 400×170) en dos capas (`back` detrás de los empleados, `front` mostradores adelante) y `data/interiors.json` con puestos de trabajo, fila de clientes y efectos |
+| `rooms.px.js` + `gen_interiors.py` | Los 60 interiores (12 rubros × 5 niveles, 400×170) en dos capas (`back` detrás de los empleados, `front` mostradores adelante) y `data/interiors.json` con puestos de trabajo, fila de clientes, efectos y `has_interior` |
+| `map.px.js` | Mapa de la ciudad (0.6) |
+| `avatars.px.js` | Los 10 avatares de perfil (0.6) |
 
 Salida (`assets/pixel_art/`): `interiors/<negocio>_<nivel>_{back,front}.png`,
 `locations/street_<zona>.png`, `locations/start_bg.png`,
@@ -82,3 +86,19 @@ Salida (`assets/pixel_art/`): `interiors/<negocio>_<nivel>_{back,front}.png`,
   los cuadros de "trabajar"; los clientes entran y hacen fila según las ventas reales.
 - Escala entera siempre (filtro nearest), escenas centradas sin estirar.
 - Los fondos viejos (`backgrounds/`) quedan sólo como respaldo si falta una calle nueva.
+
+
+## Consistencia de escenarios (v0.6.0)
+
+- **Carteles:** las cajas con texto se miden según el texto. En Python, `sign()` de
+  `buildings2.py` deja 2 px de aire con el marco (incluida la tilde) y el neón "ABIERTO"
+  va dentro de la vidriera (si no entra, el generador falla). En PXL, `signbox()` de
+  `palette.px.js` (fuente 3×5: 4 px por letra).
+- **Interiores:** `gen_interiors.py` falla si un objeto con letras queda cortado por el
+  borde (en 360 px se ve x=20..380 del lienzo) o debajo de los botones de ícono de
+  arriba a la derecha (x=338..380, y<80).
+- **Colectivo:** va por la calzada (`BusinessScene.ROAD_Y`) y se dibuja delante del
+  negocio y de los peatones, nunca "atravesando" el edificio.
+- **Sin interior:** la mesita, el carrito y el lavadero a cielo abierto (niveles 1–3)
+  tienen `has_interior: false`: se ven siempre desde la calle y no aparece el botón
+  de vista.

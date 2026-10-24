@@ -35,6 +35,15 @@ func _shot(name: String, wait := 0.35) -> void:
 
 
 func _run() -> void:
+	for a in OS.get_cmdline_user_args():
+		# --shots-scale=2: dibuja a x2 dentro de la misma ventana (como un
+		# teléfono de alta densidad) para revisar la nitidez de la letra.
+		if a.begins_with("--shots-scale="):
+			get_window().content_scale_factor = float(a.get_slice("=", 1))
+	for a in OS.get_cmdline_user_args():
+		if a == "--shots-set=escenas":
+			await _run_scenes()
+			return
 	var main := Main.instance
 	var m := Game.m
 	Game.reset_everything()
@@ -123,6 +132,9 @@ func _run() -> void:
 	main.modal_host.close_all()
 	main.go_to(0)
 	await _shot("13_fx_venta", 0.2)
+	m.economy.earn(m.economy.money, "misiones")      # premio grande: rodillos girando
+	await _shot("13b_jackpot_girando", 0.2)
+	await _shot("13c_jackpot_final", 1.4)
 	AdsModal.open("puesto")
 	await _shot("14_bonos_anuncio", 0.5)
 	main.modal_host.close_all()
@@ -141,6 +153,11 @@ func _run() -> void:
 	main.go_to(4)
 	await _shot("17_perfil_con_foto", 0.6)
 	print("FOTO_GUARDADA ", "OK" if ProfileWidgets.has_photo() and ProfileWidgets.has_banner() else "FALLÓ")
+	m.set_company_name("Distribuidora Hermanos Fernández")
+	await _shot("17b_perfil_nombre_largo", 0.6)
+	RenameDialog.open()
+	await _shot("17c_renombrar", 0.5)
+	main.modal_host.close_all()
 	ProfileImages.clear("photo")
 	ProfileImages.clear("banner")
 	m.set_profile_image("photo", false)
@@ -148,6 +165,45 @@ func _run() -> void:
 	main.go_to(0)
 	main.start.open(false)
 	await _shot("18_volver_al_inicio", 0.6)
+	get_tree().quit()
+
+
+## Set "escenas": los 12 negocios en sus 5 niveles visuales, de frente con el
+## colectivo pasando por la calle, y el interior si lo tienen. Sirve para
+## revisar carteles, superposiciones y el botón FACHADA/ADENTRO.
+func _run_scenes() -> void:
+	var main := Main.instance
+	var m := Game.m
+	Game.reset_everything()
+	await get_tree().process_frame
+	main.modal_host.close_all()
+	main.start.enter_game()
+	await get_tree().create_timer(0.4).timeout
+	main.modal_host.close_all()
+	main.tutorial._skip()
+	m.economy.earn(10_000_000_000, "dev")
+	for b in m.data.businesses:
+		if not m.biz[b["id"]]["owned"]:
+			m._own_business(b["id"], "barrio", 1.0)
+		m.biz[b["id"]]["closed"] = false
+	m.businesses_changed.emit()
+	var scene: BusinessScene = main.find_children("*", "BusinessScene", true, false)[0]
+	var tiers: Array = m.data.balance["visual_tiers"]
+	for b in m.data.businesses:
+		var id: String = b["id"]
+		for t in tiers.size():
+			m.biz[id]["level"] = int(tiers[t])
+			m.invalidate()
+			main.select_business(id)
+			Settings.set_value("scene_view", "fachada")
+			await get_tree().process_frame
+			scene._bus.visible = true
+			scene._bus.position = Vector2(scene.size.x / 2.0 - 140, BusinessScene.ROAD_Y - scene._bus.texture.get_height())
+			scene._bus_t = 999.0
+			await _shot("esc_%s_%d_fachada" % [id, t], 0.1)
+			scene._bus.visible = false
+			Settings.set_value("scene_view", "interior")
+			await _shot("esc_%s_%d_%s" % [id, t, "interior" if BusinessScene.has_interior(id, t) else "sin_interior"], 0.2)
 	get_tree().quit()
 
 

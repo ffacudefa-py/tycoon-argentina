@@ -5,10 +5,10 @@ extends RefCounted
 static func open() -> void:
 	var m := Game.m
 	var body := U.vbox(6)
-	body.add_child(U.para("¿Cómo se llama tu empresa? (2 a 24 letras)", U.SIZE_SMALL, U.TEXT))
+	body.add_child(U.para("¿Cómo se llama tu empresa? (2 a %d letras)" % GameModel.COMPANY_MAX, U.SIZE_SMALL, U.TEXT))
 	var le := LineEdit.new()
 	le.text = m.profile["company"]
-	le.max_length = 24
+	le.max_length = GameModel.COMPANY_MAX
 	le.custom_minimum_size.y = 28
 	le.add_theme_font_size_override("font_size", U.SIZE_BODY)
 	le.virtual_keyboard_enabled = true

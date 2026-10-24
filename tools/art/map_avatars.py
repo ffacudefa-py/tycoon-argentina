@@ -1,4 +1,4 @@
-"""Mapa de la ciudad ficticia, avatares de perfil e ícono de la app."""
+"""Ícono de la app (y el mapa y los avatares de la versión 0.5, ya reemplazados por PXL)."""
 import json
 import os
 import random
@@ -221,17 +221,9 @@ def app_icon():
 
 
 def generate(out, data_dir):
-    with open(os.path.join(data_dir, "world.json"), encoding="utf-8") as f:
-        world = json.load(f)
-    d = os.path.join(out, "map")
-    os.makedirs(d, exist_ok=True)
-    make_map(world["zones"]).save(f"{d}/city_map.png")
-    d = os.path.join(out, "avatars")
-    os.makedirs(d, exist_ok=True)
-    with open(os.path.join(data_dir, "progression.json"), encoding="utf-8") as f:
-        prog = json.load(f)
-    for a in prog["avatars"]:
-        avatar(a["id"]).save(f"{d}/{a['id']}.png")
+    # Desde la 0.6 el mapa y los avatares se dibujan con PXL
+    # (tools/art/pxl/map.px.js y avatars.px.js); make_map() y avatar() quedan
+    # sólo como referencia de la versión anterior.
     d = os.path.join(out, "icons")
     os.makedirs(d, exist_ok=True)
     ic = app_icon()

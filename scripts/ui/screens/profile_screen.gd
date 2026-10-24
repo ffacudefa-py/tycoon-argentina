@@ -46,7 +46,7 @@ func rebuild() -> void:
 	U.on_press(se, func() -> void: SettingsModal.open())
 	row.add_child(se)
 	_col.add_child(row)
-	_col.add_child(U.para("Tycoon Argentina v%s · Progreso guardado en este dispositivo (la cuenta todavía no sube la partida a la nube). Fuente Pixelify Sans (licencia OFL). Arte, sonidos y nombres originales y ficticios." % ProjectSettings.get_setting("application/config/version"), U.SIZE_SMALL, Color("8c8aa8")))
+	_col.add_child(U.para("Tycoon Argentina v%s · Progreso guardado en este dispositivo (la cuenta todavía no sube la partida a la nube). Fuente VT323 (licencia OFL). Arte, sonidos y nombres originales y ficticios." % ProjectSettings.get_setting("application/config/version"), U.SIZE_SMALL, Color("8c8aa8")))
 	_refresh()
 
 
@@ -76,12 +76,12 @@ func _header() -> Control:
 	var av := Button.new()
 	av.flat = true
 	av.focus_mode = Control.FOCUS_NONE
-	av.custom_minimum_size = Vector2(60, 60)
+	av.custom_minimum_size = Vector2(70, 70)
 	av.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	var ring := Panel.new()
 	var sb := StyleBoxFlat.new()
 	sb.bg_color = Color("2e2b48")
-	sb.set_corner_radius_all(30)
+	sb.set_corner_radius_all(35)
 	sb.border_color = Color("f0eee6")
 	sb.set_border_width_all(2)
 	ring.add_theme_stylebox_override("panel", sb)
@@ -102,21 +102,36 @@ func _header() -> Control:
 	var col := U.vbox(2)
 	col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var name_row := U.hbox(4)
+	# Nombres largos: hasta dos líneas y, si igual no entra, "…". Ninguna
+	# etiqueta de esta columna fija un ancho mínimo (si no, empujaban el botón
+	# Editar fuera de la tarjeta).
 	var n := U.label(m.profile["company"], U.SIZE_TITLE, U.TEXT, true)
 	n.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	n.clip_text = true
+	n.custom_minimum_size.x = 1
+	n.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	n.max_lines_visible = 2
+	n.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	name_row.add_child(n)
 	var edit := U.button("Editar", "crema", "", 22, U.SIZE_SMALL)
+	edit.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	U.on_press(edit, RenameDialog.open)
 	name_row.add_child(edit)
 	col.add_child(name_row)
-	col.add_child(U.label("Etapa %d de 8 · %s" % [m.stage, m.data.stage_name(m.stage)], U.SIZE_SMALL, U.GREEN, true))
+	col.add_child(_fit(U.label("Etapa %d de 8 · %s" % [m.stage, m.data.stage_name(m.stage)], U.SIZE_SMALL, U.GREEN, true)))
 	_stage_bar = U.progress("violeta", 8)
 	col.add_child(_stage_bar)
-	_stage_label = U.label("", U.SIZE_SMALL, U.TEXT_SOFT)
+	_stage_label = _fit(U.label("", U.SIZE_SMALL, U.TEXT_SOFT))
 	col.add_child(_stage_label)
 	row.add_child(col)
 	return card
+
+
+## Etiqueta de una línea que se recorta con "…" en vez de ensanchar la tarjeta.
+func _fit(l: Label) -> Label:
+	l.clip_text = true
+	l.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	l.custom_minimum_size.x = 1
+	return l
 
 
 func _summary() -> Control:

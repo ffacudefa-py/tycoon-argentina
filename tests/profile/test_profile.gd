@@ -120,3 +120,27 @@ func test_settings_nuevos_persisten() -> void:
 	eq(s2.values["scene_view"], "fachada")
 	eq(s2.values["reduce_motion"], true)
 	DirAccess.remove_absolute(path)
+
+
+func test_nombre_de_empresa_largo() -> void:
+	var m := make_model()
+	var largo := "Distribuidora Hermanos Fernández"   # 32 letras
+	eq(largo.length(), 32)
+	check(m.set_company_name(largo)["ok"], "acepta 32 letras")
+	eq(m.profile["company"], largo, "se guarda completo")
+	m.set_company_name(largo + " y Asociados del Sur")
+	eq(m.profile["company"].length(), GameModel.COMPANY_MAX, "se recorta al máximo")
+	check(not m.set_company_name(" a ")["ok"], "muy corto")
+
+
+func test_niveles_sin_interior() -> void:
+	# Mismo dato que usa BusinessScene.has_interior (data/interiors.json).
+	var d: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/interiors.json"))["businesses"]
+	var has := func(id: String, t: int) -> bool: return bool(d[id][t]["has_interior"])
+	check(not has.call("puesto", 0), "mesita: sólo calle")
+	check(not has.call("comida", 2), "carrito: sólo calle")
+	check(not has.call("lavadero", 2), "lavadero abierto: sólo calle")
+	check(has.call("puesto", 3), "puesto con local")
+	check(has.call("lavadero", 3), "lavadero con galpón")
+	for t in 5:
+		check(has.call("kiosco", t), "el kiosco siempre tiene interior")

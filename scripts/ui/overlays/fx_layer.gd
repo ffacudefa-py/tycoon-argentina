@@ -55,6 +55,47 @@ func coin_burst(pos: Vector2, count := 5) -> void:
 		tw.chain().tween_callback(s.queue_free)
 
 
+## Monedas que saltan desde `from` y vuelan en curva hasta `to` (el saldo de
+## la barra superior). on_land se llama cuando llega cada una.
+func coin_fly(from: Vector2, to: Vector2, count := 2, on_land := Callable()) -> void:
+	var n := _budget(count)
+	if n <= 0:
+		if on_land.is_valid():
+			on_land.call()
+		return
+	for i in n:
+		var s := _sprite("particles/coin_spin.png", 4, from)
+		var p0 := from + Vector2(randf_range(-10, 10), 0)
+		var p1 := Vector2(lerpf(from.x, to.x, 0.3) + randf_range(-40, 40), minf(from.y, to.y) - randf_range(10, 40))
+		var tw := s.create_tween()
+		tw.tween_interval(i * 0.07)
+		tw.tween_method(func(k: float) -> void:
+			var a := p0.lerp(p1, k)
+			var b := p1.lerp(to, k)
+			s.position = a.lerp(b, k).round()
+			s.frame = int(k * 12.0) % 4
+			s.scale = Vector2.ONE * lerpf(1.0, 0.7, k), 0.0, 1.0, 0.55).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+		tw.tween_callback(func() -> void:
+			if on_land.is_valid():
+				on_land.call()
+			s.queue_free())
+
+
+## Lluvia de monedas que salta del saldo y cae (premios grandes).
+func coin_shower(pos: Vector2, count := 14) -> void:
+	for i in _budget(count):
+		var s := _sprite("particles/coin_spin.png", 4, pos)
+		var vx := randf_range(-90, 90)
+		var vy := randf_range(-150, -60)
+		var t_total := randf_range(0.8, 1.2)
+		var tw := s.create_tween()
+		tw.tween_method(func(t: float) -> void:
+			s.position = (pos + Vector2(vx * t, vy * t + 260.0 * t * t)).round()
+			s.frame = int(t * 14.0) % 4
+			s.modulate.a = clampf(1.5 - t / t_total * 1.5 + 0.5, 0.0, 1.0), 0.0, t_total, t_total)
+		tw.tween_callback(s.queue_free)
+
+
 func sparkle_burst(pos: Vector2, count := 6) -> void:
 	for i in _budget(count):
 		var s := _sprite("particles/sparkle.png", 4, pos + Vector2(randf_range(-40, 40), randf_range(-14, 14)))

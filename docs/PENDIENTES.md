@@ -3,7 +3,7 @@
 ## Verificación
 - Probar el APK en un teléfono real (táctil, área segura, vibración, guardado al
   cerrar desde multitarea, rendimiento en equipos modestos).
-- Revisar legibilidad de la fuente pixel a ×2 (teléfonos de 720 px de ancho).
+- Revisar en un teléfono real la letra VT323 y la animación del saldo (0.6).
 
 ## Contenido (v2)
 - Negocios 13–25 del documento (tienda de tecnología, hotel, fábrica, cadena de

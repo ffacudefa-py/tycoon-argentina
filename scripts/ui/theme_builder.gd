@@ -9,17 +9,18 @@ const BUTTON_STYLES := ["verde", "amarillo", "rojo", "celeste", "crema", "gris",
 
 static func build() -> Theme:
 	var th := Theme.new()
-	var font: FontFile = load("res://assets/fonts/PixelifySans.ttf")
+	# VT323 (OFL): letra de terminal pixelada, alta y muy legible. No trae
+	# negrita: se engrosa el trazo con embolden.
+	var font: FontFile = load("res://assets/fonts/VT323-Regular.ttf")
 	font.antialiasing = TextServer.FONT_ANTIALIASING_NONE
 	font.hinting = TextServer.HINTING_NONE
 	font.subpixel_positioning = TextServer.SUBPIXEL_POSITIONING_DISABLED
 	font.generate_mipmaps = false
 	var regular := FontVariation.new()
 	regular.base_font = font
-	regular.variation_opentype = {TextServerManager.get_primary_interface().name_to_tag("wght"): 450}
 	var bold := FontVariation.new()
 	bold.base_font = font
-	bold.variation_opentype = {TextServerManager.get_primary_interface().name_to_tag("wght"): 700}
+	bold.variation_embolden = 0.35
 	U.font_regular = regular
 	U.font_bold = bold
 	th.default_font = regular

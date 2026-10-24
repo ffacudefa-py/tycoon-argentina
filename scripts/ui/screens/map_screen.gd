@@ -96,8 +96,13 @@ func _zone_button(z: Dictionary) -> Control:
 		row.add_child(U.icon("candado"))
 	var count := m.businesses_in_zone(zid).size()
 	var short_name: String = (z["name"] as String).split(" ")[0] if (z["name"] as String).length() > 16 else z["name"]
-	var l := U.label(short_name + ((" · %d" % count) if count > 0 else ""), 9, U.TEXT_LIGHT, true)
+	var l := U.label(short_name + ((" · %d" % count) if count > 0 else ""), U.SIZE_SMALL, U.TEXT_LIGHT, true)
 	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	# La etiqueta nunca se sale del rectángulo de la zona: si no entra, "…".
+	var room := float(r["w"]) - 16.0 - (18.0 if not st["unlocked"] else 0.0)
+	l.custom_minimum_size.x = minf(l.get_combined_minimum_size().x, room)
+	l.clip_text = true
+	l.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	row.add_child(l)
 	tag.add_child(row)
 	tag.position = Vector2(2, 2)

@@ -61,7 +61,7 @@ function facade(name, w, floors, wall, opts = {}) {
       if (kind === "persiana") {   // persiana metálica baja con firmas de colores
         c.rect(5, gy + 6, sw, 34, "g"); for (let yy = gy + 7; yy < h; yy += 2) c.hline(5, yy, sw, "d")
         const tags = ["r", "B", "n", "q"]; for (let i = 0; i < 3; i++) { const tx = 8 + Math.floor(rng() * (sw - 16)); c.line(tx, gy + 22, tx + 6, gy + 16 + i * 2, tags[i % 4], 2) }
-        if (opts.forSale) { c.rect(Math.floor(w / 2) - 14, gy + 12, 28, 12, "W"); c.box(Math.floor(w / 2) - 14, gy + 12, 28, 12, "r"); c.text(Math.floor(w / 2) - 12, gy + 15, "SE VENDE", "r") }
+        if (opts.forSale) { signbox(c, Math.floor(w / 2), gy + 13, "SE VENDE", "r", "W", "r", 2, 2) }
       } else if (kind === "vidriera") {
         c.rect(5, gy + 6, sw, 34, "M"); c.rect(7, gy + 8, sw - 18, 26, "c"); c.rect(7, gy + 20, sw - 18, 14, "C")
         for (let x = 9; x < sw - 12; x += 5) c.rect(x, gy + 26, 3, 6, ["r", "y", "n", "B"][x % 4])
@@ -72,7 +72,7 @@ function facade(name, w, floors, wall, opts = {}) {
         for (let x = 3; x < w - 3; x += 4) c.px(x + 1, gy + 5, Math.floor((x - 3) / 4) % 2 ? "l" : ac)
       } else {
         c.rect(Math.floor(w / 2) - 10, gy + 6, 20, 34, "M"); c.rect(Math.floor(w / 2) - 8, gy + 9, 7, 12, "c"); c.rect(Math.floor(w / 2) + 1, gy + 9, 7, 12, "c")
-        c.rect(Math.floor(w / 2) - 10, gy + 2, 20, 4, "Y"); c.text(Math.floor(w / 2) - 5, gy + 1, String(100 + Math.floor(rng() * 900)), "o")
+        signbox(c, Math.floor(w / 2), gy + 1, String(100 + Math.floor(rng() * 900)), "o", "Y", null, 2, 1)
       }
     }
   })
@@ -114,7 +114,7 @@ sprite("_bench", { w: 40, h: 22, outline: "o" },
   rect(0, 0, 40, 4, "t"), rect(0, 6, 40, 4, "t"), hline(0, 0, 40, "T"), hline(0, 6, 40, "T"), rect(0, 12, 40, 4, "M"), hline(0, 12, 40, "t"),
   rect(3, 16, 3, 6, "x"), rect(34, 16, 3, 6, "x"))
 sprite("_bus_stop", { w: 30, h: 70 },   // poste de parada de colectivo con números
-  rect(13, 16, 3, 54, "x"), rect(2, 0, 26, 18, "y"), box(2, 0, 26, 18, "o"), text(5, 2, "60", "o"), text(16, 2, "152", "o"), text(5, 10, "39", "o"), text(18, 10, "29", "o"))
+  rect(13, 16, 3, 54, "x"), rect(1, 0, 28, 18, "y"), box(1, 0, 28, 18, "o"), text(4, 3, "60", "o"), text(15, 3, "152", "o"), text(4, 10, "39", "o"), text(18, 10, "29", "o"))
 sprite("_hydrant", { w: 10, h: 14, outline: "o" }, rect(2, 2, 6, 12, "y"), rect(0, 5, 10, 3, "y"), rect(2, 0, 6, 3, "Y"))
 sprite("_kiosk_news", { w: 40, h: 48, outline: "o" },   // puesto de diarios
   rect(0, 10, 40, 38, "n"), rect(0, 4, 40, 7, "G"), rect(3, 14, 34, 22, "w"),
@@ -126,7 +126,7 @@ sprite("_manhole", { w: 18, h: 6 }, ellipse(9, 3, 8, 2, "x"), ellipse(9, 3, 6, 1
 sprite("_colectivo", { w: 120, h: 48, outline: "o" },   // colectivo porteño fileteado
   rect(0, 4, 120, 36, "y"), rect(0, 4, 120, 4, "Z"), rect(0, 26, 120, 14, "r"), hline(0, 26, 120, "p"),
   (c) => { for (let x = 6; x < 100; x += 16) { c.rect(x, 10, 13, 13, "c"); c.rect(x, 17, 13, 6, "C"); c.line(x + 2, 21, x + 7, 12, "W") } },
-  rect(104, 10, 14, 14, "c"), rect(104, 6, 14, 4, "u"), text(106, 6, "60", "Z"),
+  rect(104, 13, 14, 11, "c"), rect(104, 5, 14, 7, "u"), text(108, 6, "60", "Z"),
   (c) => { for (let x = 4; x < 116; x += 12) { c.px(x, 30, "Z"); c.px(x + 1, 31, "Z"); c.px(x + 2, 30, "W") } },   // fileteado
   rect(2, 36, 116, 4, "u"), circ(20, 40, 7, "o"), circ(20, 40, 3, "g"), circ(98, 40, 7, "o"), circ(98, 40, 3, "g"), rect(116, 28, 4, 4, "z"))
 anim("colectivo_anim", { base: "_colectivo", fps: 6 }, frame(), frame(px(20, 37, "W"), px(98, 37, "W")))
