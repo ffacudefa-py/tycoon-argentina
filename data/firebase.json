@@ -1,5 +1,5 @@
 {
- "_doc": "Proyecto Firebase del juego (sólo Authentication con email y contraseña). La api_key web de Firebase identifica al proyecto, no es un secreto; la seguridad la dan las reglas y la configuración de Authentication. Ver docs/CUENTAS.md.",
- "project_id": "tycoon-argentina-juego",
- "api_key": "AIzaSyA6YHX2MhJpxqjtkk--oWNCrMh8sDLSW44"
+ "_doc": "Proyecto Firebase del juego: Authentication (email y contraseña) y Firestore (saves/<uid>, reglas en firestore.rules). La api_key web identifica al proyecto, no es un secreto; la seguridad la dan las reglas y la configuración de Authentication. Ver docs/CUENTAS.md.",
+ "project_id": "coronadosdegloria",
+ "api_key": "AIzaSyCQMudrTolNqv76fCax76g5fzLp3Dgw_gQ"
 }

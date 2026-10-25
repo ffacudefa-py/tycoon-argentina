@@ -1,0 +1,9 @@
+rules_version = '2';
+// Cada cuenta lee y escribe sólo su partida (saves/<uid>). Ver docs/CUENTAS.md.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /saves/{uid} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+  }
+}

@@ -1,7 +1,10 @@
 # Cuentas (Firebase Authentication)
 
-- Proyecto Firebase: `tycoon-argentina-juego` (plan Spark, gratis). Sólo está
-  activado **Authentication → Email/contraseña**.
+- Proyecto Firebase: `coronadosdegloria` (plan Spark, gratis; cuenta del dueño del
+  juego). Tiene **Authentication → Email/contraseña** y **Firestore** en
+  `southamerica-east1`. Hasta la 0.5 se usó `tycoon-argentina-juego` (otra cuenta).
+- Reglas versionadas en `firestore.rules`; se publican con
+  `firebase deploy --only firestore:rules` (`firebase.json` y `.firebaserc` en la raíz).
 - `data/firebase.json` tiene la API key web. No es un secreto: identifica al
   proyecto; lo que protege es la configuración de Authentication (y las reglas
   si en el futuro se usa Firestore/Storage).
@@ -27,7 +30,7 @@
   sobre que el guardado local (`format`, `version`, `checksum`, `payload`) en el
   campo `save`, más un resumen (`saved_at`, `stage`, `money`, `lifetime`, `company`,
   `prestige`, `play_time`, `app_version`) para comparar sin descargar todo.
-- Reglas (Firestore → Reglas):
+- Reglas (`firestore.rules`):
   ```
   rules_version = '2';
   service cloud.firestore {
