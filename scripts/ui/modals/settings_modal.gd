@@ -36,6 +36,17 @@ static func open() -> void:
 	body.add_child(_section("Cuenta", "persona"))
 	if Auth.signed_in():
 		body.add_child(U.stat_row("Sesión iniciada", Auth.email))
+		var cloud_l := U.para(Cloud.status_text(), U.SIZE_SMALL, U.RED if Cloud.status == "error" else U.TEXT_SOFT)
+		body.add_child(cloud_l)
+		var sync := U.button("Sincronizar ahora", "verde", "check", 32, U.SIZE_SMALL)
+		U.on_press(sync, func() -> void: Cloud.sync_now())
+		body.add_child(sync)
+		var on_status := func() -> void:
+			if is_instance_valid(cloud_l):
+				cloud_l.text = Cloud.status_text()
+				cloud_l.add_theme_color_override("font_color", U.RED if Cloud.status == "error" else U.TEXT_SOFT)
+		Cloud.status_changed.connect(on_status)
+		cloud_l.tree_exiting.connect(func() -> void: Cloud.status_changed.disconnect(on_status))
 		var prof := U.button("Ver perfil", "celeste", "persona", 32, U.SIZE_SMALL)
 		U.on_press(prof, func() -> void:
 			w_ref[0].close()
@@ -45,14 +56,14 @@ static func open() -> void:
 		body.add_child(prof)
 		var out := U.button("Cerrar sesión", "rojo", "cerrar", 32, U.SIZE_SMALL)
 		U.on_press(out, func() -> void:
-			ConfirmDialog.open("¿Cerrar sesión?", "Tu partida queda guardada en este teléfono y podés seguir jugando como invitado.", "Cerrar sesión",
+			ConfirmDialog.open("¿Cerrar sesión?", "Tu partida queda guardada en este teléfono y en la nube; podés seguir jugando como invitado.", "Cerrar sesión",
 				func() -> void:
 					Auth.sign_out()
 					w_ref[0].close()
 					Main.instance.toast("Cerraste sesión. Tu partida sigue en este teléfono.", "info"), false))
 		body.add_child(out)
 	else:
-		body.add_child(U.para("Jugás como invitado. Con una cuenta te identificás con tu email (la partida sigue guardada en este teléfono).", U.SIZE_SMALL, U.TEXT_SOFT))
+		body.add_child(U.para("Jugás como invitado. Con una cuenta tu partida se guarda también en la nube: si cambiás de teléfono o reinstalás el juego, no perdés nada.", U.SIZE_SMALL, U.TEXT_SOFT))
 		var login := U.button("Iniciar sesión o crear cuenta", "celeste", "persona", 32, U.SIZE_SMALL)
 		U.on_press(login, func() -> void:
 			w_ref[0].close()

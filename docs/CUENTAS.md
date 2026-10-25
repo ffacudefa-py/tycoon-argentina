@@ -21,12 +21,41 @@
   se cierra y se avisa.
 - **Cerrar sesión no toca la partida**: sigue en el teléfono y se juega como invitado.
 
+## Progreso en la nube (desde la 0.6)
+
+- **Firestore** (plan Spark): un documento `saves/<uid>` por cuenta con el mismo
+  sobre que el guardado local (`format`, `version`, `checksum`, `payload`) en el
+  campo `save`, más un resumen (`saved_at`, `stage`, `money`, `lifetime`, `company`,
+  `prestige`, `play_time`, `app_version`) para comparar sin descargar todo.
+- Reglas (Firestore → Reglas):
+  ```
+  rules_version = '2';
+  service cloud.firestore {
+    match /databases/{database}/documents {
+      match /saves/{uid} {
+        allow read, write: if request.auth != null && request.auth.uid == uid;
+      }
+    }
+  }
+  ```
+- `scripts/cloud/cloud_save.gd` (autoload `Cloud`) usa la API REST con el token de
+  `Auth.get_token()`; `scripts/cloud/cloud_sync.gd` tiene las decisiones (probadas en
+  `tests/cloud`).
+- **Al conectarse** (`CloudSync.decide`): si la nube está vacía o no cambió desde la
+  última sincronización de este teléfono, se sube; si la partida del teléfono recién
+  empieza (menos de $500 ganados y sin prestigio), se baja la de la nube; si las dos
+  tienen progreso distinto, `CloudConflictModal` pregunta cuál conservar (no se cierra
+  sin elegir).
+- **Después**: copia cada 90 s si hubo cambios y al pasar a segundo plano. Sin
+  internet queda pendiente y reintenta cada 2 min. La partida se guarda siempre primero
+  en el teléfono.
+- Estado en Configuración → Cuenta ("Guardado en la nube hace 3 min", "Sincronizar
+  ahora"). Las capturas y las herramientas `-s` nunca tocan la nube.
+- `user://cloud.cfg` recuerda la cuenta y el `saved_at` de lo último sincronizado.
+
 ## Lo que todavía NO hay
 
-- Progreso en la nube: la partida y la foto de perfil siguen sólo en el teléfono.
-  Próximo paso sugerido: Firestore con un documento por `uid` que guarde
-  `GameModel.to_dict()` (ya es JSON) + reglas `request.auth.uid == uid`; la foto
-  necesita Cloud Storage (requiere plan Blaze).
+- Foto de perfil y banner en la nube (necesitan Cloud Storage, plan Blaze).
 - Inicio con Google: requiere plugin nativo de Google Sign-In + Gradle.
 
 ## Verificación manual contra el servidor real
@@ -36,3 +65,10 @@ godot --headless --path . -s res://tools/dev/auth_check.gd
 ```
 Crea una cuenta descartable, prueba contraseña corta, cuenta repetida, clave
 incorrecta, ingreso, renovación y recuperación, y **borra** la cuenta al final.
+
+Para la nube:
+```bash
+godot --headless --path . -s res://tools/dev/cloud_check.gd
+```
+Sube y lee una partida con una cuenta descartable, verifica que otra cuenta y un
+pedido sin sesión reciban 403, y borra la partida y las cuentas al final.

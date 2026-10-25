@@ -28,6 +28,7 @@ Sfx="*res://scripts/audio/sfx.gd"
 Monetization="*res://scripts/monetization/monetization.gd"
 Auth="*res://scripts/auth/auth_service.gd"
 Game="*res://scripts/core/game.gd"
+Cloud="*res://scripts/cloud/cloud_save.gd"
 
 [display]
 

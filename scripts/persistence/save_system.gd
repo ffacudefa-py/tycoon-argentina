@@ -25,22 +25,48 @@ func _init(p_path := DEFAULT_PATH) -> void:
 	path = p_path
 
 
-## Serializa y guarda. Devuelve false (sin tocar el archivo bueno) si algo falla.
-func save(model: GameModel) -> bool:
+## Documento de guardado (el mismo formato en el teléfono y en la nube).
+## Devuelve {} si el estado no es válido (last_error dice por qué).
+func make_doc(model: GameModel) -> Dictionary:
 	var payload := model.to_dict()
 	var problem := validate_payload(payload, model.data)
 	if problem != "":
 		last_error = "estado inválido, no se guarda: " + problem
 		push_warning(last_error)
-		return false
+		return {}
 	var payload_text := JSON.stringify(payload, "", true, true)
-	var doc := {
+	return {
 		"format": FORMAT,
 		"version": Migrations.CURRENT_VERSION,
 		"saved_at": model.now(),
 		"checksum": payload_text.sha256_text(),
 		"payload": payload_text,
 	}
+
+
+## Payload válido y migrado de un documento (texto JSON), o {} si está
+## dañado, es de otra versión o no pasa los controles.
+func payload_from_text(text: String, data: GameData) -> Dictionary:
+	var doc := _check_doc(JSON.parse_string(text), "nube")
+	if doc.is_empty():
+		return {}
+	var payload = JSON.parse_string(doc["payload"])
+	if not payload is Dictionary:
+		last_error = "nube: payload inválido"
+		return {}
+	payload = Migrations.migrate(payload, int(doc["version"]))
+	var problem := validate_payload(payload, data)
+	if problem != "":
+		last_error = "nube: " + problem
+		return {}
+	return payload
+
+
+## Serializa y guarda. Devuelve false (sin tocar el archivo bueno) si algo falla.
+func save(model: GameModel) -> bool:
+	var doc := make_doc(model)
+	if doc.is_empty():
+		return false
 	var text := JSON.stringify(doc, "", false)
 	var tmp := path + ".tmp"
 	var f := FileAccess.open(tmp, FileAccess.WRITE)
@@ -113,7 +139,11 @@ func _read_doc(p: String) -> Dictionary:
 		return {}
 	var text := f.get_as_text()
 	f.close()
-	var doc = JSON.parse_string(text)
+	return _check_doc(JSON.parse_string(text), p)
+
+
+## Controles del sobre: formato, versión soportada y checksum del payload.
+func _check_doc(doc: Variant, p: String) -> Dictionary:
 	if not doc is Dictionary:
 		last_error = "%s: JSON inválido" % p
 		return {}

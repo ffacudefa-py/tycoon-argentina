@@ -17,7 +17,7 @@
 
 ## Plataforma
 - Firma release y AAB para Play Store (ANDROID.md).
-- Progreso y foto en la nube (hay cuentas reales desde la 0.5; ver CUENTAS.md).
+- Foto y banner en la nube (el progreso ya se guarda en Firestore desde la 0.6; ver CUENTAS.md).
 - IDs reales de AdMob y consentimiento UMP (MONETIZACION.md). Compras.
 - Probar anuncios de prueba y el selector de la galería en un teléfono físico.
 

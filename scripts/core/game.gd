@@ -9,6 +9,8 @@ extends Node
 
 signal offline_report(result: Dictionary)
 signal model_reset
+signal saved                       ## se escribió el guardado local (la nube lo copia)
+signal model_loaded                ## se cargó otra partida (la de la nube)
 
 var data: GameData
 var m: GameModel
@@ -100,7 +102,30 @@ func _handle_gap() -> void:
 func save() -> bool:
 	_autosave_timer = 0.0
 	_save_soon = -1.0
-	return saver.save(m)
+	var ok := saver.save(m)
+	if ok:
+		saved.emit()
+	return ok
+
+
+## Reemplaza la partida en curso por otra ya validada y migrada (la de la
+## nube): misma preparación que al abrir el juego, con su progreso offline.
+func replace_with(payload: Dictionary) -> void:
+	m.from_dict(payload)
+	m.inflation_enabled = bool(Settings.get_value("inflation"))
+	var r := OfflineCalculator.apply(m)
+	m.invalidate()
+	for id in m.owned_ids():
+		EmployeeSystem.ensure_candidates(m, id)
+	ProgressionSystem.ensure_daily(m)
+	m.update_progress()
+	_last_wall = m.now()
+	_acc = 0.0
+	save()
+	model_loaded.emit()
+	if float(r["credited"]) >= float(data.balance["offline_summary_min_seconds"]):
+		pending_offline = r
+		offline_report.emit(r)
 
 
 ## Agrupa varios cambios seguidos en un solo guardado.

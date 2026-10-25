@@ -7,8 +7,8 @@ extends Node
 ##   user://session.cfg; al abrir el juego se restaura sin pedir contraseña
 ##   y se renueva el token en segundo plano cuando hay internet.
 ## - Cerrar sesión NO toca la partida guardada en el teléfono.
-## - Todavía no hay datos del juego en la nube: la cuenta queda lista para
-##   asociar el progreso y la foto en una versión futura (docs/CUENTAS.md).
+## - Desde la 0.6 la partida se copia en la nube (autoload Cloud, Firestore);
+##   la foto de perfil sigue sólo en el teléfono (docs/CUENTAS.md).
 
 signal changed                              ## entró, salió o cambió el nombre
 signal busy_changed(busy: bool)
@@ -122,6 +122,18 @@ func refresh_session(done := Callable()) -> void:
 					Main.instance.toast(AuthErrors.message(code), "bad")
 			if done.is_valid():
 				done.call({"ok": ok, "msg": "" if ok else AuthErrors.message(code)}), true)
+
+
+## Token de acceso vigente para la API de Firestore. Si está por vencer lo
+## renueva primero. done(token) recibe "" si no hay sesión o no hay internet.
+func get_token(done: Callable) -> void:
+	if not signed_in() or _refresh_token == "":
+		done.call("")
+		return
+	if _id_token != "" and Time.get_unix_time_from_system() < _id_expires - 60.0:
+		done.call(_id_token)
+		return
+	refresh_session(func(r: Dictionary) -> void: done.call(_id_token if r["ok"] else ""))
 
 
 # ---------------------------------------------------------------- interno

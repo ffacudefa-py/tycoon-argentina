@@ -72,6 +72,7 @@ func _ready() -> void:
 	m.profile_changed.connect(_refresh_names)
 	m.money_changed.connect(_on_money_changed)
 	Game.model_reset.connect(_on_reset)
+	Game.model_loaded.connect(_on_reset)
 	_money.set_text(Fmt.money(m.economy.money), false)
 	_refresh_names()
 	_refresh_income()

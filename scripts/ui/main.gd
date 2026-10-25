@@ -85,6 +85,8 @@ func _ready() -> void:
 	m.celebrate.connect(_on_celebrate)
 	Game.offline_report.connect(_show_offline)
 	Game.model_reset.connect(_on_model_reset)
+	Game.model_loaded.connect(_on_model_loaded)
+	Cloud.conflict.connect(func(local: Dictionary, cloud: Dictionary) -> void: CloudConflictModal.open(local, cloud))
 	get_viewport().size_changed.connect(_apply_safe_area)
 	_apply_safe_area()
 	go_to(0)
@@ -228,6 +230,15 @@ func _on_celebrate(kind: String, info: Dictionary) -> void:
 func fx_center() -> Vector2:
 	var vp := get_viewport_rect().size
 	return Vector2(vp.x / 2, vp.y * 0.3)
+
+
+## Se cargó la partida de la nube: se rearman las pantallas sin reiniciar el tutorial.
+func _on_model_loaded() -> void:
+	selected_business = "puesto"
+	for s in screens:
+		if s.has_method("rebuild"):
+			s.rebuild()
+	go_to(0)
 
 
 func _on_model_reset() -> void:

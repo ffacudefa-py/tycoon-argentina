@@ -46,7 +46,7 @@ func rebuild() -> void:
 	U.on_press(se, func() -> void: SettingsModal.open())
 	row.add_child(se)
 	_col.add_child(row)
-	_col.add_child(U.para("Tycoon Argentina v%s · Progreso guardado en este dispositivo (la cuenta todavía no sube la partida a la nube). Fuente VT323 (licencia OFL). Arte, sonidos y nombres originales y ficticios." % ProjectSettings.get_setting("application/config/version"), U.SIZE_SMALL, Color("8c8aa8")))
+	_col.add_child(U.para("Tycoon Argentina v%s · %s Fuente VT323 (licencia OFL). Arte, sonidos y nombres originales y ficticios." % [ProjectSettings.get_setting("application/config/version"), Cloud.status_text() if Auth.signed_in() else "Progreso guardado en este teléfono (con una cuenta, también en la nube)."], U.SIZE_SMALL, Color("8c8aa8")))
 	_refresh()
 
 
