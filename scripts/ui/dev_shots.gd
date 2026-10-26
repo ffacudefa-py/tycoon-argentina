@@ -204,6 +204,25 @@ func _juice_shots() -> void:
 		await _shot("24_mision_tick", 0.35)
 		await _shot("24_mision_saliendo", 0.55)
 		await _shot("24_mision_lista", 0.8)
+	# Premios esperando: dos desafíos completos y la recompensa diaria.
+	var n := 0
+	for c in m.data.challenges:
+		if n < 2 and not m.missions["claimed"].has(c["id"]):
+			m.missions["completed"][c["id"]] = true
+			n += 1
+	m.daily_reward["last_day"] = -1
+	screen.tab = 1
+	m.progress_changed.emit()
+	await get_tree().process_frame
+	var all := _find_button(main, "RECLAMAR TODO")
+	print("RECLAMAR_TODO ", "OK" if all else "FALLÓ")
+	if all:
+		var before := ProgressionSystem.unclaimed_count(m)
+		await _shot("25_reclamar_todo", 0.3)
+		await _tap(all)
+		await _shot("25b_reclamar_todo_animando", 0.5)
+		await _shot("25c_reclamar_todo_listo", 1.6)
+		print("RECLAMAR_TODO_COBRO ", "OK" if before > 0 and ProgressionSystem.unclaimed_count(m) == 0 else "FALLÓ")
 	main.go_to(0)
 
 

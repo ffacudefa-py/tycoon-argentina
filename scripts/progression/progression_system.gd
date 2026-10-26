@@ -123,6 +123,28 @@ static func claim_daily_mission(m: GameModel, mid: String) -> Dictionary:
 	return GameModel.ok()
 
 
+## Reclama todo lo pendiente de una vez: misiones principales, desafíos,
+## diarias y la recompensa diaria. Devuelve {ok, msg, count, money}.
+static func claim_all(m: GameModel) -> Dictionary:
+	var before := m.economy.money
+	var count := 0
+	for mid in m.missions["completed"].keys():
+		if claim_mission(m, mid)["ok"]:
+			count += 1
+	for mid in m.daily_missions["completed"].keys():
+		if claim_daily_mission(m, mid)["ok"]:
+			count += 1
+	if can_claim_daily_reward(m)["ok"] and claim_daily_reward(m)["ok"]:
+		count += 1
+	if count == 0:
+		return {"ok": false, "msg": "No hay premios para reclamar.", "count": 0, "money": 0}
+	var money := maxi(0, m.economy.money - before)
+	var msg := "¡Reclamaste %d premio%s!" % [count, "" if count == 1 else "s"]
+	if money > 0:
+		msg = "¡Reclamaste %d premio%s: %s!" % [count, "" if count == 1 else "s", Fmt.money(money)]
+	return {"ok": true, "msg": msg, "count": count, "money": money}
+
+
 static func unclaimed_count(m: GameModel) -> int:
 	var n := 0
 	for mid in m.missions["completed"]:

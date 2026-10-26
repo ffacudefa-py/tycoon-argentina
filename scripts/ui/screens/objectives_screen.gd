@@ -7,6 +7,8 @@ extends Control
 var m: GameModel
 var tab := 0
 var _daily_box: VBoxContainer
+var _claim_all_box: VBoxContainer
+var _claim_cards: Array = []  ## tarjetas con RECLAMAR en la lista visible
 var _list: VBoxContainer
 var _bars: Array = []        ## [ProgressBar, Label, Callable progreso]
 var _timer := 0.0
@@ -21,6 +23,8 @@ func _ready() -> void:
 	var sc := U.scroll(U.margin(col, 6, 6, 6, 8))
 	sc.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(sc)
+	_claim_all_box = U.vbox(0)
+	col.add_child(_claim_all_box)
 	_daily_box = U.vbox(4)
 	col.add_child(_daily_box)
 	col.add_child(U.tabs(["Principales", "Desafíos", "Diarias"], func(i: int) -> void:
@@ -42,8 +46,55 @@ func rebuild() -> void:
 	if _hold:
 		_pending = true
 		return
+	_build_claim_all()
 	_build_daily()
 	_build_list()
+
+
+## "RECLAMAR TODO": aparece si hay al menos un premio esperando.
+func _build_claim_all() -> void:
+	U.clear(_claim_all_box)
+	var n := ProgressionSystem.unclaimed_count(m)
+	if n <= 0:
+		return
+	var b := U.button("RECLAMAR TODO (%d)" % n, "amarillo", "regalo", 44, U.SIZE_BODY)
+	U.on_press(b, _claim_all, "")
+	_claim_all_box.add_child(b)
+	if not Settings.get_value("reduce_motion"):
+		# Late suave para que se note.
+		var tw := b.create_tween().set_loops()
+		tw.tween_callback(func() -> void: b.pivot_offset = b.size / 2.0)
+		tw.tween_property(b, "scale", Vector2(1.03, 1.03), 0.5).set_trans(Tween.TRANS_SINE)
+		tw.tween_property(b, "scale", Vector2.ONE, 0.5).set_trans(Tween.TRANS_SINE)
+
+
+func _claim_all() -> void:
+	if _hold:
+		return
+	_hold = true
+	var cards := _claim_cards.filter(func(c: Control) -> bool: return is_instance_valid(c))
+	var r := ProgressionSystem.claim_all(m)
+	if not Main.instance.result(r, "register"):
+		_release()
+		return
+	U.clear(_claim_all_box)
+	_build_daily()          # la diaria no se anima: queda al día enseguida
+	if cards.is_empty():
+		_release()
+		return
+	# Las tarjetas visibles se despiden una atrás de otra; la última rearma la lista.
+	for i in cards.size():
+		var card: Control = cards[i]
+		var done: Callable = _release if i == cards.size() - 1 else _noop
+		get_tree().create_timer(i * 0.12).timeout.connect(func() -> void:
+			if is_instance_valid(card):
+				Juice.mission_done(card, done)
+			else:
+				done.call())
+
+
+func _noop() -> void:
+	pass
 
 
 func _build_daily() -> void:
@@ -97,6 +148,7 @@ func _build_daily() -> void:
 func _build_list() -> void:
 	U.clear(_list)
 	_bars.clear()
+	_claim_cards.clear()
 	match tab:
 		0:
 			var idx := int(m.missions["main_index"])
@@ -182,6 +234,7 @@ func _mission_card(mis: Dictionary, kind: String) -> Control:
 	elif completed:
 		var b := U.button("RECLAMAR", "verde", "regalo", 40, U.SIZE_BODY)
 		var mid: String = mis["id"]
+		_claim_cards.append(card)
 		var claim := func() -> void:
 			if _hold:
 				return

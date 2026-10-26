@@ -25,6 +25,10 @@ const IDT := "https://identitytoolkit.googleapis.com/v1/accounts:%s?key=%s"
 const STS := "https://securetoken.googleapis.com/v1/token?key=%s"
 ## Tiempo mínimo entre dos correos de verificación (Firebase también limita).
 const RESEND_EVERY := 60.0
+## Los correos de Firebase (verificación, contraseña) salen en castellano.
+## Firebase no deja cambiar el texto del de verificación (antispam): se usa su
+## plantilla traducida. Ver docs/CUENTAS.md.
+const LOCALE_HEADER := "X-Firebase-Locale: es-419"
 
 var api_key := ""
 var uid := ""
@@ -118,7 +122,7 @@ func send_password_reset(p_email: String, done: Callable) -> void:
 	if err != "":
 		done.call({"ok": false, "msg": err})
 		return
-	_post(_idt("sendOobCode"), {"requestType": "PASSWORD_RESET", "email": p_email.strip_edges()},
+	_request(_idt("sendOobCode"), JSON.stringify({"requestType": "PASSWORD_RESET", "email": p_email.strip_edges()}), ["Content-Type: application/json", LOCALE_HEADER],
 		func(ok: bool, _d: Dictionary, code: String) -> void:
 			# Por privacidad no se dice si el email existe o no.
 			if ok or code.begins_with("EMAIL_NOT_FOUND"):
@@ -143,7 +147,7 @@ func send_verification(done := Callable()) -> void:
 		if token == "":
 			finish.call({"ok": false, "msg": AuthErrors.message("NETWORK")})
 			return
-		_request(_idt("sendOobCode"), JSON.stringify({"requestType": "VERIFY_EMAIL", "idToken": token}), ["Content-Type: application/json"],
+		_request(_idt("sendOobCode"), JSON.stringify({"requestType": "VERIFY_EMAIL", "idToken": token}), ["Content-Type: application/json", LOCALE_HEADER],
 			func(ok: bool, _d: Dictionary, code: String) -> void:
 				if ok:
 					last_verification_sent = Time.get_unix_time_from_system()

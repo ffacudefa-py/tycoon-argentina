@@ -29,6 +29,14 @@
   actualizar deja de sincronizar con las reglas nuevas).
 - El estado queda en `user://session.cfg` (`verified`) y se revisa en segundo plano
   al abrir el juego.
+- **El correo** sale en castellano: el proyecto tiene `defaultLocale = es-419`
+  (`node tools/firebase/apply_email_templates.js`) y el juego pide
+  `X-Firebase-Locale: es-419` al mandarlo. La página del enlace también queda en
+  castellano. Firebase **no deja cambiar el texto** del correo de verificación
+  (`EMAIL_TEMPLATE_UPDATE_NOT_ALLOWED`, medida antispam): se usa su plantilla
+  traducida, que nombra al juego con el "nombre público" del proyecto
+  (Consola de Firebase → Configuración del proyecto → General). Un correo 100 %
+  propio necesitaría mandarlo nosotros (Cloud Functions + un servicio de mail, plan Blaze).
 
 ## Sesión
 

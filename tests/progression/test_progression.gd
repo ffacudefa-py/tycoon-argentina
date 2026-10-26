@@ -206,3 +206,23 @@ func test_guided_tutorial_rewards_once() -> void:
 	eq(m.economy.money, money + 8, "premio del paso 2 ($10 al 80 %)")
 	check(not m.grant_tutorial_reward(1, {"money": 10}), "no se paga dos veces")
 	eq(m.economy.money, money + 8, "sin doble pago")
+
+
+func test_reclamar_todo() -> void:
+	var m := make_model()
+	var had := ProgressionSystem.unclaimed_count(m) > 0
+	eq(ProgressionSystem.claim_all(m)["ok"], had, "sólo reclama si había algo pendiente")
+	m.economy.earn(5_000_000, "dev")
+	for i in 30:
+		m.tap_sell("puesto")
+		run(m, 1.1)
+	ProgressionSystem.update(m)
+	var pending := ProgressionSystem.unclaimed_count(m)
+	check(pending >= 1, "hay premios pendientes (%d)" % pending)
+	var before := m.economy.money
+	var r := ProgressionSystem.claim_all(m)
+	check(r["ok"], "reclama todo")
+	eq(r["count"], pending, "reclama exactamente lo pendiente")
+	check(m.economy.money >= before, "suma plata")
+	eq(ProgressionSystem.unclaimed_count(m), 0, "no queda nada")
+	check(not ProgressionSystem.claim_all(m)["ok"], "no se cobra dos veces")
