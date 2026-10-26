@@ -8,7 +8,7 @@ extends RefCounted
 ## Los campos que falten después se completan con valores por defecto en
 ## GameModel.from_dict(), así que agregar campos nuevos no requiere migración.
 
-const CURRENT_VERSION := 2
+const CURRENT_VERSION := 3
 
 
 static func migrate(payload: Dictionary, from_version: int) -> Dictionary:
@@ -18,6 +18,8 @@ static func migrate(payload: Dictionary, from_version: int) -> Dictionary:
 		match v:
 			1:
 				p = _v1_to_v2(p)
+			2:
+				p = _v2_to_v3(p)
 			_:
 				pass
 		v += 1
@@ -34,4 +36,25 @@ static func _v1_to_v2(p: Dictionary) -> Dictionary:
 	p["profile"] = prof
 	if not p.get("ads") is Dictionary:
 		p["ads"] = {"granted": [], "day": -1, "today": 0, "cooldowns": {}}
+	return p
+
+
+## v2 -> v3 (0.7.0): las ganancias pasan a ser 80 % (balance.income_rate) y
+## los sueldos acompañan. Los empleados y candidatos de partidas viejas
+## cobraban el sueldo anterior: se ajusta igual que los nuevos.
+const V3_SALARY_RATE := 0.8
+
+static func _v2_to_v3(p: Dictionary) -> Dictionary:
+	var emps = p.get("employees")
+	if emps is Dictionary:
+		for e in emps.values():
+			if e is Dictionary and e.has("salary"):
+				e["salary"] = snappedf(float(e["salary"]) * V3_SALARY_RATE, 0.01)
+	var bdict = p.get("businesses")
+	if bdict is Dictionary:
+		for s in bdict.values():
+			if s is Dictionary and s.get("candidates") is Array:
+				for c in s["candidates"]:
+					if c is Dictionary and c.has("salary"):
+						c["salary"] = snappedf(float(c["salary"]) * V3_SALARY_RATE, 0.01)
 	return p

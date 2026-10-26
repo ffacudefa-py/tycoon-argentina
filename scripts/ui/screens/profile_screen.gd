@@ -19,6 +19,8 @@ func _ready() -> void:
 	m.profile_changed.connect(rebuild)
 	m.progress_changed.connect(rebuild)
 	m.stage_changed.connect(func(_s: int) -> void: rebuild())
+	Friends.changed.connect(_on_friends_changed)
+	Auth.changed.connect(rebuild)
 	rebuild()
 
 
@@ -32,6 +34,7 @@ func rebuild() -> void:
 	U.clear(_col)
 	_col.add_child(_header())
 	_col.add_child(_summary())
+	_col.add_child(_friends())
 	_col.add_child(_achievements())
 	_col.add_child(_prestige())
 	_col.add_child(_milestones())
@@ -145,6 +148,44 @@ func _summary() -> Control:
 	col.add_child(U.stat_row("Empleados", str(m.employees.size())))
 	col.add_child(U.stat_row("Ganado en la historia", Fmt.money(m.economy.lifetime_earned)))
 	return card
+
+
+## Amigos: resumen y acceso. Sin cuenta verificada explica qué falta.
+func _friends() -> Control:
+	var card := U.panel("Card")
+	var col := U.vbox(4)
+	card.add_child(col)
+	var head := U.hbox(4)
+	head.add_child(U.icon("trofeo"))
+	var pending := Friends.pending_count()
+	head.add_child(U.label("Amigos" + (" (%d nuevos)" % pending if pending > 0 else ""), U.SIZE_BODY, U.TEXT, true))
+	col.add_child(head)
+	var text := ""
+	var btn_text := "Ver amigos"
+	var style := "celeste"
+	if not Auth.signed_in():
+		text = "Con una cuenta podés sumar amigos, competir en un ranking y convidarse mates (premios diarios)."
+		btn_text = "Crear cuenta o ingresar"
+	elif not Auth.email_verified:
+		text = "Confirmá que el email %s es tuyo para agregar amigos." % Auth.email
+		btn_text = "Verificar email"
+		style = "amarillo"
+	else:
+		var n := Friends.friends.size()
+		text = ("Tenés %d amigo%s. Tu código: %s" % [n, "" if n == 1 else "s", Friends.my_code]) if Friends.my_code != "" else "Compartí tu código y competí en el ranking."
+		if pending > 0:
+			style = "verde"
+	col.add_child(U.para(text, U.SIZE_SMALL, U.TEXT_SOFT))
+	var b := U.button(btn_text, style, "persona", 30, U.SIZE_SMALL)
+	U.on_press(b, FriendsModal.open)
+	col.add_child(b)
+	return card
+
+
+## Los amigos se actualizan solos cada tanto: sólo se rearma si se ve el perfil.
+func _on_friends_changed() -> void:
+	if is_visible_in_tree():
+		rebuild()
 
 
 func _achievements() -> Control:

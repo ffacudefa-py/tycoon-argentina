@@ -59,6 +59,8 @@ static func open(mode := "login") -> void:
 					w_ref[0].close()
 				Main.instance.toast(r["msg"], "good")
 				Sfx.play("unlock")
+				if r.get("verify", false):
+					VerifyEmailModal.open()
 			elif is_instance_valid(error):
 				show_error.call(r["msg"])
 				Sfx.play("error")
@@ -80,7 +82,7 @@ static func open(mode := "login") -> void:
 					show_error.call(r["msg"])))
 		body.add_child(forgot)
 	else:
-		body.add_child(U.para("La cuenta sirve para identificarte. Tu partida sigue guardada en este teléfono (todavía no se sube a la nube).", U.SIZE_SMALL, U.TEXT_SOFT))
+		body.add_child(U.para("Te vamos a mandar un correo para confirmar que el email es tuyo. Con la cuenta verificada tu partida se guarda en la nube y podés agregar amigos.", U.SIZE_SMALL, U.TEXT_SOFT))
 	var back := U.button("Volver", "crema", "izquierda", 32, U.SIZE_SMALL)
 	U.on_press(back, func() -> void: w_ref[0].close())
 	body.add_child(back)

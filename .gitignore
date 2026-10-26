@@ -6,3 +6,4 @@ export_credentials.cfg
 /android/
 addons/admob/ios/
 addons/admob/downloads/
+*-debug.log

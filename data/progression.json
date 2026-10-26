@@ -2,6 +2,8 @@
  "_doc": "Constantes de balance, etapas, prestigio, recompensas diarias y avatares. Todo lo que hay acá se puede ajustar sin tocar código.",
  "balance": {
   "start_money": 120,
+  "_income_rate": "Ritmo de ganancias (0.7.0): precios, costo de mercaderia, sueldos y premios fijos se multiplican por este valor; la ganancia neta queda en 80 % y todo cuesta 25 % mas de tiempo.",
+  "income_rate": 0.8,
   "tick_seconds": 0.1,
   "offline_cap_hours": 8,
   "offline_step_seconds": 5,
@@ -53,6 +55,15 @@
    50,
    100
   ]
+ },
+ "friends": {
+  "_doc": "Amigos (0.7.0): cada amigo puede convidarte un mate por día; al abrirlo ganás gift_reward. Se abren como mucho gifts_per_day por día. Ver docs/AMIGOS.md.",
+  "max_friends": 50,
+  "gifts_per_day": 5,
+  "gift_reward": {
+   "income_seconds": 120,
+   "min": 200
+  }
  },
  "stages": [
   {

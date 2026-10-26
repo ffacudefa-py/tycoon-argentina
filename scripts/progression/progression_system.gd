@@ -65,7 +65,7 @@ static func update(m: GameModel) -> void:
 
 static func reward_money(m: GameModel, r: Dictionary) -> int:
 	if r.has("money"):
-		return int(r["money"])
+		return Economy.to_int_floor(float(r["money"]) * m.income_rate())
 	if r.has("income_seconds"):
 		return maxi(int(r.get("min", 0)), Economy.to_int_floor(m.income_per_sec() * float(r["income_seconds"])))
 	return 0

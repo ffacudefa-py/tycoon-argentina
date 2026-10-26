@@ -62,6 +62,15 @@ func _make_cell() -> Dictionary:
 		"t": 0.0, "dur": 0.0, "delay": 0.0, "flash": 0.0}
 
 
+## Color base de los dígitos (rojo para saldo negativo).
+func set_color(c: Color) -> void:
+	if c == color:
+		return
+	color = c
+	for cell in _cells:
+		_paint(cell)
+
+
 ## Cambia el texto. animate=false lo pone de golpe (al cargar la partida);
 ## big=true hace girar los rodillos varias vueltas (premios grandes).
 func set_text(s: String, animate := true, big := false) -> void:

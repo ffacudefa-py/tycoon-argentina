@@ -42,7 +42,7 @@ static func _make_candidate(m: GameModel, bid: String, role_id: String) -> Dicti
 		"role": role_id,
 		"eff": eff,
 		"hire": Economy.to_int_ceil(float(role["hire"]) * scale * (0.8 + 0.4 * quality) * maxf(0.3, hire_discount)),
-		"salary": snappedf(float(role["salary"]) * scale * (0.85 + 0.3 * quality), 0.01),
+		"salary": snappedf(float(role["salary"]) * scale * (0.85 + 0.3 * quality) * m.income_rate(), 0.01),
 		"variant": m.rng.randi() % 8,
 	}
 

@@ -13,6 +13,8 @@ scripts/progression/   ProgressionSystem (misiones, diarias, logros, recompensa 
 scripts/offline/       OfflineCalculator
 scripts/persistence/   SaveSystem (atómico, checksum, respaldo), Migrations
 scripts/settings/      SettingsData (puro) + Settings (autoload, aplica al instante)
+scripts/auth/ cloud/   Auth (cuentas, verificación del email), Cloud (partida en Firestore)
+scripts/social/        FriendLogic (puro) + Friends (autoload: amigos en Firestore)
 scripts/audio/         Sfx (autoload: efectos + vibración)
 scripts/monetization/  Monetization (autoload) + interfaces AdProvider/PurchaseProvider
 scripts/ui/            Main (raíz), U (kit de widgets), ThemeBuilder, components/,
@@ -31,8 +33,10 @@ tools/                 generadores de arte/sonido, scripts de pruebas y capturas
 - **Una sola lógica de tiempo.** `GameModel.simulate(dt, offline)` corre igual con
   pasos de 0,1 s (online, acumulando el delta real → independiente de los FPS) o de
   5 s (offline). Los cálculos no se hacen por fotograma.
-- **Todo el dinero pasa por `Economy`.** Nunca hay saldo negativo; las compras se
-  rechazan si no alcanza; sueldos impagos generan deuda (equipo al 50 %).
+- **Todo el dinero pasa por `Economy`.** El efectivo nunca es negativo; las compras se
+  rechazan si no alcanza; sueldos impagos generan deuda (equipo al 50 %). La barra
+  superior muestra el saldo neto (`net_balance()` = efectivo − deuda): con deuda queda
+  en rojo y con "-" adelante.
 - **Valores derivados con caché** (`derive(id)`), invalidados ante cualquier cambio.
 - **Secciones vivas**: las 5 pantallas se crean una vez y se alternan con `visible`.
 - **Capas**: modales (10), efectos (20), tutorial (30), avisos (40). Efectos y avisos

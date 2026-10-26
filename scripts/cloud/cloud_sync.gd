@@ -43,6 +43,14 @@ static func decide(local: Dictionary, cloud: Dictionary, last_synced_saved_at: f
 
 
 # ------------------------------------------------------------ Firestore
+
+## Raíz de documentos de Firestore, o del emulador local si está definida
+## TYCOON_EMULATOR (sólo tools/dev/social_check.gd).
+static func docs_root(project: String) -> String:
+	var host := OS.get_environment("TYCOON_EMULATOR")
+	var base := ("http://%s:8080/v1" % host) if host != "" else "https://firestore.googleapis.com/v1"
+	return "%s/projects/%s/databases/(default)/documents" % [base, project]
+
 # Los campos van tipados ({"stringValue": ...}); los enteros grandes como
 # texto (Firestore los recibe así en JSON).
 

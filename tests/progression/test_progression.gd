@@ -11,9 +11,9 @@ func test_missions_progress_automatically_and_claim_once() -> void:
 	check(int(m.missions["main_index"]) >= 1, "la cadena avanza sola")
 	var money0 := m.economy.money
 	check(ProgressionSystem.claim_mission(m, "m_ventas")["ok"], "reclama")
-	eq(m.economy.money, money0 + 30, "recompensa exacta")
+	eq(m.economy.money, money0 + 24, "recompensa exacta ($30 al 80 %)")
 	check(not ProgressionSystem.claim_mission(m, "m_ventas")["ok"], "no se reclama dos veces")
-	eq(m.economy.money, money0 + 30, "sin doble pago")
+	eq(m.economy.money, money0 + 24, "sin doble pago")
 	check(not ProgressionSystem.claim_mission(m, "m_doce")["ok"], "no se reclama sin completar")
 
 
@@ -203,6 +203,6 @@ func test_guided_tutorial_rewards_once() -> void:
 	var money := m.economy.money
 	TutorialSteps.update(m)
 	eq(int(m.tutorial["step"]), 2, "paso 2 cumplido")
-	eq(m.economy.money, money + 10, "premio del paso 2")
+	eq(m.economy.money, money + 8, "premio del paso 2 ($10 al 80 %)")
 	check(not m.grant_tutorial_reward(1, {"money": 10}), "no se paga dos veces")
-	eq(m.economy.money, money + 10, "sin doble pago")
+	eq(m.economy.money, money + 8, "sin doble pago")

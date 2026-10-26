@@ -13,14 +13,15 @@ const SUFFIXES := [
 ]
 
 
-## Saldo: redondea hacia abajo para no mostrar plata que no hay.
+## Saldo: redondea hacia abajo para no mostrar plata que no hay. Los montos
+## negativos llevan el signo adelante: "-$1,2 mil".
 static func money(v: float) -> String:
-	return "$" + num(v, false)
+	return ("-$" + num(-v, true)) if v < 0.0 else ("$" + num(v, false))
 
 
 ## Precio: redondea hacia arriba para que "me alcanza" sea confiable a la vista.
 static func cost(v: float) -> String:
-	return "$" + num(v, true)
+	return ("-$" + num(-v, false)) if v < 0.0 else ("$" + num(v, true))
 
 
 static func per_sec(v: float) -> String:

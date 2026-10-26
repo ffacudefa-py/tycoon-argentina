@@ -5,6 +5,20 @@
 include("street.px.js")
 
 const SIDE = 150, CURB = 182, ROAD = 186
+// Terreno del negocio: el juego centra el edificio (192 px de ancho) sobre la
+// calle de 480 px, o sea x 144..336 del arte. Ahi no va ningun objeto de la
+// vereda (banco, farol, arbol...) para que el negocio nunca quede encimado.
+const LOT = [142, 338]
+const PROP_W = { _tree: 54, _lamp_post: 22, _trash: 16, _bench: 40, _bus_stop: 30, _hydrant: 10, _kiosk_news: 40, _palm: 40, _manhole: 18 }
+
+function props(list) {
+  return list.map(([name, x, y]) => {
+    const w = PROP_W[name]
+    if (w === undefined) throw new Error(`props: falta el ancho de ${name}`)
+    if (y < ROAD && x < LOT[1] && x + w > LOT[0]) throw new Error(`props: ${name} en x=${x} invade el terreno del negocio`)
+    return stamp(name, x, y)
+  })
+}
 
 function sidewalkAndStreet(c, w, opts = {}) {
   c.pattern("baldosas", 0, SIDE, w, CURB - SIDE, { reseed: true })
@@ -47,28 +61,28 @@ function zone(name, o) {
     layer("sombras", { shade: true, density: 0.5 }, rect(0, SIDE + 1, 480, 5, "o")))
 }
 
-const PROPS_BARRIO = [stamp("_tree", 18, 90), stamp("_lamp_post", 112, 80), stamp("_trash", 150, 156), stamp("_tree", 396, 90), stamp("_lamp_post", 360, 80),
-  stamp("_bench", 300, 158), stamp("_hydrant", 250, 168), stamp("_manhole", 210, 190)]
+const PROPS_BARRIO = props([["_tree", 18, 90], ["_trash", 88, 156], ["_lamp_post", 112, 80], ["_hydrant", 346, 168], ["_lamp_post", 360, 80],
+  ["_tree", 396, 90], ["_bench", 440, 158], ["_manhole", 210, 190]])
 
 zone("loc_barrio", { sky: "Cc", facades: ["_fac_c", "_fac_a", "_fac_e", "_fac_h", "_fac_g", "_fac_j", "_fac_l", "_fac_d"], props: PROPS_BARRIO })
 zone("loc_centro", { sky: "BCc", facades: ["_fac_f", "_fac_b", "_fac_i", "_fac_k", "_fac_d", "_fac_f"], zebra: 200, lane: "y",
   far: (c) => { c.stamp("_obelisco", 232, 54); c.stamp("_tower", 40, 10); c.stamp("_tower", 420, 0) },
-  props: [stamp("_bus_stop", 120, 112), stamp("_kiosk_news", 330, 136), stamp("_lamp_post", 60, 80), stamp("_lamp_post", 400, 80), stamp("_trash", 300, 156), stamp("_manhole", 150, 190)] })
+  props: props([["_bus_stop", 100, 112], ["_kiosk_news", 350, 136], ["_lamp_post", 60, 80], ["_lamp_post", 400, 80], ["_trash", 80, 156], ["_manhole", 150, 190]]) })
 zone("loc_universidad", { sky: "Cc", facades: ["_fac_g", "_fac_g", "_fac_a", "_fac_l", "_fac_g"],
   far: (c) => { c.stamp("_clocktower", 220, 40) },
-  props: [stamp("_tree", 30, 90), stamp("_tree", 250, 90), stamp("_bench", 100, 158), stamp("_bench", 330, 158), stamp("_lamp_post", 200, 80), stamp("_trash", 420, 156)] })
+  props: props([["_tree", 20, 90], ["_tree", 400, 90], ["_bench", 76, 158], ["_bench", 350, 158], ["_lamp_post", 118, 80], ["_trash", 460, 156]]) })
 zone("loc_costanera", { sky: "cW", facades: ["_fac_j", "_fac_e"], clouds: true,
   far: (c) => { c.rect(0, 96, 480, 54, "C"); c.noise(0, 96, 480, 54, "Bc", 0.08, 3); c.hline(0, 96, 480, "B"); c.stamp("_boat", 300, 88); c.stamp("_boat", 120, 100) },
-  props: [stamp("_palm", 40, 84), stamp("_palm", 210, 84), stamp("_palm", 400, 84), stamp("_bench", 120, 158), stamp("_bench", 320, 158), stamp("_lamp_post", 280, 80)] })
+  props: props([["_palm", 40, 84], ["_palm", 96, 84], ["_palm", 404, 84], ["_bench", 0, 158], ["_bench", 366, 158], ["_lamp_post", 342, 80]]) })
 zone("loc_industrial", { sky: "ZTc", facades: ["_fac_l", "_fac_e", "_fac_b", "_fac_j"], cloudShade: "E",
   far: (c) => { c.stamp("_chimney", 80, 40); c.stamp("_chimney", 300, 30); c.stamp("_chimney", 420, 50) },
-  props: [stamp("_lamp_post", 140, 80), stamp("_trash", 260, 156), stamp("_manhole", 330, 190), stamp("_hydrant", 60, 168)] })
+  props: props([["_lamp_post", 110, 80], ["_trash", 350, 156], ["_manhole", 330, 190], ["_hydrant", 60, 168]]) })
 zone("loc_puerto", { sky: "BCc", facades: ["_fac_i", "_fac_b", "_fac_l"],
   far: (c) => { c.stamp("_crane", 40, 40); c.stamp("_crane", 330, 30); for (let i = 0; i < 6; i++) c.stamp("_container", 150 + i * 30, 120 - (i % 2) * 16, { swap: [{}, { r: "B", R: "A" }, { r: "n", R: "G" }][i % 3] }) },
-  props: [stamp("_lamp_post", 100, 80), stamp("_lamp_post", 380, 80), stamp("_trash", 220, 156)] })
+  props: props([["_lamp_post", 100, 80], ["_lamp_post", 380, 80], ["_trash", 350, 156]]) })
 zone("loc_financiero", { sky: "AB", facades: ["_fac_k", "_fac_i", "_fac_f"], lane: "y",
   far: (c) => { c.stamp("_tower", 20, 0); c.stamp("_tower", 120, -10); c.stamp("_tower", 340, 4); c.stamp("_tower", 440, -6) },
-  props: [stamp("_lamp_post", 60, 80), stamp("_lamp_post", 300, 80), stamp("_bench", 180, 158), stamp("_trash", 400, 156)] })
+  props: props([["_lamp_post", 60, 80], ["_lamp_post", 360, 80], ["_bench", 90, 158], ["_trash", 400, 156]]) })
 
 // Fondo de la pantalla de inicio: atardecer porteño con ventanas encendidas.
 scene("start_bg", { w: 400, h: 720, bg: "u" },

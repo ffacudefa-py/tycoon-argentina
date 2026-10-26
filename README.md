@@ -3,7 +3,7 @@
 Simulador de negocios pixel art para Android (Godot 4.7, GDScript, vertical).
 Empezás con un puestito callejero en el Barrio Villa Esperanza y crecés hasta
 un conglomerado: niveles, mejoras, mercadería, empleados, automatización,
-ingresos offline, zonas, rivales, eventos, misiones, logros y prestigio.
+ingresos offline, zonas, rivales, eventos, misiones, logros, prestigio y amigos.
 
 Todo el arte, los sonidos, los nombres y las empresas son originales y ficticios.
 
@@ -44,7 +44,8 @@ python3 tools/sfx.py            # efectos de sonido sintetizados
 - `docs/ARTE.md` — dirección pixel art, resolución, spritesheets.
 - `docs/ANDROID.md` — exportación, firma, release.
 - `docs/MONETIZACION.md` — anuncios recompensados (AdMob): estado, pruebas y producción.
-- `docs/CUENTAS.md` — cuentas con Firebase Auth.
+- `docs/CUENTAS.md` — cuentas con Firebase Auth y verificación del email.
+- `docs/AMIGOS.md` — amigos: códigos, ranking, mates, reglas y prueba con emuladores.
 - `docs/PERFIL.md` — foto de perfil, banner, recorte y cómo probarlo.
 - `docs/PASSIDLE.md` — qué se tomó de PassIdle y qué no.
 - `docs/PENDIENTES.md` — lo que queda para próximas versiones.

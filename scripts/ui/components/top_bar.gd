@@ -7,6 +7,9 @@ extends PanelContainer
 ## venta vuelan hasta acá, el número da un saltito al recibirlas y los
 ## premios grandes (misiones, anuncios, ganancias offline...) hacen girar
 ## todos los rodillos con lluvia de monedas. Todo es sólo visual.
+##
+## Muestra el saldo NETO (efectivo − sueldos atrasados): si se deben sueldos
+## queda en rojo y con un "-" adelante del total.
 
 ## Un ingreso que no es una venta común cuenta como "premio grande" si suma
 ## al menos esta fracción del saldo anterior (y un mínimo absoluto).
@@ -14,6 +17,7 @@ const JACKPOT_RATIO := 0.2
 const JACKPOT_MIN := 100
 ## Cada cuánto se actualizan los rodillos con las ventas automáticas.
 const ROLL_EVERY := 0.3
+const NEGATIVE := Color("ff5a4f")
 
 var _money: SlotCounter
 var _coin: TextureRect
@@ -73,13 +77,13 @@ func _ready() -> void:
 	m.money_changed.connect(_on_money_changed)
 	Game.model_reset.connect(_on_reset)
 	Game.model_loaded.connect(_on_reset)
-	_money.set_text(Fmt.money(m.economy.money), false)
+	_show_balance(false)
 	_refresh_names()
 	_refresh_income()
 
 
 func _on_reset() -> void:
-	_money.set_text(Fmt.money(Game.m.economy.money), false)
+	_show_balance(false)
 	_refresh_names()
 
 
@@ -101,6 +105,18 @@ func _refresh_income() -> void:
 	_refresh_names()
 
 
+## Saldo neto en los rodillos: blanco si es positivo; rojo y con "-" si se
+## deben más sueldos de lo que hay en caja.
+func _show_balance(animate: bool, big := false) -> void:
+	var net := Game.m.net_balance()
+	_money.set_color(NEGATIVE if net < 0 else Color.WHITE)
+	_money.set_text(Fmt.money(net), animate, big)
+
+
+func is_negative() -> bool:
+	return _money.color == NEGATIVE
+
+
 ## Centro del saldo en pantalla: ahí van a parar las monedas que vuelan.
 func money_anchor() -> Vector2:
 	return _coin.get_global_rect().get_center()
@@ -115,7 +131,7 @@ func _process(delta: float) -> void:
 	var now := Time.get_ticks_msec()
 	if _roll_t >= ROLL_EVERY and now >= _jackpot_until:
 		_roll_t = 0.0
-		_money.set_text(Fmt.money(Game.m.economy.money), _animations_on())
+		_show_balance(_animations_on())
 	_timer += delta
 	if _timer > 0.5:
 		_timer = 0.0
@@ -147,7 +163,7 @@ func coin_landed() -> void:
 func jackpot(_amount: int) -> void:
 	var anim := _animations_on()
 	_jackpot_until = Time.get_ticks_msec() + int(SlotCounter.SPIN_TIME * 1000) + 300
-	_money.set_text(Fmt.money(Game.m.economy.money), anim, anim)
+	_show_balance(anim, anim)
 	Sfx.play("register")
 	Sfx.vibrate(40)
 	if not anim or Main.instance == null:

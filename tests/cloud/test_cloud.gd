@@ -1,6 +1,6 @@
 extends TestCase
 ## Guardado en la nube: decisiones de sincronización y formato del documento
-## (sin red; la prueba contra Firestore real está en tools/dev/cloud_check.gd).
+## (sin red; la prueba con las reglas reales está en tools/dev/social_check.gd).
 
 
 func _summary(lifetime: int, saved_at: float, prestige := 0) -> Dictionary:

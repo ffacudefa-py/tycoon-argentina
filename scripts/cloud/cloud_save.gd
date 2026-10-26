@@ -9,12 +9,13 @@ extends Node
 ## - Después sube una copia cada UPLOAD_EVERY segundos si hubo cambios y al
 ##   pasar la app a segundo plano.
 ## - Sin internet no pasa nada: queda pendiente y se reintenta más tarde.
+## - Desde la 0.7 hace falta el email verificado (Auth.verified()); las reglas
+##   de Firestore lo exigen también del lado del servidor.
 ## Reglas de Firestore y configuración en docs/CUENTAS.md.
 
 signal status_changed
 signal conflict(local: Dictionary, cloud: Dictionary)
 
-const URL := "https://firestore.googleapis.com/v1/projects/%s/databases/(default)/documents/saves/%s"
 const STATE_PATH := "user://cloud.cfg"
 const UPLOAD_EVERY := 90.0
 const RETRY_EVERY := 120.0
@@ -52,7 +53,7 @@ func _ready() -> void:
 
 ## Sólo con el juego de verdad corriendo (no en pruebas ni herramientas -s).
 func enabled() -> bool:
-	return project_id != "" and Auth.signed_in() and Main.instance != null and not _dev_mode()
+	return project_id != "" and Auth.verified() and Main.instance != null and not _dev_mode()
 
 
 ## Las capturas automáticas y las pruebas usan un guardado aparte: nunca tocan la nube.
@@ -89,7 +90,7 @@ func _check_account() -> void:
 
 
 func _on_auth_changed() -> void:
-	if Auth.signed_in():
+	if Auth.verified():
 		_check_account()
 		sync_now()
 	else:
@@ -210,6 +211,8 @@ func _set_status(s: String) -> void:
 func status_text() -> String:
 	match status:
 		"off":
+			if Auth.signed_in() and not Auth.email_verified:
+				return "Verificá tu email para guardar tu progreso en la nube."
 			return "Iniciá sesión para guardar tu progreso en la nube."
 		"syncing":
 			return "Sincronizando con la nube…"
@@ -245,7 +248,7 @@ func _request(method: int, body: String, cb: Callable) -> void:
 			else:
 				cb.call(code >= 200 and code < 300, code, d if d is Dictionary else {}))
 		var headers := PackedStringArray(["Authorization: Bearer " + token, "Content-Type: application/json"])
-		var err := http.request(URL % [project_id, Auth.uid], headers, method, body)
+		var err := http.request(CloudSync.docs_root(project_id) + "/saves/" + Auth.uid, headers, method, body)
 		if err != OK:
 			http.queue_free()
 			_inflight = false

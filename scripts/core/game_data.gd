@@ -21,6 +21,7 @@ var events_cfg := {}
 var event_by_id := {}
 var stages: Array = []
 var prestige_cfg := {}
+var friends_cfg := {}
 var perk_by_id := {}
 var daily_rewards: Array = []
 var avatars: Array = []
@@ -53,6 +54,7 @@ func load_from(dir: String) -> void:
 	balance = prog["balance"]
 	stages = prog["stages"]
 	prestige_cfg = prog["prestige"]
+	friends_cfg = prog.get("friends", {"max_friends": 50, "gifts_per_day": 5, "gift_reward": {"income_seconds": 120, "min": 200}})
 	daily_rewards = prog["daily_rewards"]
 	avatars = prog["avatars"]
 	for a in avatars:

@@ -15,6 +15,11 @@
   humo de parrilla animado).
 - Música (hoy no hay; el ajuste no se muestra).
 
+## Amigos (0.7)
+- Probar en dos teléfonos reales: solicitud, aceptar, mates y ranking.
+- Ideas: ver la foto de perfil de los amigos (necesita Cloud Storage), notificaciones
+  push de solicitudes, desafíos semanales entre amigos.
+
 ## Plataforma
 - Firma release y AAB para Play Store (ANDROID.md).
 - Foto y banner en la nube (el progreso ya se guarda en Firestore desde la 0.6; ver CUENTAS.md).

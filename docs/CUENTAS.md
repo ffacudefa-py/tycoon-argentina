@@ -15,6 +15,21 @@
 - `scripts/auth/auth_errors.gd`: validaciones locales y mensajes en castellano.
   Por privacidad, "email no existe" y "contraseña incorrecta" dan el mismo mensaje.
 
+## Verificación del email (desde la 0.7)
+
+- Al crear la cuenta se manda el correo de verificación (`accounts:sendOobCode`,
+  `VERIFY_EMAIL`) y se abre "Verificá tu email". Al iniciar sesión se consulta
+  `accounts:lookup`; si el email no está verificado se abre el mismo aviso.
+- "Ya lo verifiqué" vuelve a consultar y, si ya está, **renueva el token** (el viejo
+  trae `email_verified=false`). "Reenviar" tiene un límite de 60 s por cuenta.
+- Sin verificar se puede jugar, pero la nube y los amigos están en pausa. Las reglas
+  de Firestore exigen `email_verified` en todos los documentos: no alcanza con
+  saltearse el aviso en el cliente.
+- Las cuentas creadas con la 0.6 también tienen que verificar (la 0.6 sin
+  actualizar deja de sincronizar con las reglas nuevas).
+- El estado queda en `user://session.cfg` (`verified`) y se revisa en segundo plano
+  al abrir el juego.
+
 ## Sesión
 
 - Se guarda en `user://session.cfg` (uid, email, nombre y refresh token; nunca
@@ -30,17 +45,8 @@
   sobre que el guardado local (`format`, `version`, `checksum`, `payload`) en el
   campo `save`, más un resumen (`saved_at`, `stage`, `money`, `lifetime`, `company`,
   `prestige`, `play_time`, `app_version`) para comparar sin descargar todo.
-- Reglas (`firestore.rules`):
-  ```
-  rules_version = '2';
-  service cloud.firestore {
-    match /databases/{database}/documents {
-      match /saves/{uid} {
-        allow read, write: if request.auth != null && request.auth.uid == uid;
-      }
-    }
-  }
-  ```
+- Reglas en `firestore.rules`: cada cuenta verificada lee y escribe sólo su
+  `saves/<uid>`; el resto del archivo son los amigos (docs/AMIGOS.md).
 - `scripts/cloud/cloud_save.gd` (autoload `Cloud`) usa la API REST con el token de
   `Auth.get_token()`; `scripts/cloud/cloud_sync.gd` tiene las decisiones (probadas en
   `tests/cloud`).
@@ -69,9 +75,6 @@ godot --headless --path . -s res://tools/dev/auth_check.gd
 Crea una cuenta descartable, prueba contraseña corta, cuenta repetida, clave
 incorrecta, ingreso, renovación y recuperación, y **borra** la cuenta al final.
 
-Para la nube:
-```bash
-godot --headless --path . -s res://tools/dev/cloud_check.gd
-```
-Sube y lee una partida con una cuenta descartable, verifica que otra cuenta y un
-pedido sin sesión reciban 403, y borra la partida y las cuentas al final.
+Para la nube y los amigos (con las reglas verdaderas, en los emuladores locales):
+`tools/dev/social_check.gd`, ver docs/AMIGOS.md. Prueba que una cuenta sin verificar
+recibe 403, que una verificada guarda su partida y que no puede tocar la de otro.

@@ -40,6 +40,7 @@ var daily_missions := {}
 var achievements := {}        ## id -> unix time de desbloqueo
 var daily_reward := {}
 var ads := {}                 ## registro de recompensas por anuncio (ver AdRewards)
+var social := {}              ## regalos de amigos abiertos hoy (ver FriendLogic)
 var events := {}
 var inflation := {}
 var rivals := {}
@@ -92,6 +93,7 @@ func new_game() -> void:
 	stats = {"play_time": 0.0, "best_income": 0.0, "created": now()}
 	daily_reward = {"last_day": -1, "index": 0}
 	ads = {"granted": [], "day": -1, "today": 0, "cooldowns": {}}
+	social = {"day": -1, "gifts_claimed": 0}
 	tutorial = {"step": 0, "done": false}
 	missions = {"main_index": 0, "completed": {}, "claimed": {}}
 	daily_missions = {"day": -1, "list": [], "baseline": {}, "completed": {}, "claimed": {}}
@@ -252,7 +254,10 @@ func _compute(id: String) -> Dictionary:
 	var zone_mult: float = (1.0 + zone_demand) * (1.0 - competition)
 
 	var ev := EventSystem.modifiers_for(self, id)
-	var income_mult := prestige_multiplier() * boost_multiplier()
+	# income_rate (0,8) achica precios y costo de mercadería por igual: el margen
+	# se mantiene y la ganancia neta baja 20 %.
+	var rate := income_rate()
+	var income_mult := prestige_multiplier() * boost_multiplier() * rate
 	var price_index := float(inflation["price_index"]) if inflation_enabled else 1.0
 	var cost_index := float(inflation["cost_index"]) if inflation_enabled else 1.0
 
@@ -261,7 +266,7 @@ func _compute(id: String) -> Dictionary:
 	var base_cycle: float = float(def["cycle"]) / speed_mult
 	var cycle := maxf(float(bal["min_cycle"]), base_cycle / float(ev["speed"]))
 	var price_mult: float = (1.0 + mods["revenue"] + revenue_emp + director_bonus) * zone_mult * float(ev["revenue"]) * income_mult * price_index
-	var cost_mult: float = maxf(0.5, 1.0 - mods["cost_reduction"]) * float(ev["cost"]) * cost_index
+	var cost_mult: float = maxf(0.5, 1.0 - mods["cost_reduction"]) * float(ev["cost"]) * cost_index * rate
 	var stock_span: float = maxf(float(bal["stock_cycles"]), float(bal["stock_seconds"]) / maxf(base_cycle, float(bal["min_cycle"]))) * (1.0 + mods["capacity"])
 
 	var products := []
@@ -305,6 +310,17 @@ func _compute(id: String) -> Dictionary:
 		"event_revenue": ev["revenue"], "event_speed": ev["speed"], "event_cost": ev["cost"],
 		"mods": mods, "team_size": team.size(),
 	}
+
+
+## Ritmo global de ganancias (balance.income_rate, 0,8 desde la 0.7.0).
+func income_rate() -> float:
+	return float(data.balance.get("income_rate", 1.0))
+
+
+## Saldo neto: efectivo menos sueldos atrasados. Es lo que muestra la barra
+## superior; queda negativo mientras se deben sueldos.
+func net_balance() -> int:
+	return economy.money - salary_debt
 
 
 func employee_efficiency(e: Dictionary) -> float:
@@ -1022,6 +1038,7 @@ func to_dict() -> Dictionary:
 		"achievements": achievements.duplicate(true),
 		"daily_reward": daily_reward.duplicate(true),
 		"ads": ads.duplicate(true),
+		"social": social.duplicate(true),
 		"events": events.duplicate(true),
 		"inflation": inflation.duplicate(true),
 		"rivals": rivals.duplicate(true),
@@ -1077,6 +1094,7 @@ func from_dict(d: Dictionary) -> void:
 	achievements = _dict_or(d.get("achievements"), {})
 	daily_reward = _merge(daily_reward, d.get("daily_reward"))
 	ads = _merge(ads, d.get("ads"))
+	social = _merge(social, d.get("social"))
 	if not ads["granted"] is Array:
 		ads["granted"] = []
 	if not ads["cooldowns"] is Dictionary:

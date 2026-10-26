@@ -36,6 +36,15 @@ static func open() -> void:
 	body.add_child(_section("Cuenta", "persona"))
 	if Auth.signed_in():
 		body.add_child(U.stat_row("Sesión iniciada", Auth.email))
+		if not Auth.email_verified:
+			body.add_child(U.para("Email sin verificar: la nube y los amigos están en pausa hasta que confirmes que el email es tuyo.", U.SIZE_SMALL, U.RED))
+			var ver := U.button("Verificar email", "amarillo", "alerta", 32, U.SIZE_SMALL)
+			U.on_press(ver, func() -> void:
+				w_ref[0].close()
+				VerifyEmailModal.open())
+			body.add_child(ver)
+		else:
+			body.add_child(U.stat_row("Email", "Verificado", U.GREEN))
 		var cloud_l := U.para(Cloud.status_text(), U.SIZE_SMALL, U.RED if Cloud.status == "error" else U.TEXT_SOFT)
 		body.add_child(cloud_l)
 		var sync := U.button("Sincronizar ahora", "verde", "check", 32, U.SIZE_SMALL)
@@ -63,7 +72,7 @@ static func open() -> void:
 					Main.instance.toast("Cerraste sesión. Tu partida sigue en este teléfono.", "info"), false))
 		body.add_child(out)
 	else:
-		body.add_child(U.para("Jugás como invitado. Con una cuenta tu partida se guarda también en la nube: si cambiás de teléfono o reinstalás el juego, no perdés nada.", U.SIZE_SMALL, U.TEXT_SOFT))
+		body.add_child(U.para("Jugás como invitado. Con una cuenta (y el email verificado) tu partida se guarda también en la nube y podés agregar amigos: si cambiás de teléfono o reinstalás el juego, no perdés nada.", U.SIZE_SMALL, U.TEXT_SOFT))
 		var login := U.button("Iniciar sesión o crear cuenta", "celeste", "persona", 32, U.SIZE_SMALL)
 		U.on_press(login, func() -> void:
 			w_ref[0].close()

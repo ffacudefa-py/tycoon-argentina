@@ -162,10 +162,56 @@ func _run() -> void:
 	ProfileImages.clear("banner")
 	m.set_profile_image("photo", false)
 	m.set_profile_image("banner", false)
+	await _social_shots()
 	main.go_to(0)
 	main.start.open(false)
 	await _shot("18_volver_al_inicio", 0.6)
 	get_tree().quit()
+
+
+## 0.7: saldo negativo, verificación de email y amigos. La cuenta y los
+## amigos son de mentira (no se emite Auth.changed: nada toca la red).
+func _social_shots() -> void:
+	var main := Main.instance
+	var m := Game.m
+	main.go_to(0)
+	var cash := m.economy.money
+	m.economy.spend(cash, "dev")
+	m.salary_debt = 48_500
+	main.top_bar._show_balance(false)      # sin esperar el refresco de 0,3 s (humo headless)
+	await _shot("19_saldo_negativo", 0.8)
+	print("SALDO_NEGATIVO ", "OK" if main.top_bar.is_negative() else "FALLÓ")
+	m.salary_debt = 0
+	m.economy.earn(cash, "dev", false)
+	var saved := [Auth.uid, Auth.email, Auth.email_verified]
+	Auth.uid = "dev-uid"
+	Auth.email = "jugador@ejemplo.com"
+	Auth.email_verified = false
+	VerifyEmailModal.open()
+	await _shot("20_verificar_email", 0.5)
+	main.modal_host.close_all()
+	Auth.email_verified = true
+	Friends.my_code = "K7M2QX"
+	Friends.status = "ok"
+	Friends.requests = [{"uid": "r1", "company": "Kiosco La Esquina", "avatar": "gorra", "at": 0.0}]
+	Friends.gifts = [{"uid": "f1", "company": "Parrilla Don Tito", "day": 0}]
+	Friends.friends = [
+		{"uid": "f1", "company": "Parrilla Don Tito", "avatar": "perro", "stage": 5, "lifetime": 5_400_000_000, "prestige": 1, "code": "AB3CDE"},
+		{"uid": "f2", "company": "Lavadero Burbujas", "avatar": "vecina", "stage": 3, "lifetime": 820_000, "prestige": 0, "code": "ZX9QWE"},
+	]
+	FriendsModal.open()
+	await _shot("21_amigos", 0.6)
+	main.modal_host.close_all()
+	main.go_to(4)
+	await _shot("22_perfil_amigos", 0.6)
+	Friends.friends = []
+	Friends.requests = []
+	Friends.gifts = []
+	Friends.my_code = ""
+	Friends.status = "off"
+	Auth.uid = saved[0]
+	Auth.email = saved[1]
+	Auth.email_verified = saved[2]
 
 
 ## Set "escenas": los 12 negocios en sus 5 niveles visuales, de frente con el

@@ -1,9 +1,56 @@
 rules_version = '2';
-// Cada cuenta lee y escribe sólo su partida (saves/<uid>). Ver docs/CUENTAS.md.
+// Ver docs/CUENTAS.md y docs/AMIGOS.md. Desde la 0.7 todo exige el email
+// verificado (token con email_verified). Se prueban con tools/dev/social_check.gd.
 service cloud.firestore {
   match /databases/{database}/documents {
+    function verified() {
+      return request.auth != null && request.auth.token.email_verified == true;
+    }
+    function isMe(uid) {
+      return verified() && request.auth.uid == uid;
+    }
+
+    // Cada cuenta lee y escribe sólo su partida.
     match /saves/{uid} {
-      allow read, write: if request.auth != null && request.auth.uid == uid;
+      allow read, write: if isMe(uid);
+    }
+
+    // Código de amigo -> uid. Se crea una vez y no se cambia; no se listan.
+    match /codes/{code} {
+      allow get: if verified();
+      allow create: if verified() && request.resource.data.uid == request.auth.uid;
+    }
+
+    // Perfil público (empresa, avatar, etapa, ganado). Se lee de a uno, no se lista.
+    match /players/{uid} {
+      allow get: if verified();
+      allow write: if isMe(uid);
+
+      // Solicitudes recibidas: las manda {from}, las ve y las borra el dueño.
+      match /requests/{from} {
+        allow read, delete: if isMe(uid);
+        allow create: if verified() && request.auth.uid == from && from != uid
+          && request.resource.data.from == from
+          && !exists(/databases/$(database)/documents/players/$(uid)/friends/$(from));
+      }
+
+      // Lista de amigos. El dueño maneja la suya; quien acepta una solicitud
+      // escribe también en la lista del que la mandó (si la solicitud existe).
+      match /friends/{fid} {
+        allow read: if isMe(uid);
+        allow create, update: if isMe(uid)
+          || (verified() && request.auth.uid == fid
+              && exists(/databases/$(database)/documents/players/$(fid)/requests/$(uid)));
+        allow delete: if isMe(uid) || (verified() && request.auth.uid == fid);
+      }
+
+      // Mates recibidos: sólo los puede mandar alguien que está en mi lista.
+      match /gifts/{from} {
+        allow read, delete: if isMe(uid);
+        allow create, update: if verified() && request.auth.uid == from
+          && request.resource.data.from == from
+          && exists(/databases/$(database)/documents/players/$(uid)/friends/$(from));
+      }
     }
   }
 }

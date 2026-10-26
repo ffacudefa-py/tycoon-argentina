@@ -9,6 +9,7 @@ static func open() -> void:
 	var best := m.most_profitable()
 	var rows := [
 		["Capital actual", Fmt.money(m.economy.money)],
+		["Sueldos atrasados", Fmt.money(-m.salary_debt) if m.salary_debt > 0 else "Ninguno"],
 		["Patrimonio estimado", Fmt.money(m.net_worth())],
 		["Ingresos por segundo", Fmt.per_sec(m.revenue_per_sec())],
 		["Gastos por segundo (mercadería)", "-" + Fmt.per_sec(m.stock_cost_per_sec())],
