@@ -101,20 +101,38 @@ static func button(text: String, style := "crema", icon_name := "", min_h := 26,
 	return b
 
 
-## Feedback al tocar: el botón se achica un instante (además del "hundido"
-## del estilo) y vibra apenas. Sólo visual: no cambia el área táctil.
+## Feedback al tocar: el botón se aplasta un poco (además del "hundido" del
+## estilo) y se aclara; al soltar vuelve con un rebote elástico. Sólo visual:
+## no cambia el área táctil. Con "Reducir movimiento" sólo vibra.
 static func press_feedback(b: BaseButton) -> void:
 	b.button_down.connect(func() -> void:
-		if Settings.get_value("reduce_motion"):
-			Sfx.vibrate(10)
+		Sfx.vibrate(10)
+		if Settings.get_value("reduce_motion") or b.disabled:
 			return
 		b.pivot_offset = b.size / 2.0
-		var tw := b.create_tween()
-		tw.tween_property(b, "scale", Vector2(0.95, 0.95), 0.05)
-		Sfx.vibrate(10))
+		_kill_press_tween(b)
+		var tw := b.create_tween().set_parallel(true)
+		tw.tween_property(b, "scale", Vector2(0.94, 0.9), 0.06).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		tw.tween_property(b, "modulate", Color(1.15, 1.15, 1.15), 0.06)
+		b.set_meta("press_tween", tw))
 	b.button_up.connect(func() -> void:
-		var tw := b.create_tween()
-		tw.tween_property(b, "scale", Vector2.ONE, 0.08))
+		if Settings.get_value("reduce_motion"):
+			b.scale = Vector2.ONE
+			b.modulate = Color.WHITE
+			return
+		_kill_press_tween(b)
+		var tw := b.create_tween().set_parallel(true)
+		tw.tween_property(b, "scale", Vector2.ONE, 0.32).set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
+		tw.tween_property(b, "modulate", Color.WHITE, 0.2)
+		b.set_meta("press_tween", tw))
+
+
+static func _kill_press_tween(b: BaseButton) -> void:
+	if not b.has_meta("press_tween"):
+		return
+	var old = b.get_meta("press_tween")
+	if old is Tween and (old as Tween).is_valid():
+		(old as Tween).kill()
 
 
 ## Conecta una acción protegida contra dobles toques accidentales.

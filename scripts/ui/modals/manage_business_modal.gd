@@ -27,6 +27,8 @@ var _content: VBoxContainer
 var _refreshers: Array[Callable] = []
 var _timer := 0.0
 var _window: ModalHost.ModalWindow
+## Mejora recién comprada: su tarjeta brilla cuando se rearma la lista.
+var _shine_uid := ""
 
 
 ## start_tab: 0 negocio, 1 empleados, 2 mejoras, 3 datos.
@@ -318,12 +320,19 @@ func _upgrade_card(u: Dictionary, st: Dictionary) -> Control:
 		var gain := m.preview_profit_gain(bid, func(s: Dictionary) -> void: s["upgrades"][uid] = int(s["upgrades"].get(uid, 0)) + 1)
 		if gain > 0.01:
 			col.add_child(U.label("Suma +%s" % Fmt.per_sec(gain), U.SIZE_SMALL, UiColors.GAIN, true))
-		var b := UiColors.buy_button("COMPRAR", int(st["cost"]), func() -> void: Main.instance.result(m.buy_upgrade(bid, uid)), 40)
+		var buy := func() -> void:
+			_shine_uid = uid
+			if not Main.instance.result(m.buy_upgrade(bid, uid)):
+				_shine_uid = ""
+		var b := UiColors.buy_button("COMPRAR", int(st["cost"]), buy, 40)
 		_refreshers.append(func() -> void:
 			var s2 := m.upgrade_status(bid, uid)
 			if not s2["maxed"]:
 				UiColors.set_cost(b, int(s2["cost"])))
 		col.add_child(b)
+	if uid == _shine_uid:
+		_shine_uid = ""
+		Juice.gold_shine.call_deferred(card)
 	return card
 
 

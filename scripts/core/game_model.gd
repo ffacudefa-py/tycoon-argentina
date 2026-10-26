@@ -751,7 +751,7 @@ func buy_business(id: String, zone_id: String = "barrio") -> Dictionary:
 	biz[id]["invested"] = st["cost"]
 	var name: String = data.business_by_id[id]["name"]
 	add_milestone("Abriste %s en %s." % [name, data.zone_by_id[zone_id]["name"]])
-	celebrate.emit("unlock", {"business": id})
+	celebrate.emit("unlock", {"business": id, "bought": true})
 	notify.emit("¡Abriste %s!" % name, "good")
 	EmployeeSystem.ensure_candidates(self, id)
 	businesses_changed.emit()

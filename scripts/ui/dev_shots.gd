@@ -83,6 +83,8 @@ func _run() -> void:
 	m.buy_business("kiosco")
 	m.biz["kiosco"]["level"] = 12
 	m.buy_business("comida")
+	await _shot("05a_festejo_negocio", 1.2)
+	UnlockShow.dismiss_all()
 	m.invalidate()
 	for id in ["puesto", "kiosco"]:
 		EmployeeSystem.generate_candidates(m, id)
@@ -162,11 +164,54 @@ func _run() -> void:
 	ProfileImages.clear("banner")
 	m.set_profile_image("photo", false)
 	m.set_profile_image("banner", false)
+	await _juice_shots()
 	await _social_shots()
 	main.go_to(0)
 	main.start.open(false)
 	await _shot("18_volver_al_inicio", 0.6)
 	get_tree().quit()
+
+
+## 0.8: mejora que brilla en dorado y misión que se reclama (verde, tick y
+## salida hacia la izquierda), con toques reales sobre los botones.
+func _juice_shots() -> void:
+	var main := Main.instance
+	var m := Game.m
+	m.economy.earn(50_000_000, "dev", false)
+	ManageBusinessModal.open("puesto", 2)
+	await get_tree().create_timer(0.4).timeout
+	var buy := _find_button(main.modal_host, "COMPRAR")
+	if buy:
+		await _tap(buy)
+	await _shot("23_mejora_brillo_a", 0.5)
+	await _shot("23_mejora_brillo_b", 0.4)
+	main.modal_host.close_all()
+	main.go_to(3)
+	await get_tree().create_timer(0.4).timeout
+	var screen: ObjectivesScreen = main.find_children("*", "ObjectivesScreen", true, false)[0]
+	var claim: Button = null
+	for t in 3:
+		screen.tab = t
+		screen._build_list()
+		await get_tree().process_frame
+		claim = _find_button(screen, "RECLAMAR")
+		if claim:
+			break
+	print("MISION_RECLAMABLE ", "OK" if claim else "FALLÓ")
+	if claim:
+		await _tap(claim)
+		await _shot("24_mision_llenando", 0.25)
+		await _shot("24_mision_tick", 0.35)
+		await _shot("24_mision_saliendo", 0.55)
+		await _shot("24_mision_lista", 0.8)
+	main.go_to(0)
+
+
+func _find_button(root_node: Node, text: String) -> Button:
+	for b in root_node.find_children("*", "Button", true, false):
+		if (b as Button).text.begins_with(text) and b.is_visible_in_tree() and not (b as Button).disabled:
+			return b
+	return null
 
 
 ## 0.7: saldo negativo, verificación de email y amigos. La cuenta y los

@@ -10,6 +10,9 @@ var _daily_box: VBoxContainer
 var _list: VBoxContainer
 var _bars: Array = []        ## [ProgressBar, Label, Callable progreso]
 var _timer := 0.0
+## Mientras sale la tarjeta de una misión reclamada, la lista no se rearma.
+var _hold := false
+var _pending := false
 
 
 func _ready() -> void:
@@ -35,6 +38,9 @@ func on_shown() -> void:
 
 func rebuild() -> void:
 	if not is_inside_tree():
+		return
+	if _hold:
+		_pending = true
 		return
 	_build_daily()
 	_build_list()
@@ -176,14 +182,29 @@ func _mission_card(mis: Dictionary, kind: String) -> Control:
 	elif completed:
 		var b := U.button("RECLAMAR", "verde", "regalo", 40, U.SIZE_BODY)
 		var mid: String = mis["id"]
-		U.on_press(b, func() -> void:
+		var claim := func() -> void:
+			if _hold:
+				return
+			_hold = true
 			var r := ProgressionSystem.claim_daily_mission(m, mid) if kind == "daily" else ProgressionSystem.claim_mission(m, mid)
-			Main.instance.result(r), "")
+			if not Main.instance.result(r):
+				_release()
+				return
+			b.disabled = true
+			Juice.mission_done(card, _release)
+		U.on_press(b, claim, "")
 		foot.add_child(b)
 	else:
 		foot.add_child(U.label("En progreso", U.SIZE_SMALL, U.TEXT_SOFT))
 	col.add_child(foot)
 	return card
+
+
+func _release() -> void:
+	_hold = false
+	if _pending:
+		_pending = false
+		rebuild()
 
 
 func _upcoming_card(mis: Dictionary) -> Control:

@@ -39,9 +39,17 @@ tools/                 generadores de arte/sonido, scripts de pruebas y capturas
   en rojo y con "-" adelante.
 - **Valores derivados con caché** (`derive(id)`), invalidados ante cualquier cambio.
 - **Secciones vivas**: las 5 pantallas se crean una vez y se alternan con `visible`.
-- **Capas**: modales (10), efectos (20), tutorial (30), avisos (40). Efectos y avisos
+- **Capas**: modales (10), efectos (20), tutorial (30), festejo de negocio nuevo (35, `UnlockShow`), avisos (40). Efectos y avisos
   ignoran toques. Los `CanvasLayer` cortan la herencia del tema, por eso cada capa
   recibe el tema explícitamente.
+
+## Animaciones de festejo
+
+- Botones (`U.press_feedback`): se aplastan y se aclaran al apretar; vuelven con rebote elástico.
+- `Juice.gold_shine(tarjeta)`: barridos dorados en degradé (shader pixelado) unos 2,5 s; se usa al comprar una mejora.
+- `Juice.mission_done(tarjeta, al_terminar)`: relleno verde, tick y salida hacia la izquierda; `ObjectivesScreen` no se rearma hasta que termina.
+- `UnlockShow.play(negocio)`: al comprar un negocio, rayos de luz girando detrás del edificio y confeti de fondo; se cierra solo o tocando.
+- Con "Reducir movimiento" todo se acorta y no hay desplazamientos.
 
 ## Dependencias entre sistemas
 

@@ -208,7 +208,10 @@ func _on_celebrate(kind: String, info: Dictionary) -> void:
 		"unlock", "zone":
 			Sfx.play("unlock")
 			Sfx.vibrate(60)
-			fx.confetti_burst(fx_center())
+			if info.get("bought", false):
+				UnlockShow.play(info["business"])
+			else:
+				fx.confetti_burst(fx_center())
 		"hire":
 			Sfx.play("hire")
 		"mission", "achievement", "daily":
