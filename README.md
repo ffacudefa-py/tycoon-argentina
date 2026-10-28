@@ -48,4 +48,5 @@ python3 tools/sfx.py            # efectos de sonido sintetizados
 - `docs/AMIGOS.md` — amigos: códigos, ranking, mates, reglas y prueba con emuladores.
 - `docs/PERFIL.md` — foto de perfil, banner, recorte y cómo probarlo.
 - `docs/PASSIDLE.md` — qué se tomó de PassIdle y qué no.
+- `docs/PLAY_STORE.md` — requisitos de Google Play: estado, formularios y pasos de publicación.
 - `docs/PENDIENTES.md` — lo que queda para próximas versiones.

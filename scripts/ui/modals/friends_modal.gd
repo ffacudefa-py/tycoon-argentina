@@ -142,9 +142,11 @@ static func _card(col: VBoxContainer, title: String, icon_name: String) -> VBoxC
 
 static func _person_row(avatar_id: String, title: String, sub: String, highlight := false) -> HBoxContainer:
 	var r := U.hbox(6)
-	var av := U.avatar(avatar_id if Game.data.avatar_by_id.has(avatar_id) else "emprendedor")
+	var av: TextureRect
 	if avatar_id == "mate":
 		av = U.icon32("mate")
+	else:
+		av = U.avatar(avatar_id if Game.data.avatar_by_id.has(avatar_id) else "emprendedor")
 	av.custom_minimum_size = Vector2(28, 28)
 	r.add_child(av)
 	var txt := U.vbox(0)

@@ -45,6 +45,9 @@ godot --headless --path . --export-release "Android" build/tycoon-argentina-0.5.
 ```
 La primera compilación Gradle baja dependencias (~5–10 min); después tarda ~3 min.
 
+Preset **"Android Play Store"**: AAB, sin `beta` (anuncios de producción). Pasos y
+requisitos en `docs/PLAY_STORE.md`.
+
 ## Publicar en Play Store (pendiente)
 
 1. Crear un keystore propio y guardarlo FUERA del repo:

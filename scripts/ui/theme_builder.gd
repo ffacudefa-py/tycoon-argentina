@@ -103,6 +103,8 @@ static func build() -> Theme:
 	th.set_stylebox("focus", "LineEdit", _box("ui/inset.png", 3, 4))
 	th.set_color("font_color", "LineEdit", U.TEXT)
 	th.set_color("caret_color", "LineEdit", U.TEXT)
+	# El gris por defecto del placeholder casi no se ve sobre el beige.
+	th.set_color("font_placeholder_color", "LineEdit", Color(U.TEXT_SOFT, 0.85))
 
 	# Interruptores y deslizador
 	th.set_icon("checked", "CheckButton", U.tex("ui/toggle_on.png"))

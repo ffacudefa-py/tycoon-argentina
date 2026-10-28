@@ -86,3 +86,18 @@ incorrecta, ingreso, renovación y recuperación, y **borra** la cuenta al final
 Para la nube y los amigos (con las reglas verdaderas, en los emuladores locales):
 `tools/dev/social_check.gd`, ver docs/AMIGOS.md. Prueba que una cuenta sin verificar
 recibe 403, que una verificada guarda su partida y que no puede tocar la de otro.
+
+## Cambiar de cuenta y borrar la cuenta (0.7.1)
+
+- La partida del teléfono es de la última cuenta que entró (`Cloud._synced_uid`). Si
+  entra otra cuenta, esa partida se aparta en `user://accounts/<uid>.json` y se usa la
+  partida apartada de la cuenta nueva (o una nueva, que después baja de la nube). Antes
+  se subía la partida de A a la cuenta B. Prueba: `CAMBIO_CUENTA` en `tools/run_tests.sh`.
+- Las subidas a la nube van por `documents:commit` con la condición `updateTime` (o
+  `exists=false`): si otro teléfono subió algo, el servidor rechaza y se vuelve a
+  comparar (aviso de conflicto) en vez de pisar. Probado contra el emulador.
+- **Borrar mi cuenta** (Configuración → Cuenta): pide la contraseña, borra en un solo
+  commit partida, perfil, código, amigos de los dos lados, solicitudes y mates, y después
+  la cuenta (`accounts:delete`). La partida del teléfono queda como invitado. Las
+  solicitudes que había mandado se descartan solas cuando el otro actualiza su lista.
+  Web: `web/borrar-cuenta.html`. Probado de punta a punta en `tools/dev/social_check.gd`.

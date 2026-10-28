@@ -197,32 +197,29 @@ func _build_employees() -> void:
 
 func _employee_row(e: Dictionary, hired: bool, index: int) -> Control:
 	var role: Dictionary = m.data.role_by_id[e["role"]]
+	var eff := m.employee_efficiency(e) if hired else float(e["eff"])
 	var card := U.panel("Inset")
 	var outer := U.vbox(6)
 	card.add_child(outer)
 	var row := U.hbox(8)
 	outer.add_child(row)
-	var at := AtlasTexture.new()
-	at.atlas = U.tex("characters/worker_%d.png" % int(e["variant"]))
-	var fw := at.atlas.get_width() / 10
-	at.region = Rect2(4 * fw, 0, fw, at.atlas.get_height())
-	var face := TextureRect.new()
-	face.texture = at
-	face.custom_minimum_size = Vector2(fw, at.atlas.get_height())
-	face.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-	row.add_child(face)
-	var col := U.vbox(2)
+	row.add_child(_portrait(int(e["variant"])))
+	var col := U.vbox(1)
 	col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	col.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	var top := U.hbox(4)
 	var n := U.label(e["name"], U.SIZE_BODY, U.TEXT, true)
+	n.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	n.clip_text = true
-	col.add_child(n)
-	col.add_child(U.label(role["name"], U.SIZE_SMALL, UiColors.INFO, true))
-	col.add_child(U.para(_benefit(role, m.employee_efficiency(e) if hired else float(e["eff"])), U.SIZE_SMALL, UiColors.GAIN))
-	var info := "Rinde %d %%" % int(round((m.employee_efficiency(e) if hired else float(e["eff"])) * 100))
+	top.add_child(n)
+	top.add_child(U.label("%d %%" % int(round(eff * 100)), U.SIZE_SMALL, UiColors.GAIN if eff >= 0.9 else U.TEXT_SOFT, true))
+	col.add_child(top)
+	var sub: String = role["name"]
 	if hired:
-		info += " · experiencia nv %d" % EmployeeSystem.xp_level(m, e)
-	col.add_child(U.label(info, U.SIZE_SMALL, U.TEXT_SOFT))
-	col.add_child(U.label("Sueldo -" + Fmt.per_sec(e["salary"]), U.SIZE_SMALL, UiColors.LOSS, true))
+		sub += " · nv %d" % EmployeeSystem.xp_level(m, e)
+	col.add_child(U.label(sub, U.SIZE_SMALL, UiColors.INFO, true))
+	col.add_child(U.para(_benefit(role, eff), U.SIZE_SMALL, UiColors.GAIN))
+	col.add_child(U.label("Sueldo " + Fmt.per_sec(e["salary"]), U.SIZE_SMALL, UiColors.LOSS))
 	row.add_child(col)
 	if hired:
 		var fire := U.button("Despedir", UiColors.BTN_DANGER, "", 32, U.SIZE_SMALL)
@@ -246,6 +243,34 @@ func _employee_row(e: Dictionary, hired: bool, index: int) -> Control:
 	return card
 
 
+## Retrato del empleado: cabeza y torso del sprite (32x48) a escala x2,
+## en un marco fijo para que nunca se estire con el alto de la tarjeta.
+func _portrait(variant: int) -> Control:
+	var at := AtlasTexture.new()
+	at.atlas = U.tex("characters/worker_%d.png" % variant)
+	var fw := at.atlas.get_width() / 10
+	at.region = Rect2(4 * fw + 4, 2, 24, 24)
+	var frame := PanelContainer.new()
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color("a9d2f2")
+	sb.border_color = Color("1b1a2e")
+	sb.set_border_width_all(2)
+	sb.set_content_margin_all(2)
+	frame.add_theme_stylebox_override("panel", sb)
+	frame.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var face := TextureRect.new()
+	face.texture = at
+	face.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	face.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	face.custom_minimum_size = Vector2(48, 48)
+	face.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	face.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	frame.add_child(face)
+	return frame
+
+
+## Qué hace, en pocas palabras: "Vende solo · +4 % velocidad".
 func _benefit(role: Dictionary, eff: float) -> String:
 	var parts := []
 	if role.get("auto_sell", false):
@@ -253,26 +278,26 @@ func _benefit(role: Dictionary, eff: float) -> String:
 	if role.get("auto_restock", false):
 		parts.append("repone solo")
 	var fx: Dictionary = role["effects"]
+	var pct := func(k: String) -> int: return int(round(float(fx[k]) * eff * 100))
 	if fx.has("speed"):
-		parts.append("+%d %% velocidad" % int(round(float(fx["speed"]) * eff * 100)))
+		parts.append("+%d %% velocidad" % pct.call("speed"))
 	if fx.has("revenue"):
-		parts.append("+%d %% ingresos" % int(round(float(fx["revenue"]) * eff * 100)))
+		parts.append("+%d %% ingresos" % pct.call("revenue"))
 	if fx.has("restock_speed"):
-		parts.append("reposición +%d %% más rápida" % int(round(float(fx["restock_speed"]) * eff * 100)))
+		parts.append("+%d %% reposición" % pct.call("restock_speed"))
 	if fx.has("team_eff"):
-		parts.append("+%d %% rendimiento del resto" % int(round(float(fx["team_eff"]) * eff * 100)))
+		parts.append("+%d %% al equipo" % pct.call("team_eff"))
 	if fx.has("zone_revenue"):
-		parts.append("+%d %% a tus negocios de la zona" % int(round(float(fx["zone_revenue"]) * eff * 100)))
+		parts.append("+%d %% en la zona" % pct.call("zone_revenue"))
 	if role.get("manager", false):
-		parts.append("resuelve solo las fallas de suministro")
-	var t := ", ".join(parts)
-	return t.substr(0, 1).to_upper() + t.substr(1) + "."
+		parts.append("arregla fallas")
+	var t := " · ".join(parts)
+	return t.substr(0, 1).to_upper() + t.substr(1)
 
 
 # ------------------------------------------------------------------ MEJORAS
 
 func _build_upgrades() -> void:
-	_content.add_child(U.para("Cada mejora cambia los números del negocio. Arriba, las que podés comprar; abajo, las bloqueadas con lo que piden.", U.SIZE_SMALL, U.TEXT_SOFT))
 	var items := []
 	for u in m.data.upgrades:
 		var st := m.upgrade_status(bid, u["id"])
@@ -305,8 +330,7 @@ func _upgrade_card(u: Dictionary, st: Dictionary) -> Control:
 	head.add_child(name)
 	head.add_child(U.label("Nv %d/%d" % [st["level"], st["max"]], U.SIZE_SMALL, U.GOLD if locked else U.TEXT_SOFT, true))
 	col.add_child(head)
-	col.add_child(U.para(u["description"], U.SIZE_SMALL, Color("c9c7da") if locked else U.TEXT_SOFT))
-	col.add_child(U.para(_effect_text(u, int(st["level"])), U.SIZE_SMALL, UiColors.GAIN_LIGHT if locked else UiColors.GAIN))
+	col.add_child(U.para(_effect_text(u), U.SIZE_SMALL, UiColors.GAIN_LIGHT if locked else UiColors.GAIN))
 	if locked:
 		for r in st["reasons"]:
 			var rr := U.hbox(4)
@@ -319,7 +343,7 @@ func _upgrade_card(u: Dictionary, st: Dictionary) -> Control:
 	elif not st["maxed"]:
 		var gain := m.preview_profit_gain(bid, func(s: Dictionary) -> void: s["upgrades"][uid] = int(s["upgrades"].get(uid, 0)) + 1)
 		if gain > 0.01:
-			col.add_child(U.label("Suma +%s" % Fmt.per_sec(gain), U.SIZE_SMALL, UiColors.GAIN, true))
+			col.add_child(U.label("Te suma +%s" % Fmt.per_sec(gain), U.SIZE_SMALL, UiColors.GAIN, true))
 		var buy := func() -> void:
 			_shine_uid = uid
 			if not Main.instance.result(m.buy_upgrade(bid, uid)):
@@ -336,14 +360,13 @@ func _upgrade_card(u: Dictionary, st: Dictionary) -> Control:
 	return card
 
 
-func _effect_text(u: Dictionary, level: int) -> String:
+## Lo que da cada nivel, corto: "+50 % capacidad de mercadería".
+func _effect_text(u: Dictionary) -> String:
 	var parts := []
 	for e in u["effects"]:
 		var mult := 1 if e["stat"] == "slots" else 100
-		var per: String = STAT_TEXT[e["stat"]] % int(round(float(e["value"]) * mult))
-		var now: String = STAT_TEXT[e["stat"]] % int(round(float(e["value"]) * level * mult))
-		parts.append("%s por nivel (ahora: %s)" % [per, now if level > 0 else "nada"])
-	return "; ".join(parts)
+		parts.append(STAT_TEXT[e["stat"]] % int(round(float(e["value"]) * mult)))
+	return " y ".join(parts) + " por nivel"
 
 
 # ----------------------------------------------------------------- DATOS

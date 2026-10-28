@@ -21,12 +21,19 @@
   push de solicitudes, desafíos semanales entre amigos.
 
 ## Plataforma
-- Firma release y AAB para Play Store (ANDROID.md).
+- Play Store: ver docs/PLAY_STORE.md (keystore de subida, publicar reglas y páginas
+  legales con la cuenta dueña de coronadosdegloria, IDs de AdMob, formularios).
+- Probar en el emulador con GPU (no swiftshader: supera GL_MAX_FRAGMENT_UNIFORM_VECTORS y
+  la pantalla queda negra) qué pasa después de aceptar el consentimiento de anuncios.
 - Foto y banner en la nube (el progreso ya se guarda en Firestore desde la 0.6; ver CUENTAS.md).
 - IDs reales de AdMob y consentimiento UMP (MONETIZACION.md). Compras.
 - Probar anuncios de prueba y el selector de la galería en un teléfono físico.
 
 ## Conocido
+- El reloj del teléfono manda: recompensa diaria, mates por día y ganancias offline
+  (tope 8 h) se pueden adelantar cambiando la hora. Sin servidor que simule la partida
+  no hay forma segura de evitarlo; el ranking de amigos es de confianza.
+- `scripts/core/game_model.gd` (~1180 líneas): conviene partirlo antes de los negocios 13–25.
 - Las capturas automáticas (`tools/screenshots.sh`) abren una ventana; el gestor de
   ventanas a veces la agranda (la herramienta fuerza el tamaño).
 - Los eventos no aparecen durante el tiempo offline (sólo corre su duración), por diseño.

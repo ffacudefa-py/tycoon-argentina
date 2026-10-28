@@ -7,7 +7,11 @@ extends Node
 ##   teléfono con la de la nube y decide con CloudSync.decide(): sube, baja
 ##   o le pregunta al jugador cuál conservar.
 ## - Después sube una copia cada UPLOAD_EVERY segundos si hubo cambios y al
-##   pasar la app a segundo plano.
+##   pasar la app a segundo plano. Cada subida lleva como condición el
+##   updateTime de la nube que vimos: si otro teléfono subió algo mientras
+##   tanto, el servidor la rechaza y se vuelve a comparar (no se pisa).
+## - La partida del teléfono es de la última cuenta que entró. Si entra otra,
+##   esa partida se aparta (CloudSync.stash_path) y se usa la de la cuenta nueva.
 ## - Sin internet no pasa nada: queda pendiente y se reintenta más tarde.
 ## - Desde la 0.7 hace falta el email verificado (Auth.verified()); las reglas
 ##   de Firestore lo exigen también del lado del servidor.
@@ -29,6 +33,10 @@ var last_sync_wall := 0.0          ## cuándo se sincronizó por última vez (pa
 
 var _synced_uid := ""
 var _synced_saved_at := 0.0        ## saved_at del documento que subimos/bajamos
+var _cloud_update_time := ""       ## updateTime de la partida en la nube ("" = no hay)
+var _cloud_seen := false           ## ya se consultó la nube en esta sesión
+var _stash := {}                   ## uid -> {saved_at, update_time} de partidas apartadas
+var _held := false                 ## en pausa mientras se borra la cuenta
 var _dirty := false
 var _timer := 0.0
 var _inflight := false
@@ -43,6 +51,7 @@ func _ready() -> void:
 			project_id = str(d.get("project_id", ""))
 	_load_state()
 	Auth.changed.connect(_on_auth_changed)
+	Auth.account_deleted.connect(_on_account_deleted)
 	Game.saved.connect(func() -> void: _dirty = true)
 	# Primera sincronización cuando la interfaz ya está armada.
 	await get_tree().process_frame
@@ -53,7 +62,28 @@ func _ready() -> void:
 
 ## Sólo con el juego de verdad corriendo (no en pruebas ni herramientas -s).
 func enabled() -> bool:
-	return project_id != "" and Auth.verified() and Main.instance != null and not _dev_mode()
+	return project_id != "" and Auth.verified() and Main.instance != null and not _dev_mode() and not _held
+
+
+## Pausa la nube (Auth.delete_account): que no se vuelva a subir la partida
+## mientras se borra. Espera a que termine lo que esté en curso.
+func hold(on: bool) -> void:
+	_held = on
+	while on and _inflight:
+		await get_tree().process_frame
+
+
+## La cuenta se borró: la partida del teléfono pasa a ser de invitado.
+func _on_account_deleted(old_uid: String) -> void:
+	_stash.erase(old_uid)
+	SaveSystem.new(CloudSync.stash_path(old_uid)).delete_all()
+	_synced_uid = ""
+	_synced_saved_at = 0.0
+	_cloud_update_time = ""
+	_cloud_seen = false
+	last_sync_wall = 0.0
+	_dirty = false
+	_save_state()
 
 
 ## Las capturas automáticas y las pruebas usan un guardado aparte: nunca tocan la nube.
@@ -71,22 +101,57 @@ func _process(delta: float) -> void:
 	if status == "error" and _timer >= RETRY_EVERY:
 		sync_now()
 	elif _dirty and _timer >= UPLOAD_EVERY:
-		upload()
+		upload() if _cloud_seen else sync_now()
 
 
 func _notification(what: int) -> void:
 	if what in [NOTIFICATION_APPLICATION_PAUSED, NOTIFICATION_APPLICATION_FOCUS_OUT, NOTIFICATION_WM_CLOSE_REQUEST]:
-		if enabled() and _dirty and not _inflight and status != "conflict":
+		if enabled() and _dirty and not _inflight and status != "conflict" and _cloud_seen:
 			upload()
 
 
-## Si cambió la cuenta, lo sincronizado antes no cuenta para esta.
+## Si cambió la cuenta, lo sincronizado antes no cuenta para esta; y si la
+## partida del teléfono era de otra cuenta, se aparta en vez de subirla acá.
 func _check_account() -> void:
-	if _synced_uid != Auth.uid:
-		_synced_uid = Auth.uid
+	match CloudSync.account_action(_synced_uid, Auth.uid):
+		"same":
+			return
+		"switch":
+			_switch_local_game(_synced_uid, Auth.uid)
+			return
+	_synced_uid = Auth.uid
+	_synced_saved_at = 0.0
+	_cloud_update_time = ""
+	_cloud_seen = false
+	last_sync_wall = 0.0
+	_save_state()
+
+
+func _switch_local_game(from_uid: String, to_uid: String) -> void:
+	Game.save()
+	DirAccess.make_dir_recursive_absolute(CloudSync.stash_path(from_uid).get_base_dir())
+	if not SaveSystem.new(CloudSync.stash_path(from_uid)).save(Game.m):
+		push_warning("Cloud: no se pudo apartar la partida de la cuenta anterior")
+	_stash[from_uid] = {"saved_at": _synced_saved_at, "update_time": _cloud_update_time}
+	var back: Dictionary = _stash.get(to_uid, {})
+	var stashed := SaveSystem.new(CloudSync.stash_path(to_uid))
+	var payload := stashed.load_payload(Game.data) if stashed.exists() else {}
+	_synced_uid = to_uid
+	_cloud_seen = false
+	last_sync_wall = 0.0
+	if payload.is_empty():
 		_synced_saved_at = 0.0
-		last_sync_wall = 0.0
-		_save_state()
+		_cloud_update_time = ""
+		Game.reset_everything()
+	else:
+		_synced_saved_at = float(back.get("saved_at", 0.0))
+		_cloud_update_time = str(back.get("update_time", ""))
+		Game.replace_with(payload)
+		stashed.delete_all()
+	_stash.erase(to_uid)
+	_save_state()
+	if Main.instance:
+		Main.instance.toast("Cambiaste de cuenta: tu partida anterior quedó guardada para esa cuenta.", "info")
 
 
 func _on_auth_changed() -> void:
@@ -111,6 +176,8 @@ func _on_fetched(ok: bool, code: int, doc: Dictionary) -> void:
 		_fail(code, doc)
 		return
 	var cloud := CloudSync.summary_from_doc(doc) if ok else {}
+	_cloud_update_time = str(doc.get("updateTime", "")) if ok else ""
+	_cloud_seen = true
 	var local := CloudSync.summary_of(Game.m, Game.m.now())
 	match CloudSync.decide(local, cloud, _synced_saved_at):
 		"upload":
@@ -135,15 +202,21 @@ func upload(done := Callable()) -> void:
 	var summary := CloudSync.summary_of(Game.m, float(doc["saved_at"]))
 	var body := CloudSync.to_fields(JSON.stringify(doc, "", false), summary, str(ProjectSettings.get_setting("application/config/version")))
 	_set_status("syncing")
-	_request(HTTPClient.METHOD_PATCH, JSON.stringify(body), func(ok: bool, code: int, resp: Dictionary) -> void:
+	var commit := CloudSync.commit_body(project_id, Auth.uid, body, _cloud_update_time)
+	_request(HTTPClient.METHOD_POST, JSON.stringify(commit), func(ok: bool, code: int, resp: Dictionary) -> void:
 		if ok:
 			_synced_saved_at = float(doc["saved_at"])
+			_cloud_update_time = CloudSync.committed_time(resp)
 			_dirty = false
 			_mark_synced()
+		elif CloudSync.is_stale_write(code, resp):
+			# Otro teléfono subió su partida: se compara de nuevo (y se pregunta).
+			_cloud_seen = false
+			sync_now.call_deferred()
 		else:
 			_fail(code, resp)
 		if done.is_valid():
-			done.call(ok))
+			done.call(ok), CloudSync.docs_root(project_id) + ":commit")
 
 
 ## El jugador eligió en el aviso de conflicto.
@@ -229,7 +302,8 @@ func status_text() -> String:
 
 # ---------------------------------------------------------------- red
 
-func _request(method: int, body: String, cb: Callable) -> void:
+## `url` vacío = el documento saves/<uid> de esta cuenta.
+func _request(method: int, body: String, cb: Callable, url := "") -> void:
 	_inflight = true
 	Auth.get_token(func(token: String) -> void:
 		if token == "":
@@ -248,7 +322,7 @@ func _request(method: int, body: String, cb: Callable) -> void:
 			else:
 				cb.call(code >= 200 and code < 300, code, d if d is Dictionary else {}))
 		var headers := PackedStringArray(["Authorization: Bearer " + token, "Content-Type: application/json"])
-		var err := http.request(CloudSync.docs_root(project_id) + "/saves/" + Auth.uid, headers, method, body)
+		var err := http.request(url if url != "" else CloudSync.docs_root(project_id) + "/saves/" + Auth.uid, headers, method, body)
 		if err != OK:
 			http.queue_free()
 			_inflight = false
@@ -260,6 +334,8 @@ func _save_state() -> void:
 	cfg.set_value("cloud", "uid", _synced_uid)
 	cfg.set_value("cloud", "saved_at", _synced_saved_at)
 	cfg.set_value("cloud", "last_sync", last_sync_wall)
+	cfg.set_value("cloud", "update_time", _cloud_update_time)
+	cfg.set_value("cloud", "stash", _stash)
 	cfg.save(STATE_PATH)
 
 
@@ -270,3 +346,6 @@ func _load_state() -> void:
 	_synced_uid = str(cfg.get_value("cloud", "uid", ""))
 	_synced_saved_at = float(cfg.get_value("cloud", "saved_at", 0.0))
 	last_sync_wall = float(cfg.get_value("cloud", "last_sync", 0.0))
+	_cloud_update_time = str(cfg.get_value("cloud", "update_time", ""))
+	var st = cfg.get_value("cloud", "stash", {})
+	_stash = st if st is Dictionary else {}

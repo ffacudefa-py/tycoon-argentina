@@ -204,7 +204,7 @@ static func progress(color := "verde", h := 8) -> ProgressBar:
 
 
 static func scroll(child: Control) -> ScrollContainer:
-	var s := ScrollContainer.new()
+	var s := DragScroll.new()
 	# SHOW_NEVER (no DISABLED): el ancho mínimo del contenido no empuja la pantalla.
 	s.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
 	s.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO

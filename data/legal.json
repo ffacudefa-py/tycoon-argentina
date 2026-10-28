@@ -1,0 +1,5 @@
+{
+ "_doc": "Enlaces legales que muestra el juego (Configuración → Privacidad) y que se cargan en Play Console. Las páginas están en web/ y se publican con Firebase Hosting (docs/PLAY_STORE.md).",
+ "privacy_url": "https://coronadosdegloria.web.app/privacidad.html",
+ "delete_account_url": "https://coronadosdegloria.web.app/borrar-cuenta.html"
+}

@@ -143,7 +143,7 @@ func _summary() -> Control:
 	card.add_child(col)
 	col.add_child(U.label("Resumen", U.SIZE_BODY, U.TEXT, true))
 	col.add_child(U.stat_row("Patrimonio", Fmt.money(m.net_worth())))
-	col.add_child(U.stat_row("Ganancia neta", Fmt.per_sec(m.income_per_sec())))
+	col.add_child(U.stat_row("Ganancia neta", Fmt.per_sec(m.net_per_sec())))
 	col.add_child(U.stat_row("Negocios", "%d/%d" % [m.owned_ids().size(), m.data.businesses.size()]))
 	col.add_child(U.stat_row("Empleados", str(m.employees.size())))
 	col.add_child(U.stat_row("Ganado en la historia", Fmt.money(m.economy.lifetime_earned)))

@@ -3,6 +3,12 @@ extends AdProvider
 ## Anuncios recompensados reales con Google AdMob (plugin Poing Godot AdMob
 ## 5.1, addons/admob). Sólo funciona en Android con el export Gradle.
 ##
+## Antes de iniciar el SDK se pide el consentimiento con UMP (User Messaging
+## Platform): en la UE/Reino Unido muestra el formulario configurado en AdMob
+## (Privacidad y mensajes); en el resto no muestra nada. Si falla se sigue
+## igual: AdMob usa la última elección guardada. En el entorno de prueba se
+## simula estar en la UE para poder ver el formulario.
+##
 ## Ciclo: setup() inicializa el SDK -> load_ad() pide un anuncio -> ready ->
 ## show_rewarded() lo muestra; on_user_earned_reward confirma la recompensa;
 ## al cerrarse se destruye y se pide el siguiente.
@@ -28,10 +34,41 @@ func provider_name() -> String:
 func setup(cfg: AdConfig) -> void:
 	_unit = cfg.rewarded_unit
 	_set_state("initializing")
-	var listener := OnInitializationCompleteListener.new()
-	listener.on_initialization_complete = func(_status: InitializationStatus) -> void:
-		load_ad()
-	MobileAds.initialize(listener)
+	_gather_consent(cfg.environment == "test", func() -> void:
+		var listener := OnInitializationCompleteListener.new()
+		listener.on_initialization_complete = func(_status: InitializationStatus) -> void:
+			load_ad()
+		MobileAds.initialize(listener))
+
+
+func _gather_consent(debug_eea: bool, then: Callable) -> void:
+	var params := ConsentRequestParameters.new()
+	if debug_eea:
+		var dbg := ConsentDebugSettings.new()
+		dbg.debug_geography = DebugGeography.Values.EEA
+		params.consent_debug_settings = dbg
+	var info := UserMessagingPlatform.consent_information
+	info.update(params, func() -> void:
+		print("[Anuncios] consentimiento: estado=%d formulario=%s" % [info.get_consent_status(), info.get_is_consent_form_available()])
+		if info.get_is_consent_form_available() and info.get_consent_status() == ConsentInformation.ConsentStatus.REQUIRED:
+			UserMessagingPlatform.load_consent_form(func(form: ConsentForm) -> void:
+				form.show(func(_e: FormError) -> void: then.call()),
+				func(e: FormError) -> void:
+					push_warning("UMP: no se pudo cargar el formulario: %s" % (e.message if e else "?"))
+					then.call())
+		else:
+			then.call(),
+		func(e: FormError) -> void:
+			push_warning("UMP: no se pudo consultar el consentimiento: %s" % (e.message if e else "?"))
+			then.call())
+
+
+func privacy_options_required() -> bool:
+	return UserMessagingPlatform.consent_information.get_privacy_options_requirement_status() == ConsentInformation.PrivacyOptionsRequirementStatus.REQUIRED
+
+
+func show_privacy_options(done: Callable) -> void:
+	UserMessagingPlatform.show_privacy_options_form(func(_e: FormError) -> void: done.call())
 
 
 func load_ad() -> void:

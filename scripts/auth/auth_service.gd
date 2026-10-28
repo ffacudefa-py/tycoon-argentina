@@ -18,6 +18,7 @@ extends Node
 signal changed                              ## entró, salió o cambió el nombre
 signal busy_changed(busy: bool)
 signal verified_changed(verified: bool)
+signal account_deleted(old_uid: String)     ## la cuenta se borró (datos de la nube incluidos)
 
 const SESSION_PATH := "user://session.cfg"
 const TIMEOUT := 15.0
@@ -204,6 +205,49 @@ func sign_out() -> void:
 	if FileAccess.file_exists(SESSION_PATH):
 		DirAccess.remove_absolute(SESSION_PATH)
 	changed.emit()
+
+
+## Borra la cuenta y sus datos en la nube (lo exige Google Play para apps con
+## cuentas). Pide la contraseña: Firebase sólo deja borrar con un inicio de
+## sesión reciente. Orden: nube primero (partida, perfil, código, amigos,
+## solicitudes y mates, en un solo commit) y después la cuenta; si algo falla
+## no se borra la cuenta y se puede reintentar. La partida del teléfono queda
+## como partida de invitado. Corrutina: devuelve {ok, msg}.
+func delete_account(password: String) -> Dictionary:
+	if not signed_in():
+		return {"ok": false, "msg": "No hay sesión iniciada."}
+	if password == "":
+		return {"ok": false, "msg": "Escribí tu contraseña para confirmar."}
+	var r := await _await_post(_idt("signInWithPassword"), {"email": email, "password": password, "returnSecureToken": true})
+	if not r[0]:
+		return {"ok": false, "msg": AuthErrors.message(r[2])}
+	var d: Dictionary = r[1]
+	if str(d.get("localId", "")) != uid:
+		return {"ok": false, "msg": "La contraseña no corresponde a esta cuenta."}
+	_id_token = str(d.get("idToken", ""))
+	_refresh_token = str(d.get("refreshToken", _refresh_token))
+	_id_expires = Time.get_unix_time_from_system() + float(d.get("expiresIn", 3600))
+	await Cloud.hold(true)
+	var data: Dictionary = await Friends.delete_my_data()
+	if not data["ok"]:
+		await Cloud.hold(false)
+		return data
+	var del := await _await_post(_idt("delete"), {"idToken": _id_token})
+	await Cloud.hold(false)
+	if not del[0]:
+		return {"ok": false, "msg": "Se borraron tus datos de la nube pero no la cuenta: " + AuthErrors.message(del[2]) + " Probá de nuevo."}
+	var old := uid
+	sign_out()
+	account_deleted.emit(old)
+	return {"ok": true, "msg": "Tu cuenta y sus datos en la nube se borraron. Tu partida sigue en este teléfono como invitado."}
+
+
+func _await_post(url: String, body: Dictionary) -> Array:
+	var box := []
+	_post(url, body, func(ok: bool, d: Dictionary, code: String) -> void: box.append([ok, d, code]))
+	while box.is_empty():
+		await get_tree().process_frame
+	return box[0]
 
 
 ## Renueva el token. Si el servidor dice que la sesión ya no vale (cuenta

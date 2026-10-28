@@ -84,7 +84,7 @@ class ModalWindow extends Control:
 			head.add_child(x)
 		col.add_child(head)
 		col.add_child(U.separator())
-		_scroll = ScrollContainer.new()
+		_scroll = DragScroll.new()
 		_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
 		body.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		_scroll.add_child(body)

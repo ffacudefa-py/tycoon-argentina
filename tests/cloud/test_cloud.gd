@@ -47,3 +47,23 @@ func test_rechaza_documentos_danados() -> void:
 	check(saver.payload_from_text(JSON.stringify(doc), data()).is_empty(), "checksum distinto: se rechaza")
 	check(saver.payload_from_text("no es json", data()).is_empty(), "texto inválido: se rechaza")
 	check(CloudSync.summary_from_doc({}).is_empty(), "documento sin partida")
+
+
+func test_cambio_de_cuenta() -> void:
+	eq(CloudSync.account_action("abc", "abc"), "same", "misma cuenta")
+	eq(CloudSync.account_action("", "abc"), "adopt", "partida de invitado: pasa a la cuenta")
+	eq(CloudSync.account_action("abc", "xyz"), "switch", "partida de otra cuenta: se aparta, no se sube")
+	eq(CloudSync.stash_path("a/b"), "user://accounts/a_b.json", "el uid no escapa de la carpeta")
+
+
+func test_subida_condicionada() -> void:
+	var f := {"fields": {"save": {"stringValue": "{}"}}}
+	var nueva := CloudSync.commit_body("p", "u1", f, "")
+	eq(nueva["writes"][0]["currentDocument"], {"exists": false}, "sin partida en la nube: sólo si sigue sin haber")
+	var w: Dictionary = CloudSync.commit_body("p", "u1", f, "2026-10-28T10:00:00.1Z")["writes"][0]
+	eq(w["currentDocument"], {"updateTime": "2026-10-28T10:00:00.1Z"}, "con partida: sólo si nadie la cambió")
+	eq(w["update"]["name"], "projects/p/databases/(default)/documents/saves/u1")
+	eq(CloudSync.committed_time({"writeResults": [{"updateTime": "T1"}]}), "T1")
+	check(CloudSync.is_stale_write(400, {"error": {"status": "FAILED_PRECONDITION"}}), "otro teléfono subió antes")
+	check(CloudSync.is_stale_write(409, {"error": {"status": "ALREADY_EXISTS"}}), "apareció una partida mientras tanto")
+	check(not CloudSync.is_stale_write(403, {"error": {"status": "PERMISSION_DENIED"}}), "un 403 es otro error")

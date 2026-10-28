@@ -42,6 +42,50 @@ static func decide(local: Dictionary, cloud: Dictionary, last_synced_saved_at: f
 	return "ask"
 
 
+## Qué hacer con la partida del teléfono al entrar con la cuenta `uid`, si la
+## última cuenta que la usó fue `owner` ("" = nunca hubo sesión):
+##   "same"    es la misma cuenta
+##   "adopt"   se jugó como invitado: la partida pasa a ser de esta cuenta
+##   "switch"  es de otra cuenta: se aparta y se usa la de esta cuenta
+static func account_action(owner: String, uid: String) -> String:
+	if owner == uid:
+		return "same"
+	return "adopt" if owner == "" else "switch"
+
+
+## Copia local apartada de la partida de cada cuenta (al cambiar de cuenta).
+static func stash_path(uid: String) -> String:
+	return "user://accounts/%s.json" % uid.validate_filename()
+
+
+## El servidor rechazó la escritura porque la partida de la nube cambió desde
+## la última vez que la vimos (otro teléfono subió la suya).
+static func is_stale_write(code: int, resp: Dictionary) -> bool:
+	var st := ""
+	if resp.get("error") is Dictionary:
+		st = str(resp["error"].get("status", ""))
+	return code in [400, 404, 409] and st in ["FAILED_PRECONDITION", "ALREADY_EXISTS", "NOT_FOUND"]
+
+
+## Subida condicionada (documents:commit): sólo si la nube sigue como la vimos
+## (updateTime de Firestore) o, si no había partida, que siga sin haberla.
+## La condición va en el cuerpo: como parámetro de la URL el emulador la ignora.
+static func commit_body(project: String, uid: String, fields: Dictionary, update_time: String) -> Dictionary:
+	var cond := {"exists": false} if update_time == "" else {"updateTime": update_time}
+	return {"writes": [{
+		"update": {"name": "projects/%s/databases/(default)/documents/saves/%s" % [project, uid], "fields": fields["fields"]},
+		"currentDocument": cond,
+	}]}
+
+
+## updateTime de la escritura confirmada (respuesta de documents:commit).
+static func committed_time(resp: Dictionary) -> String:
+	var wr = resp.get("writeResults")
+	if wr is Array and not wr.is_empty() and wr[0] is Dictionary:
+		return str(wr[0].get("updateTime", ""))
+	return ""
+
+
 # ------------------------------------------------------------ Firestore
 
 ## Raíz de documentos de Firestore, o del emulador local si está definida

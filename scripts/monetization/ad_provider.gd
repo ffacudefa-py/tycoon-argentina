@@ -38,6 +38,16 @@ func destroy() -> void:
 	pass
 
 
+## Consentimiento (UMP): si el jugador tiene que poder cambiar su elección
+## desde el juego (UE/Reino Unido), Configuración muestra el botón.
+func privacy_options_required() -> bool:
+	return false
+
+
+func show_privacy_options(done: Callable) -> void:
+	done.call()
+
+
 func _set_state(s: String, err := "") -> void:
 	state = s
 	last_error = err

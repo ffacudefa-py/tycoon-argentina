@@ -76,17 +76,17 @@ func _ready() -> void:
 	col.add_child(_logo_box)
 	col.add_child(U.spacer())
 	var card := U.panel("Card")
+	var inner := U.vbox(6)
+	card.add_child(inner)
 	_menu = U.vbox(8)
-	card.add_child(_menu)
+	inner.add_child(_menu)
+	# La versión va dentro de la tarjeta: sobre el fondo tapaba los edificios.
+	inner.add_child(U.label("v%s" % ProjectSettings.get_setting("application/config/version"), U.SIZE_SMALL, U.TEXT_SOFT, false, HORIZONTAL_ALIGNMENT_RIGHT))
 	col.add_child(card)
 	_status = U.label("", U.SIZE_SMALL, Color("f0eee6"), false, HORIZONTAL_ALIGNMENT_CENTER)
 	_status.add_theme_constant_override("outline_size", 4)
 	_status.add_theme_color_override("font_outline_color", Color("1b1a2e"))
 	col.add_child(_status)
-	var ver := U.label("v%s" % ProjectSettings.get_setting("application/config/version"), U.SIZE_SMALL, Color("c9c7da"), false, HORIZONTAL_ALIGNMENT_CENTER)
-	ver.add_theme_constant_override("outline_size", 4)
-	ver.add_theme_color_override("font_outline_color", Color("1b1a2e"))
-	col.add_child(ver)
 
 	_root.resized.connect(_layout)
 	Auth.changed.connect(rebuild)
@@ -236,9 +236,10 @@ func _process(delta: float) -> void:
 		if _bus_t <= 0.0:
 			_bus.visible = true
 			_bus.flip_h = randf() < 0.5
-			_bus.position = Vector2(BG_W + 4 if not _bus.flip_h else -126, ROAD_Y - 22)
+			# El sprite mira a la derecha; con flip_h mira a la izquierda.
+			_bus.position = Vector2(-126 if not _bus.flip_h else BG_W + 4, ROAD_Y - 22)
 		return
-	_bus.position.x = round(_bus.position.x + (70.0 if _bus.flip_h else -70.0) * delta)
+	_bus.position.x = round(_bus.position.x + (-70.0 if _bus.flip_h else 70.0) * delta)
 	_bus.frame = int(_anim * 6.0) % 2
 	if _bus.position.x < -130 or _bus.position.x > BG_W + 10:
 		_bus.visible = false

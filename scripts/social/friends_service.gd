@@ -132,6 +132,14 @@ func _refresh_inner() -> Dictionary:
 	for d in reqs["docs"]:
 		var f: Dictionary = d.get("fields", {})
 		requests.append({"uid": FriendLogic.doc_id(d), "company": FriendLogic.text(f, "company"), "avatar": FriendLogic.text(f, "avatar"), "at": FriendLogic.num(f, "at")})
+	# Solicitudes de cuentas que se borraron (ya no tienen perfil): se descartan.
+	if not requests.is_empty():
+		var senders := await _batch_get(requests.map(func(q: Dictionary) -> String: return "players/" + q["uid"]))
+		if senders["ok"]:
+			var gone: Array = requests.filter(func(q: Dictionary) -> bool: return not senders["by_id"].has(q["uid"]))
+			if not gone.is_empty():
+				await _commit(gone.map(func(q: Dictionary) -> Dictionary: return {"delete": _name("players/%s/requests/%s" % [Auth.uid, q["uid"]])}))
+				requests = requests.filter(func(q: Dictionary) -> bool: return senders["by_id"].has(q["uid"]))
 	var gl := await _list("players/%s/gifts" % Auth.uid)
 	if not gl["ok"]:
 		return gl
@@ -329,6 +337,53 @@ func _batch_get(paths: Array) -> Dictionary:
 
 func _commit(writes: Array) -> Dictionary:
 	return await _call(HTTPClient.METHOD_POST, ":commit", {"writes": writes})
+
+
+## Borra todo lo de esta cuenta en Firestore (antes de borrar la cuenta):
+## partida, perfil público, código de amigo, la lista de amigos de los dos
+## lados, solicitudes y mates recibidos y los mates que mandé. Un solo commit:
+## o se borra todo o nada.
+func delete_my_data() -> Dictionary:
+	if project_id == "" or not Auth.verified():
+		return {"ok": true, "msg": ""}
+	var me_uid := Auth.uid
+	var writes := []
+	for sub in ["friends", "requests", "gifts"]:
+		var l := await _list("players/%s/%s" % [me_uid, sub])
+		if not l["ok"]:
+			return l
+		for d in l["docs"]:
+			var id := FriendLogic.doc_id(d)
+			writes.append({"delete": _name("players/%s/%s/%s" % [me_uid, sub, id])})
+			if sub == "friends":
+				writes.append({"delete": _name("players/%s/friends/%s" % [id, me_uid])})
+				writes.append({"delete": _name("players/%s/gifts/%s" % [id, me_uid])})
+	var code := my_code
+	if code == "":
+		var got := await _call(HTTPClient.METHOD_GET, "players/" + me_uid)
+		if got["code"] == 200:
+			code = FriendLogic.profile_from_doc(got["data"]).get("code", "")
+		elif got["code"] != 404:
+			return _fail(got)
+	if code != "":
+		# Sólo si el código es mío (la regla de borrado mira el dueño).
+		var c := await _call(HTTPClient.METHOD_GET, "codes/" + code)
+		if c["code"] == 200 and FriendLogic.text(c["data"].get("fields", {}), "uid") == me_uid:
+			writes.append({"delete": _name("codes/" + code)})
+	writes.append({"delete": _name("players/" + me_uid)})
+	writes.append({"delete": _name("saves/" + me_uid)})
+	# Firestore acepta hasta 500 escrituras por commit; con 50 amigos son ~160.
+	var res := await _commit(writes)
+	if res["code"] != 200:
+		return _fail(res)
+	friends = []
+	requests = []
+	gifts = []
+	my_code = ""
+	_sent = {}
+	if FileAccess.file_exists(STATE_PATH):
+		DirAccess.remove_absolute(STATE_PATH)
+	return {"ok": true, "msg": ""}
 
 
 ## Una petición a Firestore. Devuelve {code, data}; code 0 = sin conexión.

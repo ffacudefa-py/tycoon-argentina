@@ -14,7 +14,7 @@ static func open() -> void:
 		["Ingresos por segundo", Fmt.per_sec(m.revenue_per_sec())],
 		["Gastos por segundo (mercadería)", "-" + Fmt.per_sec(m.stock_cost_per_sec())],
 		["Gastos por segundo (sueldos)", "-" + Fmt.per_sec(m.salaries_per_sec())],
-		["Beneficio neto por segundo", Fmt.per_sec(m.income_per_sec())],
+		["Beneficio neto por segundo", Fmt.per_sec(m.net_per_sec())],
 		["Negocios", "%d/%d" % [m.owned_ids().size(), m.data.businesses.size()]],
 		["Empleados", str(m.employees.size())],
 		["Negocio más rentable", m.data.business_by_id[best]["name"] if best != "" else "-"],

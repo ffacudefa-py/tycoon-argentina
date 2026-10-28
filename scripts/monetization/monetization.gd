@@ -80,6 +80,14 @@ func _notification(what: int) -> void:
 		ads.load_ad()
 
 
+func privacy_options_required() -> bool:
+	return ads != null and ads.privacy_options_required()
+
+
+func show_privacy_options() -> void:
+	ads.show_privacy_options(func() -> void: pass)
+
+
 ## "ready", "loading", "error" u "off" (sin anuncios en esta versión).
 func ad_state() -> String:
 	if ads is NotConfiguredAdProvider or ads.state == "off":

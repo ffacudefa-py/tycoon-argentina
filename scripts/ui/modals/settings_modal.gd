@@ -71,6 +71,11 @@ static func open() -> void:
 					w_ref[0].close()
 					Main.instance.toast("Cerraste sesión. Tu partida sigue en este teléfono.", "info"), false))
 		body.add_child(out)
+		var del := U.button("Borrar mi cuenta", "crema", "alerta", 28, U.SIZE_SMALL)
+		U.on_press(del, func() -> void:
+			w_ref[0].close()
+			DeleteAccountDialog.open())
+		body.add_child(del)
 	else:
 		body.add_child(U.para("Jugás como invitado. Con una cuenta (y el email verificado) tu partida se guarda también en la nube y podés agregar amigos: si cambiás de teléfono o reinstalás el juego, no perdés nada.", U.SIZE_SMALL, U.TEXT_SOFT))
 		var login := U.button("Iniciar sesión o crear cuenta", "celeste", "persona", 32, U.SIZE_SMALL)
@@ -78,6 +83,22 @@ static func open() -> void:
 			w_ref[0].close()
 			LoginModal.open())
 		body.add_child(login)
+	# --- Privacidad (Google Play: política visible y borrado de cuenta)
+	body.add_child(_section("Privacidad", "info"))
+	var legal := _legal()
+	body.add_child(U.para("Qué datos usa el juego (cuenta, partida en la nube, anuncios) y cómo borrarlos.", U.SIZE_SMALL, U.TEXT_SOFT))
+	var pol := U.button("Política de privacidad", "crema", "info", 28, U.SIZE_SMALL)
+	U.on_press(pol, func() -> void: OS.shell_open(str(legal.get("privacy_url", ""))))
+	body.add_child(pol)
+	if not Auth.signed_in():
+		body.add_child(U.para("¿Tuviste una cuenta y querés borrarla? Iniciá sesión y usá «Borrar mi cuenta», o pedilo en:", U.SIZE_SMALL, U.TEXT_SOFT))
+		var web_del := U.button("Borrar una cuenta desde la web", "crema", "izquierda", 28, U.SIZE_SMALL)
+		U.on_press(web_del, func() -> void: OS.shell_open(str(legal.get("delete_account_url", ""))))
+		body.add_child(web_del)
+	if Monetization.privacy_options_required():
+		var ads_priv := U.button("Privacidad de los anuncios", "crema", "info", 28, U.SIZE_SMALL)
+		U.on_press(ads_priv, func() -> void: Monetization.show_privacy_options())
+		body.add_child(ads_priv)
 	# --- Partida
 	body.add_child(_section("Partida", "caja"))
 	body.add_child(U.para("Tu progreso se guarda automáticamente en este teléfono (cada 30 s y al salir).", U.SIZE_SMALL, U.TEXT_SOFT))
@@ -97,6 +118,12 @@ static func open() -> void:
 				Main.instance.toast("Partida nueva. ¡Suerte con el puestito!", "info")))
 	body.add_child(reset)
 	w_ref.append(Main.instance.modal_host.open("Configuración", body))
+
+
+static func _legal() -> Dictionary:
+	var f := FileAccess.open("res://data/legal.json", FileAccess.READ)
+	var d = JSON.parse_string(f.get_as_text()) if f else {}
+	return d if d is Dictionary else {}
 
 
 static func _section(text: String, icon_name: String) -> Control:

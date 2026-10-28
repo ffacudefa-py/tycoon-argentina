@@ -118,12 +118,13 @@ func _ready() -> void:
 	body.add_child(head)
 
 	var chips := U.hbox(6)
-	_chip_sale = _chip(chips, "moneda", "por venta")
-	_chip_cycle = _chip(chips, "reloj", "cada venta")
+	# Anchos según lo que muestran: "$1,2 mil" y "$15,6 mil" son largos; "2,4 s", corto.
+	_chip_sale = _chip(chips, "moneda", "por venta", 1.1)
+	_chip_cycle = _chip(chips, "reloj", "cada venta", 0.8)
 	_chip_stock = U.button("", "crema", "", 52, U.SIZE_BODY)
 	_chip_stock.icon = U.icon32_tex("caja")
 	_chip_stock.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_chip_stock.size_flags_stretch_ratio = 1.0
+	_chip_stock.size_flags_stretch_ratio = 1.25
 	_chip_stock.clip_text = true
 	_chip_stock.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	U.on_press(_chip_stock, _on_restock, "")
@@ -173,9 +174,10 @@ func _ready() -> void:
 	_select(bid)
 
 
-func _chip(parent: HBoxContainer, icon_name: String, caption: String) -> Label:
+func _chip(parent: HBoxContainer, icon_name: String, caption: String, ratio := 1.0) -> Label:
 	var p := U.panel("Inset")
 	p.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	p.size_flags_stretch_ratio = ratio
 	p.custom_minimum_size.y = 52
 	var v := U.vbox(0)
 	v.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -316,7 +318,8 @@ func _update() -> void:
 		_chip_stock.text = "%s\nlleno" % pct
 		_chip_stock.theme_type_variation = "Btn_crema"
 	else:
-		_chip_stock.text = "%s · reponer\n%s" % [pct, Fmt.cost(q["total"])]
+		# El color y el ícono de la caja ya dicen "reponer"; acá va el costo entero.
+		_chip_stock.text = "%s\n%s" % [pct, Fmt.cost(q["total"])]
 		# amarillo = aviso (stock bajo), rojo = sin stock
 		_chip_stock.theme_type_variation = "Btn_rojo" if ratio <= 0.001 else ("Btn_amarillo" if ratio < 0.3 else "Btn_crema")
 

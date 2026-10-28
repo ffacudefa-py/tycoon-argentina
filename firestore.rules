@@ -1,6 +1,11 @@
 rules_version = '2';
 // Ver docs/CUENTAS.md y docs/AMIGOS.md. Desde la 0.7 todo exige el email
 // verificado (token con email_verified). Se prueban con tools/dev/social_check.gd.
+//
+// Desde la 0.7.1 además se valida cada documento: sólo los campos que escribe
+// el juego, con su tipo y tamaño máximo. El juego corre en el teléfono, así que
+// esto no impide inventar números (no hay servidor que simule la partida), pero
+// sí basura, documentos enormes y campos de más.
 service cloud.firestore {
   match /databases/{database}/documents {
     function verified() {
@@ -9,28 +14,61 @@ service cloud.firestore {
     function isMe(uid) {
       return verified() && request.auth.uid == uid;
     }
+    function data() {
+      return request.resource.data;
+    }
+    function onlyKeys(keys) {
+      return data().keys().hasOnly(keys);
+    }
+    function shortText(v, max) {
+      return v is string && v.size() <= max;
+    }
+    function count(v) {
+      return v is int && v >= 0;
+    }
 
-    // Cada cuenta lee y escribe sólo su partida.
+    // Cada cuenta lee y escribe sólo su partida. La partida va como texto
+    // (sobre con checksum) y entra holgada en 900 KB; el límite de Firestore es 1 MiB.
     match /saves/{uid} {
-      allow read, write: if isMe(uid);
+      allow read, delete: if isMe(uid);
+      allow create, update: if isMe(uid)
+        && onlyKeys(["save", "saved_at", "stage", "lifetime", "money", "company",
+                     "prestige", "play_time", "app_version", "device"])
+        && shortText(data().save, 900000)
+        && (!("company" in data()) || shortText(data().company, 40))
+        && (!("app_version" in data()) || shortText(data().app_version, 20))
+        && (!("device" in data()) || shortText(data().device, 40));
     }
 
     // Código de amigo -> uid. Se crea una vez y no se cambia; no se listan.
     match /codes/{code} {
       allow get: if verified();
-      allow create: if verified() && request.resource.data.uid == request.auth.uid;
+      allow create: if verified() && code.matches('^[A-Z2-9]{6}$')
+        && onlyKeys(["uid"]) && data().uid == request.auth.uid;
+      // Al borrar la cuenta (Configuración → Borrar mi cuenta).
+      allow delete: if verified() && resource.data.uid == request.auth.uid;
     }
 
     // Perfil público (empresa, avatar, etapa, ganado). Se lee de a uno, no se lista.
     match /players/{uid} {
       allow get: if verified();
-      allow write: if isMe(uid);
+      allow delete: if isMe(uid);
+      allow create, update: if isMe(uid)
+        && onlyKeys(["company", "avatar", "stage", "lifetime", "prestige", "code", "updated"])
+        && shortText(data().company, 40)
+        && shortText(data().avatar, 24)
+        && data().stage is int && data().stage >= 1 && data().stage <= 20
+        && count(data().lifetime)
+        && count(data().prestige) && data().prestige <= 1000
+        && data().code is string && data().code.matches('^[A-Z2-9]{6}$');
 
       // Solicitudes recibidas: las manda {from}, las ve y las borra el dueño.
       match /requests/{from} {
         allow read, delete: if isMe(uid);
         allow create: if verified() && request.auth.uid == from && from != uid
-          && request.resource.data.from == from
+          && onlyKeys(["from", "company", "avatar", "at"])
+          && data().from == from
+          && shortText(data().company, 40) && shortText(data().avatar, 24)
           && !exists(/databases/$(database)/documents/players/$(uid)/friends/$(from));
       }
 
@@ -38,17 +76,22 @@ service cloud.firestore {
       // escribe también en la lista del que la mandó (si la solicitud existe).
       match /friends/{fid} {
         allow read: if isMe(uid);
-        allow create, update: if isMe(uid)
-          || (verified() && request.auth.uid == fid
-              && exists(/databases/$(database)/documents/players/$(fid)/requests/$(uid)));
+        allow create, update: if onlyKeys(["since"]) && data().since is number
+          && (isMe(uid)
+              || (verified() && request.auth.uid == fid
+                  && exists(/databases/$(database)/documents/players/$(fid)/requests/$(uid))));
         allow delete: if isMe(uid) || (verified() && request.auth.uid == fid);
       }
 
       // Mates recibidos: sólo los puede mandar alguien que está en mi lista.
+      // El premio lo pone el juego de quien lo abre, no el documento. Quien
+      // lo mandó puede borrarlo (al borrar su cuenta).
       match /gifts/{from} {
-        allow read, delete: if isMe(uid);
+        allow read: if isMe(uid);
+        allow delete: if isMe(uid) || (verified() && request.auth.uid == from);
         allow create, update: if verified() && request.auth.uid == from
-          && request.resource.data.from == from
+          && onlyKeys(["from", "company", "day", "at"])
+          && data().from == from && shortText(data().company, 40) && data().day is int
           && exists(/databases/$(database)/documents/players/$(uid)/friends/$(from));
       }
     }

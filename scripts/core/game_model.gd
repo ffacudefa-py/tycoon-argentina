@@ -372,7 +372,13 @@ func owned_ids() -> Array:
 ## Ganancia neta estimada por segundo de lo que funciona solo (ventas
 ## automáticas - mercadería - sueldos). Es la que usan las recompensas.
 func income_per_sec() -> float:
-	return maxf(0.0, gross_profit_per_sec() - salaries_per_sec())
+	return maxf(0.0, net_per_sec())
+
+
+## Como income_per_sec pero puede ser negativo (sueldos mayores que la ganancia).
+## Sólo para mostrar; los premios y costos se basan en income_per_sec.
+func net_per_sec() -> float:
+	return gross_profit_per_sec() - salaries_per_sec()
 
 
 func gross_profit_per_sec() -> float:

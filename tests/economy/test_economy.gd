@@ -49,6 +49,10 @@ func test_format() -> void:
 	eq(Fmt.cost(12_460), "$12,5 mil", "costo redondea hacia arriba")
 	eq(Fmt.money(12_460), "$12,4 mil", "saldo redondea hacia abajo")
 	eq(Fmt.money(2.5), "$2,5")
+	eq(Fmt.money(0.96), "$0,9", "precio chico no se muestra como $0")
+	eq(Fmt.money(3.0), "$3")
+	eq(Fmt.money(2.9999999), "$3", "ruido de coma flotante")
+	eq(Fmt.per_sec(-6.5), "-$6,5/s", "neto negativo con el signo adelante")
 	eq(Fmt.integer(1234567), "1.234.567")
 	eq(Fmt.duration(3725), "1 h 2 min")
 

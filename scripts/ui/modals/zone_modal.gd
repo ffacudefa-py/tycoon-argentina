@@ -9,35 +9,38 @@ static func open(zid: String) -> void:
 	var body := U.vbox(5)
 	body.add_child(_preview(z["map"]))
 	body.add_child(U.para(z["description"], U.SIZE_SMALL, U.TEXT))
+	# Lo importante en una ficha corta: qué se vende, cuánta competencia
+	# hay y qué conviene abrir.
+	var card := U.panel("Inset")
+	var info := U.vbox(4)
+	card.add_child(info)
 	var dem := []
 	for t in z["demand"]:
 		dem.append("%s +%d %%" % [MapScreen.TAG_NAMES.get(t, t), int(round(float(z["demand"][t]) * 100))])
-	body.add_child(U.label("Demanda fuerte", U.SIZE_SMALL, U.TEXT, true))
-	body.add_child(U.para(", ".join(dem), U.SIZE_SMALL, U.GREEN))
-	body.add_child(U.stat_row("Competencia base", "%d %%" % int(round(float(z["competition"]) * 100))))
+	info.add_child(_row("estrella", "Se vende más", ", ".join(dem), UiColors.GAIN))
+	var comp := float(z["competition"])
+	var level := "Baja" if comp < 0.06 else ("Media" if comp < 0.1 else "Alta")
+	info.add_child(_row("alerta", "Competencia", "%s (%d %%)" % [level, int(round(comp * 100))], UiColors.GAIN if level == "Baja" else (UiColors.WARN if level == "Media" else UiColors.LOSS)))
 	var rec := []
 	for bid in z["recommended"]:
 		rec.append(m.data.business_by_id[bid]["name"] if m.data.business_by_id.has(bid) else bid)
-	body.add_child(U.stat_row("Recomendados", ""))
-	body.add_child(U.para(", ".join(rec), U.SIZE_SMALL, U.TEXT))
+	info.add_child(_row("tienda", "Ideal para", ", ".join(rec), U.TEXT))
 	var mine := m.businesses_in_zone(zid)
 	if not mine.is_empty():
 		var names := []
 		for bid in mine:
 			names.append(m.data.business_by_id[bid]["name"])
-		body.add_child(U.stat_row("Tus negocios acá", str(mine.size())))
-		body.add_child(U.para(", ".join(names), U.SIZE_SMALL, U.TEXT))
+		info.add_child(_row("corona", "Tus negocios", ", ".join(names), U.TEXT))
 	var rivals_here := []
 	for r in m.data.rivals:
 		if (r["zones"] as Array).has(zid):
-			rivals_here.append(r["id"])
+			rivals_here.append("%s (%d/10)" % [r["name"], int(m.rivals[r["id"]]["power"])])
 	if not rivals_here.is_empty():
-		body.add_child(U.label("Rivales en la zona", U.SIZE_SMALL, U.TEXT, true))
-		for rid in rivals_here:
-			body.add_child(MapScreen.rival_card(rid))
+		info.add_child(_row("persona", "Rivales", ", ".join(rivals_here), UiColors.LOSS))
+	body.add_child(card)
 	var w_ref := []
 	if st["unlocked"]:
-		body.add_child(U.para("Zona desbloqueada. Abrí o mudá negocios acá desde Negocios o Administrar.", U.SIZE_SMALL, U.GREEN))
+		body.add_child(U.para("Zona abierta: podés abrir o mudar negocios acá.", U.SIZE_SMALL, U.GREEN))
 	else:
 		for req in m.requirements_for_zone(zid):
 			body.add_child(UiColors.requirement_row(req))
@@ -47,6 +50,20 @@ static func open(zid: String) -> void:
 		UiColors.set_cost(b, st["cost"], "" if st["available"] else "Falta cumplir lo de arriba")
 		body.add_child(b)
 	w_ref.append(Main.instance.modal_host.open(z["name"], body))
+
+
+## Fila "ícono  Título: valor" con salto de línea si el valor es largo.
+static func _row(icon: String, title: String, value: String, color: Color) -> Control:
+	var h := U.hbox(6)
+	var ic := U.icon(icon)
+	ic.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	h.add_child(ic)
+	var col := U.vbox(0)
+	col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	col.add_child(U.label(title, U.SIZE_SMALL, U.TEXT_SOFT))
+	col.add_child(U.para(value, U.SIZE_SMALL, color))
+	h.add_child(col)
+	return h
 
 
 ## Vista de la zona: su recorte del mapa de la ciudad, ampliado a escala

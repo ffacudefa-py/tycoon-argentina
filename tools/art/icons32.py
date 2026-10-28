@@ -6,30 +6,11 @@ izquierda y contorno exterior de 1 px. Se generan en assets/pixel_art/icons32/.
 import math
 import os
 from px2 import Canvas
-
-
-def coin(cv, cx=16, cy=16, r=12):
-    cv.ellipse(cx, cy + 1, r, r, "Y1")
-    cv.ellipse(cx, cy, r, r, "Y2")
-    cv.ellipse(cx - 1, cy - 1, r - 3, r - 3, "Y3")
-    cv.ellipse(cx, cy, r - 4, r - 4, "Y2")
-    # signo $
-    rows = [".XXXX.", "X.X...", "X.X...", ".XXXX.", "..X..X", "..X..X", "XXXXX."]
-    for j, row in enumerate(rows):
-        for i, ch in enumerate(row):
-            if ch == "X":
-                cv.put(cx - 3 + i, cy - 4 + j, "Y1")
-    cv.vline(cx - 1, cy - 6, 2, "Y1")
-    cv.vline(cx - 1, cy + 3, 2, "Y1")
-    for a in range(200, 260, 8):
-        cv.put(round(cx + math.cos(math.radians(a)) * (r - 1)), round(cy + math.sin(math.radians(a)) * (r - 1)), "Y4")
+import coin_art
 
 
 def ic_moneda():
-    cv = Canvas(32, 32)
-    coin(cv)
-    cv.outline()
-    return cv
+    return coin_art.icon32()
 
 
 def ic_billete():

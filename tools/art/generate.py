@@ -18,6 +18,7 @@ DATA = os.path.join(ROOT, "data")
 import backgrounds  # noqa: E402
 import buildings2  # noqa: E402
 import chars2  # noqa: E402
+import coin_art  # noqa: E402
 import icons32  # noqa: E402
 import logo  # noqa: E402
 import fx_art  # noqa: E402
@@ -46,6 +47,7 @@ def gen_icons():
         top = (16 - len(clean)) // 2
         cv.stamp([r if all(c in PAL or c == "." for c in r) else "".join(c if (c in PAL or c == ".") else "." for c in r) for r in clean], 0, top)
         cv.save(os.path.join(d, f"{name}.png"))
+    coin_art.icon16().save(os.path.join(d, "moneda.png"))  # moneda 2.1 (procedural)
     return problems
 
 

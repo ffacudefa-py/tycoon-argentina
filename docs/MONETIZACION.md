@@ -67,7 +67,9 @@ fijan para ese anuncio.
 4. En `export_presets.cfg` quitar `beta` de `custom_features` (si no, el APK sigue
    usando anuncios de prueba).
 5. Firmar con el keystore de release (`docs/ANDROID.md`) y configurar en AdMob
-   `app-ads.txt` y el formulario de consentimiento (UMP) para la UE si hace falta.
+   `app-ads.txt` y el mensaje GDPR en AdMob → Privacidad y mensajes. El juego ya pide el
+   consentimiento con UMP antes de iniciar AdMob (en el entorno de prueba simula la UE) y
+   muestra "Privacidad de los anuncios" en Configuración cuando corresponde.
 6. Probar en un dispositivo registrado como "dispositivo de prueba" en AdMob antes
    de publicar: tocar anuncios reales propios puede suspender la cuenta.
 

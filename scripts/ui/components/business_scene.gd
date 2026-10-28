@@ -133,6 +133,9 @@ func set_business(id: String) -> void:
 	bid = id
 	_last_tier = -1
 	_clear_walkers()
+	# Otra calle: el colectivo arranca su espera de cero.
+	_bus.visible = false
+	_bus_t = randf_range(4.0, 10.0)
 	refresh()
 
 
@@ -163,7 +166,6 @@ func refresh() -> void:
 	_building.visible = not interior
 	_int_back.visible = interior
 	_int_front.visible = interior
-	_bus.visible = false
 	if interior:
 		_int_back.texture = U.tex("interiors/%s_%d_back.png" % [bid, tier])
 		_int_front.texture = U.tex("interiors/%s_%d_front.png" % [bid, tier])
@@ -377,19 +379,24 @@ func _update_walkers(delta: float) -> void:
 
 
 ## Colectivo que pasa por la calle cada tanto (sólo en la vista de fachada).
+## El sprite mira a la derecha: entra por la izquierda y sale por la derecha.
+## Las ventas (refresh) no lo tocan, así no se reinicia el recorrido.
 func _update_bus(delta: float, anim_on: bool) -> void:
 	if view == "interior" or not anim_on or _bus.texture == null:
-		_bus.visible = false
+		if _bus.visible:
+			_bus.visible = false
+			_bus_t = randf_range(20.0, 40.0)
 		return
+	var frame_w := float(_bus.texture.get_width()) / _bus.hframes
 	if not _bus.visible:
 		_bus_t -= delta
 		if _bus_t <= 0.0:
 			_bus.visible = true
-			_bus.position = Vector2(size.x + 10, ROAD_Y - _bus.texture.get_height())
+			_bus.position = Vector2(-frame_w - 10, ROAD_Y - _bus.texture.get_height())
 		return
-	_bus.position.x = round(_bus.position.x - BUS_SPEED * delta)
+	_bus.position.x = round(_bus.position.x + BUS_SPEED * delta)
 	_bus.frame = int(_anim_t * 6.0) % 2
-	if _bus.position.x < -float(_bus.texture.get_width()) / _bus.hframes - 10:
+	if _bus.position.x > size.x + 10:
 		_bus.visible = false
 		_bus_t = randf_range(20.0, 40.0)
 

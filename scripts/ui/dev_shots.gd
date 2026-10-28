@@ -109,11 +109,13 @@ func _run() -> void:
 		main.go_to(i)
 		await _shot("05_seccion_%d_%s" % [i, Main.SECTIONS[i].to_lower()], 0.6)
 	main.go_to(0)
+	await _bus_check()
 	ManageBusinessModal.open("puesto", 0)
 	await _shot("06_admin_negocio", 0.6)
 	main.modal_host.close_all()
 	ManageBusinessModal.open("puesto", 1)
 	await _shot("07_admin_empleados", 0.6)
+	await _drag_check()
 	main.modal_host.close_all()
 	ManageBusinessModal.open("puesto", 2)
 	await _shot("08_admin_mejoras", 0.6)
@@ -166,6 +168,7 @@ func _run() -> void:
 	m.set_profile_image("banner", false)
 	await _juice_shots()
 	await _social_shots()
+	await _account_switch_check()
 	main.go_to(0)
 	main.start.open(false)
 	await _shot("18_volver_al_inicio", 0.6)
@@ -226,6 +229,40 @@ func _juice_shots() -> void:
 	main.go_to(0)
 
 
+## 0.7.1: entrar con otra cuenta en el mismo teléfono aparta la partida de la
+## anterior (no se sube a la cuenta nueva) y volver la recupera. Usa cuentas
+## ficticias y deja el estado de la nube (user://cloud.cfg) como estaba.
+func _account_switch_check() -> void:
+	var cloud := get_node("/root/Cloud")
+	var cfg_path: String = cloud.STATE_PATH
+	var cfg_bak := cfg_path + ".devshots_bak"
+	var had_cfg := FileAccess.file_exists(cfg_path)
+	if had_cfg:
+		DirAccess.copy_absolute(cfg_path, cfg_bak)
+	var keep := [cloud._synced_uid, cloud._synced_saved_at, cloud._cloud_update_time, cloud._stash.duplicate()]
+	var m := Game.m
+	cloud._synced_uid = "devshots_a"
+	m.set_company_name("Empresa de A")
+	cloud._switch_local_game("devshots_a", "devshots_b")
+	await get_tree().process_frame
+	var fresh := str(m.profile["company"]) != "Empresa de A" and FileAccess.file_exists(CloudSync.stash_path("devshots_a"))
+	m.set_company_name("Empresa de B")
+	cloud._switch_local_game("devshots_b", "devshots_a")
+	await get_tree().process_frame
+	var back := str(m.profile["company"]) == "Empresa de A" and FileAccess.file_exists(CloudSync.stash_path("devshots_b"))
+	print("CAMBIO_CUENTA ", "OK" if fresh and back else "FALLÓ (nueva=%s vuelta=%s)" % [fresh, back])
+	for uid in ["devshots_a", "devshots_b"]:
+		SaveSystem.new(CloudSync.stash_path(uid)).delete_all()
+	cloud._synced_uid = keep[0]
+	cloud._synced_saved_at = keep[1]
+	cloud._cloud_update_time = keep[2]
+	cloud._stash = keep[3]
+	if had_cfg:
+		DirAccess.rename_absolute(cfg_bak, cfg_path)
+	else:
+		DirAccess.remove_absolute(cfg_path)
+
+
 func _find_button(root_node: Node, text: String) -> Button:
 	for b in root_node.find_children("*", "Button", true, false):
 		if (b as Button).text.begins_with(text) and b.is_visible_in_tree() and not (b as Button).disabled:
@@ -268,6 +305,18 @@ func _social_shots() -> void:
 	main.modal_host.close_all()
 	main.go_to(4)
 	await _shot("22_perfil_amigos", 0.6)
+	main.modal_host.close_all()
+	SettingsModal.open()
+	await get_tree().process_frame
+	var sc := main.modal_host.find_children("*", "ScrollContainer", true, false)
+	if not sc.is_empty():
+		(sc[-1] as ScrollContainer).scroll_vertical = 100000
+	await _shot("26_ajustes_cuenta_privacidad", 0.5)
+	print("BORRAR_CUENTA_BOTON ", "OK" if _find_button(main, "Borrar mi cuenta") else "FALLÓ")
+	main.modal_host.close_all()
+	DeleteAccountDialog.open()
+	await _shot("27_borrar_cuenta", 0.5)
+	main.modal_host.close_all()
 	Friends.friends = []
 	Friends.requests = []
 	Friends.gifts = []
@@ -327,3 +376,65 @@ func _tap(target: Control) -> void:
 		ev.global_position = center
 		get_viewport().push_input(ev)
 		await get_tree().process_frame
+
+
+## Arrastrar empezando encima de un botón scrollea el modal y no lo activa.
+func _drag_check() -> void:
+	var main := Main.instance
+	var m := Game.m
+	var hire := _find_button(main.modal_host, "CONTRATAR")
+	var sc: Array = main.modal_host.find_children("*", "DragScroll", true, false)
+	if hire == null or sc.is_empty():
+		print("ARRASTRE_SCROLL FALLÓ (sin botón o scroll)")
+		return
+	var scroll: DragScroll = sc[-1]
+	var team := m.employees_of("puesto").size()
+	var p := hire.get_global_rect().get_center()
+	var press := InputEventMouseButton.new()
+	press.button_index = MOUSE_BUTTON_LEFT
+	press.pressed = true
+	press.position = p
+	press.global_position = p
+	get_viewport().push_input(press)
+	await get_tree().process_frame
+	for i in 12:
+		var mv := InputEventMouseMotion.new()
+		p.y -= 15
+		mv.position = p
+		mv.global_position = p
+		mv.relative = Vector2(0, -15)
+		mv.button_mask = MOUSE_BUTTON_MASK_LEFT
+		get_viewport().push_input(mv)
+		await get_tree().process_frame
+	var rel := press.duplicate() as InputEventMouseButton
+	rel.pressed = false
+	rel.position = p
+	rel.global_position = p
+	get_viewport().push_input(rel)
+	await get_tree().process_frame
+	var ok := scroll.scroll_vertical > 0 and m.employees_of("puesto").size() == team
+	print("ARRASTRE_SCROLL ", "OK" if ok else "FALLÓ (scroll=%d equipo %d->%d)" % [scroll.scroll_vertical, team, m.employees_of("puesto").size()])
+	scroll.scroll_vertical = 0
+
+
+## Las ventas no reinician el colectivo y avanza hacia donde mira (derecha).
+func _bus_check() -> void:
+	var main := Main.instance
+	var m := Game.m
+	var scene: BusinessScene = main.find_children("*", "BusinessScene", true, false)[0]
+	var prev_view = Settings.get_value("scene_view")
+	var prev_anim = Settings.get_value("scene_anim")
+	Settings.set_value("scene_view", "fachada")
+	Settings.set_value("scene_anim", true)
+	await get_tree().process_frame
+	scene._bus.visible = true
+	scene._bus.position.x = 40.0
+	for i in 3:
+		m.business_changed.emit(scene.bid)
+		await get_tree().process_frame
+	var x := scene._bus.position.x
+	var ok := scene._bus.visible and x > 40.0 and x < 120.0
+	print("COLECTIVO_SIGUE ", "OK" if ok else "FALLÓ (visible=%s x=%s)" % [scene._bus.visible, x])
+	scene._bus.visible = false
+	Settings.set_value("scene_view", prev_view)
+	Settings.set_value("scene_anim", prev_anim)

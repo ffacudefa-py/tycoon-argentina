@@ -25,7 +25,7 @@ static func cost(v: float) -> String:
 
 
 static func per_sec(v: float) -> String:
-	return "$" + num(v, false) + "/s"
+	return ("-$" + num(-v, true) if v < 0.0 else "$" + num(v, false)) + "/s"
 
 
 static func num(v: float, round_up := false) -> String:
@@ -33,7 +33,7 @@ static func num(v: float, round_up := false) -> String:
 	var a := absf(v)
 	var s := ""
 	if a < 1000.0:
-		if a < 10.0 and absf(a - roundf(a)) > 0.05:
+		if a < 10.0:
 			s = _dec(a, round_up)
 		else:
 			s = str(int(ceilf(a - 0.0001) if round_up else floorf(a + 0.0001)))

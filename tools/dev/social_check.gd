@@ -9,7 +9,7 @@ extends SceneTree
 ## La sesión y el estado de amigos de este equipo se respaldan y se restauran.
 
 const AUTH_EMU := "http://127.0.0.1:9099"
-const KEEP := ["user://session.cfg", "user://friends.cfg"]
+const KEEP := ["user://session.cfg", "user://friends.cfg", "user://cloud.cfg"]
 
 var auth: Node
 var friends: Node
@@ -94,6 +94,13 @@ func _save_doc(uid: String) -> int:
 	return r[0]
 
 
+## Escribe campos crudos con la sesión actual (para probar que las reglas rechazan basura).
+func _raw_doc(path: String, fields: Dictionary) -> int:
+	var token: String = await _wait(func(cb: Callable) -> void: auth.get_token(cb))
+	var r := await _http(HTTPClient.METHOD_PATCH, CloudSync.docs_root(project) + "/" + path, JSON.stringify({"fields": fields}), token)
+	return r[0]
+
+
 func _run() -> void:
 	if OS.get_environment("TYCOON_EMULATOR") == "":
 		print("Definí TYCOON_EMULATOR=127.0.0.1 y corré dentro de firebase emulators:exec.")
@@ -117,6 +124,32 @@ func _run() -> void:
 	var a := await _account("ana_%s@test.invalid" % stamp, true)
 	_check(await _save_doc(a["uid"]) == 200, "verificada: la nube acepta su partida")
 	_check(await _save_doc(x["uid"]) == 403, "verificada: no puede escribir la partida de otro")
+	_check(await _raw_doc("saves/" + a["uid"], {"save": {"stringValue": "{}"}, "hack": {"booleanValue": true}}) == 403,
+		"partida con campos de más: rechazada (403)")
+	_check(await _raw_doc("saves/" + a["uid"], {"save": {"stringValue": "x".repeat(950000)}}) == 403,
+		"partida de más de 900 KB: rechazada (403)")
+	# Dos teléfonos con la misma cuenta: el segundo sube con la versión vieja.
+	var root_saves: String = CloudSync.docs_root(project) + "/saves/" + a["uid"]
+	var commit_url: String = CloudSync.docs_root(project) + ":commit"
+	var tok: String = await _wait(func(cb: Callable) -> void: auth.get_token(cb))
+	var first := await _http(HTTPClient.METHOD_GET, root_saves, "", tok)
+	var seen := str(first[1].get("updateTime", ""))
+	var f1 := {"fields": {"save": {"stringValue": "{\"telefono\":1}"}}}
+	var up1 := await _http(HTTPClient.METHOD_POST, commit_url, JSON.stringify(CloudSync.commit_body(project, a["uid"], f1, seen)), tok)
+	_check(up1[0] == 200 and CloudSync.committed_time(up1[1]) != "", "teléfono 1 sube con la versión que vio")
+	var up2 := await _http(HTTPClient.METHOD_POST, commit_url, JSON.stringify(CloudSync.commit_body(project, a["uid"], f1, seen)), tok)
+	_check(CloudSync.is_stale_write(up2[0], up2[1]), "teléfono 2 con versión vieja: rechazado, no pisa (%d)" % up2[0])
+	var fresh := await _http(HTTPClient.METHOD_POST, commit_url, JSON.stringify(CloudSync.commit_body(project, a["uid"], f1, "")), tok)
+	_check(CloudSync.is_stale_write(fresh[0], fresh[1]), "\"no había partida\" cuando sí hay: rechazado (%d)" % fresh[0])
+	var other := await _http(HTTPClient.METHOD_POST, commit_url, JSON.stringify(CloudSync.commit_body(project, x["uid"], f1, "")), tok)
+	_check(other[0] == 403, "por commit tampoco se escribe la partida de otro (403)")
+	var prof := FriendLogic.profile_fields({"company": "Ana", "avatar": "perro", "stage": 2, "lifetime": 10, "prestige": 0, "code": "ABCDEF"}, 1.0)
+	prof["fields"]["company"] = {"stringValue": "x".repeat(200)}
+	_check(await _raw_doc("players/" + a["uid"], prof["fields"]) == 403, "perfil con nombre de 200 letras: rechazado (403)")
+	prof["fields"]["company"] = {"stringValue": "Ana"}
+	prof["fields"]["stage"] = {"integerValue": "999"}
+	_check(await _raw_doc("players/" + a["uid"], prof["fields"]) == 403, "perfil con etapa imposible: rechazado (403)")
+	_check(await _raw_doc("codes/ab", {"uid": {"stringValue": a["uid"]}}) == 403, "código con formato inválido: rechazado (403)")
 
 	print("== Amigos")
 	friends._on_auth_changed()
@@ -171,6 +204,39 @@ func _run() -> void:
 
 	await _sign_in(a["email"])
 	_check(not friends.is_friend(b["uid"]), "Ana tampoco lo tiene (se borró de los dos lados)")
+
+	print("== Borrar la cuenta (Google Play)")
+	var c := await _account("carla_%s@test.invalid" % stamp, true)
+	friends._on_auth_changed()
+	while friends._busy:
+		await process_frame
+	var code_c: String = friends.my_code
+	_check(await _save_doc(c["uid"]) == 200, "Carla tiene partida en la nube")
+	r = await friends.add_by_code(code_a)
+	_check(r["ok"], "Carla le manda solicitud a Ana")
+	await _sign_in(a["email"])
+	r = await friends.accept(c["uid"])
+	_check(r["ok"], "Ana acepta a Carla")
+	await _sign_in(c["email"])
+	r = await friends.send_gift(a["uid"])
+	_check(r["ok"], "Carla le convida un mate a Ana")
+	r = await auth.delete_account("contraseña-equivocada")
+	_check(not r["ok"] and auth.signed_in(), "con la contraseña mal no se borra nada: " + r["msg"])
+	r = await auth.delete_account("clave-segura-123")
+	_check(r["ok"] and not auth.signed_in(), "Carla borra su cuenta: " + r["msg"])
+	await _sign_in(a["email"])
+	_check(not friends.is_friend(c["uid"]), "Carla ya no está en la lista de Ana")
+	_check(friends.gifts.filter(func(g: Dictionary) -> bool: return g["uid"] == c["uid"]).is_empty(), "el mate de Carla se borró")
+	var tok_a: String = await _wait(func(cb: Callable) -> void: auth.get_token(cb))
+	var root_docs: String = CloudSync.docs_root(project)
+	_check((await _http(HTTPClient.METHOD_GET, root_docs + "/players/" + c["uid"], "", tok_a))[0] == 404, "el perfil público de Carla no existe más")
+	_check((await _http(HTTPClient.METHOD_GET, root_docs + "/codes/" + code_c, "", tok_a))[0] == 404, "el código de Carla quedó libre")
+	var again: Dictionary = await _wait(func(cb: Callable) -> void:
+		auth.sign_out()
+		auth.sign_in(c["email"], "clave-segura-123", cb))
+	_check(not again["ok"], "la cuenta de Carla ya no existe: " + str(again["msg"]))
+	var admin := await _http(HTTPClient.METHOD_GET, root_docs + "/saves/" + c["uid"], "", "owner")
+	_check(admin[0] == 404, "la partida de Carla en la nube se borró (vista de administrador)")
 
 	auth.sign_out()
 	for f in KEEP:

@@ -1,21 +1,7 @@
 """Partículas y efectos pixelados."""
 import os
 from px import Canvas
-
-
-def coin_sheet():
-    """Moneda girando: 4 cuadros de 8x8."""
-    sheet = Canvas(32, 8)
-    widths = [3, 2, 1, 2]
-    for f, w in enumerate(widths):
-        c = Canvas(8, 8)
-        c.ellipse(3, 3, w, 3, "y")
-        if w >= 2:
-            c.vline(3, 1, 5, "Y")
-            c.put(2, 1, "L")
-        c.outline_all("o")
-        sheet.blit(c, f * 8, 0)
-    return sheet
+import coin_art
 
 
 def sparkle_sheet():
@@ -68,7 +54,7 @@ def star_small():
 def generate(out):
     d = os.path.join(out, "particles")
     os.makedirs(d, exist_ok=True)
-    coin_sheet().save(f"{d}/coin_spin.png")
+    coin_art.spin_sheet().save(f"{d}/coin_spin.png")
     sparkle_sheet().save(f"{d}/sparkle.png")
     bill().save(f"{d}/bill.png")
     smoke_sheet().save(f"{d}/smoke.png")
