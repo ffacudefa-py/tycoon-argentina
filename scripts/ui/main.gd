@@ -100,6 +100,8 @@ func _ready() -> void:
 			add_child(shots)
 	# El resumen de "mientras no estabas" se muestra al entrar al juego.
 	start.entered.connect(func() -> void:
+		if NewsModal.should_show():
+			NewsModal.open()
 		if not Game.pending_offline.is_empty():
 			var r := Game.pending_offline
 			Game.pending_offline = {}

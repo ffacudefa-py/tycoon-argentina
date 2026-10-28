@@ -164,7 +164,7 @@ func rebuild() -> void:
 	U.on_press(play, enter_game, "")
 	_menu.add_child(play)
 	if not Auth.signed_in():
-		_menu.add_child(U.para("Jugás como invitado: tu progreso se guarda en este teléfono." if has_progress else "Arrancás con un puestito callejero. El tutorial te guía paso a paso.", U.SIZE_SMALL, U.TEXT_SOFT))
+		_menu.add_child(U.para("Jugás como invitado: tu progreso se guarda en este teléfono." if has_progress else "Arrancás con un campo de algodón en Santiago del Estero y vas conquistando la Argentina. El tutorial te guía.", U.SIZE_SMALL, U.TEXT_SOFT))
 		var login := U.button("INICIAR SESIÓN", "celeste", "persona", 40, U.SIZE_BODY)
 		U.on_press(login, LoginModal.open)
 		_menu.add_child(login)

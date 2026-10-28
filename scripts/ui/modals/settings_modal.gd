@@ -115,7 +115,7 @@ static func open() -> void:
 			func() -> void:
 				Main.instance.modal_host.close_all()
 				Game.reset_everything()
-				Main.instance.toast("Partida nueva. ¡Suerte con el puestito!", "info")))
+				Main.instance.toast("Partida nueva. ¡A conquistar la Argentina!", "info")))
 	body.add_child(reset)
 	w_ref.append(Main.instance.modal_host.open("Configuración", body))
 

@@ -1,9 +1,13 @@
 # Tycoon Argentina
 
 Simulador de negocios pixel art para Android (Godot 4.7, GDScript, vertical).
-Empezás con un puestito callejero en el Barrio Villa Esperanza y crecés hasta
-un conglomerado: niveles, mejoras, mercadería, empleados, automatización,
-ingresos offline, zonas, rivales, eventos, misiones, logros, prestigio y amigos.
+**10.0 "Sigma Deza":** el objetivo es conquistar la Argentina región por región
+y provincia por provincia. Empezás con un campito de algodón en Santiago del
+Estero (NOA) y cada provincia tiene su negocio según su producto icónico:
+papas andinas en Jujuy, Malbec en Mendoza, yerba en Misiones, medialunas en
+CABA… Le ganás el mercado al rival local hasta el 100 % y la provincia es tuya.
+Niveles, mejoras, mercadería, empleados, automatización, ingresos offline,
+eventos, misiones, logros, prestigio y amigos. Reglas: `docs/CONQUISTA.md`.
 
 Todo el arte, los sonidos, los nombres y las empresas son originales y ficticios.
 
@@ -18,7 +22,7 @@ Godot 4.7.2 está instalado sin root en `~/.local/opt/godot` (`~/.local/bin/godo
 ## Pruebas
 
 ```bash
-tools/run_tests.sh                # 74 pruebas + humo de UI headless + toques reales
+tools/run_tests.sh                # 91 pruebas + humo de UI headless + toques reales
 tools/run_tests.sh --only=balance # sólo la simulación de balance
 BALANCE_HOURS=4 tools/run_tests.sh --only=balance   # corrida más larga
 tools/screenshots.sh              # capturas reales de todas las pantallas (abre ventana)
@@ -32,8 +36,9 @@ Export con Gradle (por el SDK de anuncios). Comando completo, plantilla y firma 
 ## Regenerar arte y sonido
 
 ```bash
+python3 tools/v10/build_data.py # datos de provincias/negocios/misiones (desde data/v10/provinces.json)
 python3 tools/art/pxl/build.py  # interiores, calles, inicio y efectos (PXL)
-python3 tools/art/generate.py   # personajes, íconos, logo, edificios de fachada
+python3 tools/art/generate.py   # personajes, íconos, logo, edificios, mapas y paisajes
 python3 tools/sfx.py            # efectos de sonido sintetizados
 ```
 

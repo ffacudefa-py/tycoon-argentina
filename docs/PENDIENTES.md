@@ -5,12 +5,16 @@
   cerrar desde multitarea, rendimiento en equipos modestos).
 - Revisar en un teléfono real la letra VT323 y la animación del saldo (0.6).
 
-## Contenido (v2)
-- Negocios 13–25 del documento (tienda de tecnología, hotel, fábrica, cadena de
-  supermercados, transporte, constructora, parque industrial, shopping, tecnológica,
-  red logística, complejo hotelero, franquicias, conglomerado). La arquitectura ya lo
-  permite agregando datos (ver ARQUITECTURA.md); falta balancearlos y quizá subir el
-  tope numérico (ECONOMIA.md).
+## 10.0 "Sigma Deza" (conquista de la Argentina)
+- Balance largo: el bot cubre ~4 h (NOA y parte del NEA); falta revisar con
+  corridas de varios días de juego (Cuyo en adelante) y el ritmo offline.
+- Probar en teléfono real los toques sobre el mapa (provincias chicas: CABA,
+  Tucumán) y el aviso de novedades.
+- Las firestore.rules y el ranking de amigos siguen usando `lifetime`: con el
+  reinicio de la 10.0 todos arrancan de cero (decisión de diseño).
+- Ideas: animaciones propias por provincia (aspas del molino en la escena,
+  vendimia), eventos regionales (vendimia en Mendoza, zafra en Tucumán).
+
 - Más arquetipos de edificios y animaciones específicas (lavado con espuma animada,
   humo de parrilla animado).
 - Música (hoy no hay; el ajuste no se muestra).

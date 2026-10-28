@@ -15,6 +15,7 @@ const DEFAULTS := {
 	"inflation": false,         ## inflación ficticia (experimental)
 	"scene_view": "interior",   ## vista del negocio: "interior" o "fachada"
 	"scene_anim": true,         ## animaciones del escenario (clientes, humo, neón...)
+	"news_seen": "",            ## última versión cuyas novedades se mostraron
 	"reduce_motion": false,     ## accesibilidad: sin sacudidas ni rebotes de la interfaz
 }
 
