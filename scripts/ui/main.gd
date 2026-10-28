@@ -102,6 +102,8 @@ func _ready() -> void:
 	start.entered.connect(func() -> void:
 		if NewsModal.should_show():
 			NewsModal.open()
+		if HardModeModal.should_show():
+			HardModeModal.open()
 		if not Game.pending_offline.is_empty():
 			var r := Game.pending_offline
 			Game.pending_offline = {}

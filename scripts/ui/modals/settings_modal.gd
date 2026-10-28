@@ -21,15 +21,18 @@ static func open() -> void:
 	body.add_child(_toggle("Animaciones del escenario (clientes, humo, neón)", "scene_anim", "persona"))
 	body.add_child(_toggle("Ahorro de energía (30 FPS, menos animaciones)", "power_saver", "rayo"))
 	body.add_child(U.label("Vista del negocio", U.SIZE_SMALL, U.TEXT, true))
-	body.add_child(U.para("Los puestos al aire libre (mesita, carrito, lavadero abierto) se ven siempre desde la calle.", U.SIZE_SMALL, U.TEXT_SOFT))
+	body.add_child(U.para("Elegí si ves tu negocio por dentro o desde afuera.", U.SIZE_SMALL, U.TEXT_SOFT))
 	body.add_child(U.tabs(["Adentro del local", "Fachada"], func(i: int) -> void: Settings.set_value("scene_view", ["interior", "fachada"][i]), 0 if Settings.get_value("scene_view") == "interior" else 1))
 	# --- Juego y accesibilidad
 	body.add_child(_section("Juego y accesibilidad", "estrella"))
 	body.add_child(_toggle("Vibración", "vibration", "vibrar"))
 	body.add_child(_toggle("Reducir movimiento (sin rebotes ni partículas extra)", "reduce_motion", "info"))
 	body.add_child(_toggle("Confirmar acciones irreversibles", "confirm_irreversible", "alerta"))
-	body.add_child(_toggle("Inflación ficticia (experimental)", "inflation", "fuego"))
-	body.add_child(U.para("Con inflación activada, cada 10 minutos se anuncia una remarcación: la mercadería sube y tus precios acompañan un rato después. Los costos de niveles y mejoras no cambian.", U.SIZE_SMALL, U.TEXT_SOFT))
+	if HardMode.on(Game.m):
+		body.add_child(U.stat_row("Modo de juego", "Bien argentino (+%d %%)" % int(round(HardMode.income_bonus(Game.m) * 100)), UiColors.LOSS))
+	else:
+		body.add_child(U.stat_row("Modo de juego", "Normal"))
+	body.add_child(U.para("Se elige al empezar la cuenta. El modo bien argentino trae inflación, juicios laborales y robos, a cambio de más ingresos.", U.SIZE_SMALL, U.TEXT_SOFT))
 	body.add_child(U.stat_row("Idioma", "Español (Argentina)"))
 	body.add_child(U.para("Notificaciones: todavía no hay avisos fuera del juego. Al volver ves el resumen de lo que ganaste.", U.SIZE_SMALL, U.TEXT_SOFT))
 	# --- Cuenta

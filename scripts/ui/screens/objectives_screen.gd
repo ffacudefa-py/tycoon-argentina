@@ -29,7 +29,10 @@ func _ready() -> void:
 	col.add_child(_daily_box)
 	col.add_child(U.tabs(["Principales", "Desafíos", "Diarias"], func(i: int) -> void:
 		tab = i
-		_build_list(), 0))
+		# Cambiar de pestaña corta cualquier animación de reclamo en curso.
+		_hold = false
+		_pending = false
+		rebuild(), 0))
 	_list = U.vbox(5)
 	col.add_child(_list)
 	m.progress_changed.connect(rebuild)

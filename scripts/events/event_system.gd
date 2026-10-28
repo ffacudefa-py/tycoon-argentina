@@ -216,9 +216,9 @@ static func resolve(m: GameModel, index: int, choice_id: String) -> Dictionary:
 # ---------------------------------------------------------------------------
 
 static func _advance_inflation(m: GameModel, dt: float) -> void:
-	if not m.inflation_enabled:
+	if not m.inflation_active():
 		return
-	var cfg: Dictionary = m.data.events_cfg["inflation"]
+	var cfg: Dictionary = HardMode.inflation_cfg(m)
 	var inf: Dictionary = m.inflation
 	inf["next_in"] = float(inf["next_in"]) - dt
 	if not inf["announced"] and inf["next_in"] <= float(cfg["warning"]):

@@ -53,7 +53,7 @@ var salary_due := 0.0
 var salary_debt := 0
 var next_employee_id := 1
 var stage := 1
-var inflation_enabled := false
+var hard := HardMode.default_state()  ## modo bien argentino (ver HardMode)
 var tz_bias_minutes := 0           ## zona horaria local, para saber cuándo cambia el día
 
 var _derived := {}
@@ -95,6 +95,7 @@ func new_game() -> void:
 	ads = {"granted": [], "day": -1, "today": 0, "cooldowns": {}}
 	social = {"day": -1, "gifts_claimed": 0}
 	tutorial = {"step": 0, "done": false}
+	hard = HardMode.default_state()
 	missions = {"main_index": 0, "completed": {}, "claimed": {}}
 	daily_missions = {"day": -1, "list": [], "baseline": {}, "completed": {}, "claimed": {}}
 	time_state = {"last_active": now(), "max_seen": now()}
@@ -120,6 +121,8 @@ func _reset_run() -> void:
 	employees = {}
 	zones = {}
 	boosts = []
+	hard["protected"] = {}
+	hard["debt_time"] = 0.0
 	salary_due = 0.0
 	salary_debt = 0
 	stage = 1
@@ -267,9 +270,9 @@ func _compute(id: String) -> Dictionary:
 	# income_rate (0,8) achica precios y costo de mercadería por igual: el margen
 	# se mantiene y la ganancia neta baja 20 %.
 	var rate := income_rate()
-	var income_mult := prestige_multiplier() * boost_multiplier() * rate * ConquestSystem.income_mult(self, id)
-	var price_index := float(inflation["price_index"]) if inflation_enabled else 1.0
-	var cost_index := float(inflation["cost_index"]) if inflation_enabled else 1.0
+	var income_mult := prestige_multiplier() * boost_multiplier() * rate * ConquestSystem.income_mult(self, id) * HardMode.income_mult(self)
+	var price_index := float(inflation["price_index"]) if inflation_active() else 1.0
+	var cost_index := float(inflation["cost_index"]) if inflation_active() else 1.0
 
 	var units: float = float(level) * (1.0 + mods["units"])
 	var speed_mult: float = ms_speed * (1.0 + mods["speed"] + speed_emp)
@@ -320,6 +323,11 @@ func _compute(id: String) -> Dictionary:
 		"event_revenue": ev["revenue"], "event_speed": ev["speed"], "event_cost": ev["cost"],
 		"mods": mods, "team_size": team.size(),
 	}
+
+
+## La inflación sólo existe en el modo bien argentino.
+func inflation_active() -> bool:
+	return HardMode.on(self)
 
 
 ## Ritmo global de ganancias (balance.income_rate, 0,8 desde la 0.7.0).
@@ -975,6 +983,7 @@ func simulate(dt: float, offline := false) -> void:
 		BusinessSim.advance(self, id, dt)
 	ConquestSystem.advance(self, dt)
 	EmployeeSystem.advance(self, dt, offline)
+	HardMode.advance(self, dt, offline)
 	if not offline:
 		stats["play_time"] = float(stats.get("play_time", 0.0)) + dt
 		_progress_timer += dt
@@ -1074,6 +1083,7 @@ func to_dict() -> Dictionary:
 		"salary_debt": str(salary_debt),
 		"next_employee_id": next_employee_id,
 		"stage": stage,
+		"hard": hard.duplicate(true),
 	}
 
 
@@ -1153,6 +1163,9 @@ func from_dict(d: Dictionary) -> void:
 	salary_debt = maxi(0, Economy.s2i(d.get("salary_debt", 0)))
 	next_employee_id = maxi(int(d.get("next_employee_id", 1)), employees.size() + 1)
 	stage = conquest_stage()
+	hard = _merge(HardMode.default_state(), d.get("hard"))
+	if not hard["protected"] is Dictionary:
+		hard["protected"] = {}
 	invalidate()
 
 

@@ -54,7 +54,33 @@
    25,
    50,
    100
-  ]
+  ],
+  "hard_mode": {
+   "_doc": "Modo Argentina picante (opcional, se elige al empezar la cuenta). Ver scripts/events/hard_mode.gd.",
+   "income_bonus": 0.25,
+   "lawsuit_after": 120,
+   "lawsuit_cooldown": 300,
+   "lawsuit_salary_seconds": 900,
+   "theft_interval": [
+    240,
+    480
+   ],
+   "theft_fraction": [
+    0.2,
+    0.4
+   ],
+   "bribe_income_seconds": 120,
+   "bribe_min": 200,
+   "bribe_minutes": 30,
+   "inflation": {
+    "period": 360,
+    "warning": 60,
+    "cost_step": 0.12,
+    "price_step": 0.11,
+    "price_lag": 120,
+    "max_index": 10.0
+   }
+  }
  },
  "friends": {
   "_doc": "Amigos (0.7.0): cada amigo puede convidarte un mate por día; al abrirlo ganás gift_reward. Se abren como mucho gifts_per_day por día. Ver docs/AMIGOS.md.",

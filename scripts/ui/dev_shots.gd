@@ -135,6 +135,17 @@ func _run() -> void:
 	NewsModal.open()
 	await _shot("09b_novedades", 0.5)
 	main.modal_host.close_all()
+	HardModeModal.open()
+	await _shot("09c_modo_de_juego", 0.5)
+	main.modal_host.close_all()
+	var hard_before: Dictionary = m.hard.duplicate(true)
+	HardMode.choose(m, true)
+	ManageBusinessModal.open(B0, 0)
+	await _shot("09d_seguridad", 0.5)
+	main.modal_host.close_all()
+	m.hard = hard_before
+	m.invalidate()
+	main.modal_host.close_all()
 	StatsModal.open()
 	await _shot("10_estadisticas", 0.5)
 	main.modal_host.close_all()
@@ -239,7 +250,49 @@ func _juice_shots() -> void:
 		await _shot("25b_reclamar_todo_animando", 0.5)
 		await _shot("25c_reclamar_todo_listo", 1.6)
 		print("RECLAMAR_TODO_COBRO ", "OK" if before > 0 and ProgressionSystem.unclaimed_count(m) == 0 else "FALLÓ")
+	await _claim_after_tab_check()
 	main.go_to(0)
+
+
+func _exact_button(root_node: Node, text: String) -> Button:
+	for b in root_node.find_children("*", "Button", true, false):
+		if (b as Button).text == text and b.is_visible_in_tree() and not (b as Button).disabled:
+			return b
+	return null
+
+
+## Bug 10.0: reclamar y cambiar de pestaña a mitad de la animación dejaba
+## Objetivos trabado (ningún RECLAMAR respondía hasta reiniciar).
+func _claim_after_tab_check() -> void:
+	var main := Main.instance
+	var m := Game.m
+	main.go_to(3)
+	var screen: ObjectivesScreen = main.find_children("*", "ObjectivesScreen", true, false)[0]
+	var ids := []
+	for c in m.data.challenges:
+		if not m.missions["claimed"].has(c["id"]) and ids.size() < 2:
+			m.missions["completed"][c["id"]] = true
+			ids.append(c["id"])
+	var tabs := _find_button(screen, "Desafíos")
+	var other := _find_button(screen, "Principales")
+	await _tap(tabs)
+	await get_tree().create_timer(0.3).timeout
+	var first := _exact_button(screen, "RECLAMAR")
+	if first == null or ids.size() < 2:
+		print("RECLAMO_TRAS_PESTANA FALLÓ (sin desafíos)")
+		return
+	await _tap(first)
+	await get_tree().process_frame
+	await _tap(other)            # cambio de pestaña en plena animación
+	await get_tree().create_timer(0.2).timeout
+	await _tap(tabs)
+	await get_tree().create_timer(0.3).timeout
+	var second := _exact_button(screen, "RECLAMAR")
+	if second:
+		await _tap(second)
+		await get_tree().create_timer(1.5).timeout
+	var ok: bool = m.missions["claimed"].has(ids[0]) and m.missions["claimed"].has(ids[1])
+	print("RECLAMO_TRAS_PESTANA ", "OK" if ok else "FALLÓ (reclamados: %s)" % str(ids.filter(func(i): return m.missions["claimed"].has(i))))
 
 
 ## 0.7.1: entrar con otra cuenta en el mismo teléfono aparta la partida de la

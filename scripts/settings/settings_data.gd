@@ -12,7 +12,6 @@ const DEFAULTS := {
 	"fx_quality": 2,            ## 0 bajo, 1 medio, 2 alto
 	"power_saver": false,       ## 30 FPS y menos animaciones ambientales
 	"confirm_irreversible": true,
-	"inflation": false,         ## inflación ficticia (experimental)
 	"scene_view": "interior",   ## vista del negocio: "interior" o "fachada"
 	"scene_anim": true,         ## animaciones del escenario (clientes, humo, neón...)
 	"news_seen": "",            ## última versión cuyas novedades se mostraron

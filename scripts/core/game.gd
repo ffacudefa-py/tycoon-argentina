@@ -47,7 +47,6 @@ func _ready() -> void:
 			pending_offline = r
 	elif had_files:
 		load_warning = "No pudimos leer tu partida guardada. Empezás de nuevo (el archivo dañado quedó apartado)."
-	m.inflation_enabled = bool(Settings.get_value("inflation"))
 	m.invalidate()
 	for id in m.owned_ids():
 		EmployeeSystem.ensure_candidates(m, id)
@@ -112,7 +111,6 @@ func save() -> bool:
 ## nube): misma preparación que al abrir el juego, con su progreso offline.
 func replace_with(payload: Dictionary) -> void:
 	m.from_dict(payload)
-	m.inflation_enabled = bool(Settings.get_value("inflation"))
 	var r := OfflineCalculator.apply(m)
 	m.invalidate()
 	for id in m.owned_ids():

@@ -50,3 +50,17 @@ amigos y fecha de creación.
 - Edificios por provincia: `tools/art/buildings3.py` · paisajes: `tools/art/landscapes.py`.
 - Interiores: `tools/art/pxl/gen_interiors.py` + `furniture_v10.px.js`.
 - Íconos de producto: `tools/art/icons_v10.py`.
+
+## Modo bien argentino (opcional)
+
+Se elige una sola vez al empezar la cuenta (`HardModeModal`; el prestigio lo
+conserva) y reemplaza al viejo ajuste de inflación ficticia. Lógica en
+`scripts/events/hard_mode.gd`, balance en `progression.json → balance.hard_mode`:
+
+- **+25 %** en todos los ingresos.
+- **Inflación fuerte** siempre activa (remarcación cada 6 min, +12 %).
+- **Juicios laborales**: con sueldos atrasados más de 2 min, el empleado de mayor
+  sueldo hace juicio (15 min de sueldo; lo que no se pueda pagar queda como deuda) y se va.
+- **Robos**: cada 4-8 min una banda se lleva 20-40 % de la mercadería de un negocio.
+- **Seguridad (coima)**: 2 min de ingresos por provincia → 30 min sin robos.
+- Juicios y robos sólo pasan con el juego abierto.

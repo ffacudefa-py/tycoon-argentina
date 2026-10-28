@@ -8,6 +8,8 @@ papas andinas en Jujuy, Malbec en Mendoza, yerba en Misiones, medialunas en
 CABA… Le ganás el mercado al rival local hasta el 100 % y la provincia es tuya.
 Niveles, mejoras, mercadería, empleados, automatización, ingresos offline,
 eventos, misiones, logros, prestigio y amigos. Reglas: `docs/CONQUISTA.md`.
+Al empezar la cuenta se elige el **modo bien argentino** (+25 % de ingresos con
+inflación, juicios laborales, robos y coimas de seguridad) o el modo normal.
 
 Todo el arte, los sonidos, los nombres y las empresas son originales y ficticios.
 

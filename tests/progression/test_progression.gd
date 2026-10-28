@@ -175,12 +175,12 @@ func test_inflation_optional_and_bounded() -> void:
 	var m := make_model()
 	var c0: float = m.derive(B0)["products"][0]["cost"]
 	run(m, 700.0)
-	near(m.derive(B0)["products"][0]["cost"], c0, 0.0001, "desactivada: sin cambios")
-	m.inflation_enabled = true
-	m.invalidate()
-	run(m, 610.0)
+	near(m.derive(B0)["products"][0]["cost"], c0, 0.0001, "modo normal: sin inflación")
+	HardMode.choose(m, true)
+	m.inflation["next_in"] = 10.0
+	run(m, 30.0)
 	check(m.derive(B0)["products"][0]["cost"] > c0, "activa: sube el costo")
-	run(m, 100.0)
+	run(m, 150.0)
 	check(float(m.inflation["price_index"]) > 1.0, "los precios acompañan")
 
 
@@ -265,3 +265,52 @@ func test_reclamar_todo() -> void:
 	check(m.economy.money >= before, "suma plata")
 	eq(ProgressionSystem.unclaimed_count(m), 0, "no queda nada")
 	check(not ProgressionSystem.claim_all(m)["ok"], "no se cobra dos veces")
+
+
+## 10.0: modo bien argentino (+25 %, juicios, robos y coimas).
+func test_hard_mode_bonus_lawsuit_theft_bribe() -> void:
+	var m := make_model()
+	check(not m.hard["chosen"], "se pregunta al empezar")
+	var p0: float = m.derive(B0)["revenue_sec"]
+	HardMode.choose(m, true)
+	near(m.derive(B0)["revenue_sec"], p0 * 1.25, p0 * 0.001, "+25 % de ingresos")
+	# Juicio: sueldos impagos más de lawsuit_after segundos.
+	m.economy.reset_run(1_000_000)
+	EmployeeSystem.ensure_candidates(m, B0)
+	EmployeeSystem.hire(m, B0, 0)
+	eq(m.employees.size(), 1, "contratado")
+	# Sueldos atrasados más de lawsuit_after segundos (sin plata para pagar).
+	m.economy.reset_run(0)
+	m.salary_debt = 50
+	for i in 140:
+		HardMode.advance(m, 1.0, false)
+	eq(m.employees.size(), 0, "el empleado hizo juicio y se fue")
+	eq(int(m.counter("lawsuits")), 1, "un juicio")
+	check(m.salary_debt > 0, "la indemnización queda como deuda")
+	# Robo: se lleva parte de la mercadería.
+	var pid: String = m.data.business_by_id[B0]["products"][0]["id"]
+	m.biz[B0]["stock"][pid] = 100.0
+	check(HardMode.theft(m, B0)["ok"], "robo")
+	check(float(m.biz[B0]["stock"][pid]) <= 80.0, "se llevaron al menos 20 %")
+	# Coima: protege la provincia.
+	m.salary_debt = 0
+	m.economy.reset_run(1_000_000)
+	check(HardMode.pay_bribe(m, Z0)["ok"], "paga la seguridad")
+	m.biz[B0]["stock"][pid] = 100.0
+	check(not HardMode.theft(m, B0)["ok"], "con seguridad no roban")
+	eq(float(m.biz[B0]["stock"][pid]), 100.0, "stock intacto")
+	# Se guarda con la partida.
+	var m2 := make_model(2)
+	m2.from_dict(m.to_dict())
+	check(HardMode.on(m2) and m2.hard["chosen"], "el modo se guarda")
+	check(HardMode.protected_left(m2, Z0) > 0.0, "la seguridad paga se guarda")
+
+
+func test_normal_mode_has_no_hard_events() -> void:
+	var m := make_model()
+	HardMode.choose(m, false)
+	var pid: String = m.data.business_by_id[B0]["products"][0]["id"]
+	m.biz[B0]["stock"][pid] = 100.0
+	run(m, 600.0)
+	eq(int(m.counter("thefts")), 0, "sin robos")
+	check(not m.inflation_active(), "sin inflación")

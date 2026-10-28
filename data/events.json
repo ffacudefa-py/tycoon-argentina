@@ -192,7 +192,7 @@
   }
  ],
  "inflation": {
-  "_doc": "Inflación ficticia OPCIONAL (desactivada por defecto en Ajustes). Cada period segundos se anuncia una remarcación con warning segundos de anticipación: suben los costos de mercadería; los precios de venta acompañan después de price_lag segundos. Reponer antes del aumento conviene. Los costos de niveles y mejoras NO cambian, así que el dinero ahorrado no pierde valor para invertir.",
+  "_doc": "Inflación ficticia: sólo en el modo bien argentino (progression.json → balance.hard_mode.inflation pisa estos valores). Cada period segundos se anuncia una remarcación con warning segundos de anticipación: suben los costos de mercadería; los precios de venta acompañan después de price_lag segundos. Los costos de niveles y mejoras NO cambian.",
   "period": 600,
   "warning": 60,
   "cost_step": 0.08,

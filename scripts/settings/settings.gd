@@ -41,11 +41,6 @@ func _apply(key: String) -> void:
 			AudioServer.set_bus_volume_db(bus, linear_to_db(maxf(vol, 0.001)))
 		"power_saver":
 			Engine.max_fps = 30 if get_value("power_saver") else 60
-		"inflation":
-			var game := get_node_or_null("/root/Game")
-			if game and game.m:
-				game.m.inflation_enabled = bool(get_value("inflation"))
-				game.m.invalidate()
 
 
 ## 0 bajo, 1 medio, 2 alto (el ahorro de energía fuerza bajo).

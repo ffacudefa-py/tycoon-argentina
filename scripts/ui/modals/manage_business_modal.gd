@@ -86,6 +86,8 @@ func _section(text: String) -> Label:
 func _build_business() -> void:
 	var d := m.derive(bid)
 	var s: Dictionary = m.biz[bid]
+	if HardMode.on(m):
+		_content.add_child(_security_card(s["zone"]))
 	_content.add_child(_section("Mercadería"))
 	_content.add_child(U.para("Cada venta atiende %s clientes repartidos según lo que más se pide. Si un producto se acaba, esa venta se pierde." % Fmt.num(d["units"]), U.SIZE_SMALL, U.TEXT_SOFT))
 	for p in d["products"]:
@@ -157,6 +159,29 @@ func _build_business() -> void:
 		_window.close()
 		ZoneModal.open(zid))
 	_content.add_child(mb)
+
+
+## Modo bien argentino: estado de la seguridad de la provincia y botón de coima.
+func _security_card(zid: String) -> Control:
+	var card := U.panel("Inset")
+	var col := U.vbox(4)
+	card.add_child(col)
+	var top := U.hbox(6)
+	top.add_child(U.icon("candado"))
+	var st := U.label("", U.SIZE_SMALL, U.TEXT, true)
+	st.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	top.add_child(st)
+	col.add_child(top)
+	var b := UiColors.buy_button("PAGAR SEGURIDAD", HardMode.bribe_cost(m), func() -> void: Main.instance.result(HardMode.pay_bribe(m, zid)), 36)
+	col.add_child(b)
+	var upd := func() -> void:
+		var left := HardMode.protected_left(m, zid)
+		st.text = ("Seguridad arreglada: %s" % Fmt.duration(left)) if left > 0.0 else "Sin seguridad: te pueden robar mercadería"
+		st.add_theme_color_override("font_color", UiColors.GAIN if left > 0.0 else UiColors.LOSS)
+		UiColors.set_cost(b, HardMode.bribe_cost(m))
+	upd.call()
+	_refreshers.append(upd)
+	return card
 
 
 # ---------------------------------------------------------------- EMPLEADOS

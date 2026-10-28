@@ -94,6 +94,16 @@ static func gold_shine(card: Control) -> void:
 ## con rebote y la tarjeta sale deslizándose a la izquierda. Al terminar se
 ## llama on_done (la pantalla se rearma ahí).
 static func mission_done(card: Control, on_done: Callable) -> void:
+	# on_done se llama UNA vez aunque la tarjeta se borre a mitad de la
+	# animación (cambio de pestaña, rearmado de la lista): si no, quien espera
+	# el aviso (Objetivos) queda trabado y no deja reclamar nada más.
+	var once := {"done": false}
+	var finish := func() -> void:
+		if not once["done"]:
+			once["done"] = true
+			on_done.call()
+	card.tree_exiting.connect(finish, CONNECT_ONE_SHOT)
+	on_done = finish
 	var parts := _overlay(card)
 	var holder: Control = parts[0]
 	var fill: ColorRect = parts[1]

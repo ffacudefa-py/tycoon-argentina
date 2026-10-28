@@ -16,7 +16,7 @@ fi
 if [ -z "$1" ]; then
   UI=$("$GODOT" --headless --path . -- --shots=/tmp/tycoon_smoke --dev-save=user://smoke_save.json 2>&1)
   N=$(echo "$UI" | grep -c "visitado:")
-  for T in ENTRAR_JUEGO TOQUE_ABRIR TOQUE_VENDER FOTO_GUARDADA ARRASTRE_SCROLL COLECTIVO_SIGUE MAPA_REGION SALDO_NEGATIVO MISION_RECLAMABLE RECLAMAR_TODO RECLAMAR_TODO_COBRO CAMBIO_CUENTA BORRAR_CUENTA_BOTON; do if ! echo "$UI" | grep -q "$T OK"; then echo "✗ Falló el toque real: $T"; exit 1; fi; done
+  for T in ENTRAR_JUEGO TOQUE_ABRIR TOQUE_VENDER FOTO_GUARDADA ARRASTRE_SCROLL COLECTIVO_SIGUE MAPA_REGION SALDO_NEGATIVO MISION_RECLAMABLE RECLAMAR_TODO RECLAMAR_TODO_COBRO RECLAMO_TRAS_PESTANA CAMBIO_CUENTA BORRAR_CUENTA_BOTON; do if ! echo "$UI" | grep -q "$T OK"; then echo "✗ Falló el toque real: $T"; exit 1; fi; done
   if echo "$UI" | grep -q -E "SCRIPT ERROR|Parse Error"; then
     echo "$UI" | grep -A3 "SCRIPT ERROR" | head -30
     echo "✗ Prueba de humo de UI: errores de script ($N pantallas visitadas)."
