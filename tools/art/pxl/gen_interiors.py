@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Genera los interiores de los 12 negocios x 5 niveles.
+"""Genera los interiores de los 24 negocios provinciales (10.0) x 5 niveles.
 
 Escribe:
   tools/art/pxl/interiors.px.js  -> escenas PXL (capas "back" y "front")
@@ -36,6 +36,10 @@ SZ = {
     "_poster": (22, 28), "_lamp_hanging": (16, 18), "_crate": (22, 16), "_salames": (30, 22), "_checkout": (68, 44),
     "_cart": (30, 30), "_conveyor": (112, 38), "_machine": (52, 58), "_stall_table": (82, 36), "_umbrella": (90, 70),
     "_cooler": (32, 24), "_price_board": (20, 32), "_string_lights": (200, 16), "_wall_shelf": (70, 22),
+    # 10.0 (furniture_v10.px.js)
+    "_bales": (42, 28), "_sacks": (38, 28), "_barrels_wood": (46, 32), "_steel_tank": (30, 70), "_olive_press": (48, 50),
+    "_citrus_crates": (42, 30), "_drying_rack": (62, 42), "_oven": (54, 58), "_meat_hooks": (44, 36), "_cheese_shelf": (46, 52),
+    "_electronics_bench": (72, 42), "_potato_bins": (48, 28), "_banana_hooks": (42, 42), "_apple_bins": (48, 30),
 }
 FX = {"fx_smoke": (24, 34), "fx_steam": (12, 18), "fx_neon": (48, 16), "fx_tv": (36, 24), "fx_foam": (30, 16), "fx_conveyor": (110, 10)}
 
@@ -85,327 +89,147 @@ def ceiling_lamps(L, n):
 
 
 # ---------------------------------------------------------------- negocios
+# 10.0: cada provincia es una lista a mano de (nivel mínimo, pieza, x, apoyo).
+# apoyo: número = fila donde apoya; "wall:y" = colgado en la pared a esa altura;
+# ("station", x, y) = puesto de trabajo extra; ("fx", nombre, x, y) = animación.
+# El mostrador (counter) siempre está, con su caja/balanza arriba.
 
-def puesto(t):
-    if t <= 2:
-        L = Layout("vereda", "vereda", outdoor=True)
-        L.put("_umbrella", 150, 112)
-        L.counter("_stall_table", 154, 1)
-        L.put("_price_board", 120, 140)
-        if t >= 1:
-            L.put("_cooler", 246, 140)
-            L.put("_crate", 280, 146)
-            L.put("_crate", 96, 146)
-        if t >= 2:
-            L.wall_item("_string_lights", 100, 20)
-            L.on_counter("_register", 0)
-            L.station(110, 138, "stand")
-        return L
-    L = Layout("azulejo", "damero")
-    L.put("_shelf_wood", 40, WALL)
-    L.put("_fridge_drinks", 96, WALL)
-    L.counter("_counter_wood", 150, 1)
-    L.on_counter("_register", 0)
-    L.on_counter("_mate_set", 1)
-    L.wall_item("_fileteado_sign", 164, 14)
-    L.wall_item("_pennant", 250, 10)
-    if t == 4:
-        L.put("_shelf_wood", 300, WALL)
-        L.counter("_counter_glass", 236, 1)
-        L.wall_item("_clock", 140, 40)
-        L.put("_plant", 360, 140)
-        L.fx_at("fx_neon", 258, 40)
-    ceiling_lamps(L, 2 + t - 3)
-    return L
+F = WALL          # apoyado contra la pared
+M = 150           # en el medio del piso
+N = 158           # adelante
 
-
-def kiosco(t):
-    L = Layout("azulejo", "damero")
-    L.put("_shelf_wood", 30, WALL)
-    L.counter("_counter_glass", 150, 1)
-    L.on_counter("_register", 0)
-    L.wall_item("_poster", 100, 24)
-    if t >= 1:
-        L.put("_fridge_drinks", 86, WALL)
-        L.put("_shelf_metal", 230, WALL)
-    if t >= 2:
-        L.wall_item("_clock", 132, 30)
-        L.put("_shelf_wood", 290, WALL)
-        L.on_counter("_mate_set", 1)
-    if t >= 3:
-        L.put("_freezer", 330, 150)
-        L.wall_item("_pennant", 160, 8)
-        L.wall_item("_jersey", 200, 30)
-        L.counter("_counter_glass", 230, 1)
-    if t >= 4:
-        L.fx_at("fx_neon", 40, 4)
-        L.fx_at("fx_tv", 280, 4)
-        L.put("_plant", 10, 150)
-        L.put("_cart", 360, 150)
-    ceiling_lamps(L, min(4, 1 + t))
-    return L
-
-
-def comida(t):
-    if t <= 2:
-        L = Layout("vereda", "vereda", outdoor=True)
-        L.put("_prep_table", 60, 120)
-        L.counter("_grill", 160, 1)
-        L.fx_at("fx_smoke", 180, 64)
-        if t >= 1:
-            L.put("_umbrella", 140, 96)
-            L.put("_cafe_table", 280, 150)
-            L.put("_chalkboard", 110, 150)
-        if t >= 2:
-            L.wall_item("_string_lights", 60, 18)
-            L.put("_cafe_table", 330, 156)
-            L.station(90, 134, "stand")
-        return L
-    L = Layout("ladrillo", "madera")
-    L.put("_grill", 30, WALL)
-    L.fx_at("fx_smoke", 50, 22)
-    L.station(64, 134, "stand")
-    L.put("_wine_rack", 110, WALL)
-    L.counter("_counter_wood", 150, 1)
-    L.on_counter("_register", 0)
-    L.put("_dining_table", 240, 152)
-    L.put("_dining_table", 300, 158)
-    L.wall_item("_fileteado_sign", 150, 12)
-    if t >= 4:
-        L.put("_dining_table", 350, 146)
-        L.put("_stove", 250, WALL)
-        L.fx_at("fx_smoke", 270, 30)
-        L.station(282, 128, "stand")
-        L.wall_item("_jersey", 200, 40)
-    ceiling_lamps(L, 3 + (t - 3))
-    return L
-
-
-def lavadero(t):
-    L = Layout("chapa", "cemento")
-    L.put("_wash_bay", 40, 140)
-    L.fx_at("fx_foam", 78, 92)
-    L.station(30, 140, "stand")
-    if t >= 1:
-        L.put("_vacuum", 150, 140)
-        L.put("_drums", 360, 140)
-    if t >= 2:
-        L.put("_wash_bay", 180, 140)
-        L.fx_at("fx_foam", 218, 92)
-        L.station(170, 140, "stand", True)
-    if t >= 3:
-        L.counter("_counter_metal", 300, 1)
-        L.put("_desk_pc", 296, WALL)
-        L.wall_item("_poster", 300, 20)
-    if t >= 4:
-        L.wall_item("_fileteado_sign", 150, 6)
-        L.put("_plant", 376, 150)
-        L.wall_item("_clock", 260, 10)
-    return L
+PROVINCES = {
+    "algodonal": ("cal", "cemento", "_counter_wood", 250, "_scale", [
+        (0, "_bales", 30, F), (0, "_crate", 90, F), (1, "_bales", 80, M), (1, "_mate_set", 296, "wall:70"),
+        (2, "_sacks", 140, F), (2, "_pennant", 40, "wall:12"), (3, "_conveyor", 20, N), ("fx", 3, "fx_conveyor", 21, 128),
+        (3, "_machine", 150, M), ("station", 3, 180, 128), (4, "_bales", 330, F), (4, "_clock", 200, "wall:18")]),
+    "papas_andinas": ("adobe", "cemento", "_counter_wood", 220, "_scale", [
+        (0, "_potato_bins", 30, M), (0, "_sacks", 90, F), (1, "_potato_bins", 100, N), (1, "_mate_set", 280, "wall:70"),
+        (2, "_shelf_wood", 140, F), (2, "_pennant", 30, "wall:12"), (3, "_crate", 330, F), (3, "_crate", 352, F),
+        (3, "_poster", 300, "wall:24"), (4, "_potato_bins", 320, N), (4, "_plant", 370, F)]),
+    "almazara": ("cal", "ceramica", "_counter_glass", 270, "_register", [
+        (0, "_olive_press", 30, M), (0, "_crate", 100, F), (1, "_steel_tank", 100, F), (1, "_shelf_wood", 140, F),
+        ("station", 1, 70, 132), (2, "_steel_tank", 136, F), (3, "_machine", 180, M), ("station", 3, 210, 126),
+        (3, "_clock", 300, "wall:18"), (4, "_steel_tank", 350, F), (4, "_plant", 20, F)]),
+    "olivar": ("cal", "cemento", "_counter_wood", 260, "_scale", [
+        (0, "_crate", 30, F), (0, "_crate", 54, F), (0, "_sacks", 90, F), (1, "_olive_press", 120, M),
+        (2, "_shelf_wood", 30, F), (2, "_wine_rack", 190, F), (3, "_steel_tank", 340, F), (3, "_pennant", 140, "wall:12"),
+        (4, "_conveyor", 30, N), ("fx", 4, "fx_conveyor", 31, 128)]),
+    "bodega_torrontes": ("cal", "madera", "_counter_wood", 240, "_register", [
+        (0, "_barrels_wood", 30, F), (0, "_wine_rack", 100, F), (1, "_barrels_wood", 140, M), (1, "_cafe_table", 330, N),
+        (2, "_steel_tank", 180, F), (2, "_lamp_hanging", 300, "wall:4"), (3, "_wine_rack", 360, F), (3, "_barrels_wood", 30, N),
+        (4, "_chalkboard", 290, "wall:30"), (4, "_cafe_table", 150, N)]),
+    "citricola": ("cal", "cemento", "_counter_metal", 290, "_scale", [
+        (0, "_citrus_crates", 30, F), (0, "_citrus_crates", 80, M), (1, "_citrus_crates", 130, F), (1, "_prep_table", 180, M),
+        ("station", 1, 205, 130), (2, "_conveyor", 40, N), ("fx", 2, "fx_conveyor", 41, 128), (3, "_steel_tank", 220, F),
+        (3, "_machine", 150, F), (4, "_forklift", 330, N), (4, "_citrus_crates", 250, N)]),
+    "bananal": ("madera_rustica", "cemento", "_counter_wood", 250, "_scale", [
+        (0, "_banana_hooks", 30, "wall:30"), (0, "_crate", 40, F), (1, "_banana_hooks", 90, "wall:30"), (1, "_prep_table", 120, M),
+        ("station", 1, 146, 130), (2, "_citrus_crates", 30, N), (3, "_banana_hooks", 160, "wall:30"), (3, "_cooler", 330, F),
+        (4, "_conveyor", 60, N), ("fx", 4, "fx_conveyor", 61, 128)]),
+    "desmotadora": ("chapa", "cemento", "_counter_metal", 300, "_register", [
+        (0, "_bales", 30, F), (0, "_machine", 90, F), ("station", 0, 120, 128), (1, "_bales", 150, M), (1, "_conveyor", 20, N),
+        ("fx", 1, "fx_conveyor", 21, 128), (2, "_machine", 200, F), ("station", 2, 230, 128), (3, "_pallet_rack", 210, N),
+        (4, "_forklift", 140, N), (4, "_clock", 300, "wall:18")]),
+    "arrocera": ("madera_rustica", "cemento", "_counter_wood", 260, "_scale", [
+        (0, "_sacks", 30, F), (0, "_sacks", 70, F), (1, "_sacks", 120, M), (1, "_mate_set", 300, "wall:70"), (2, "_machine", 150, F),
+        ("station", 2, 180, 128), (3, "_pallet_boxes", 30, N), (3, "_pennant", 40, "wall:12"), (4, "_forklift", 200, N)]),
+    "molino_arrocero": ("ladrillo", "cemento", "_counter_metal", 300, "_register", [
+        (0, "_sacks", 30, F), (0, "_machine", 80, F), ("station", 0, 110, 128), (1, "_conveyor", 20, N), ("fx", 1, "fx_conveyor", 21, 128),
+        (2, "_sacks", 150, M), (2, "_machine", 200, F), (3, "_pallet_rack", 220, N), (4, "_forklift", 130, N), (4, "_clock", 310, "wall:18")]),
+    "yerbatal": ("madera_rustica", "madera", "_counter_wood", 260, "_scale", [
+        (0, "_drying_rack", 30, F), (0, "_mate_set", 300, "wall:70"), (1, "_sacks", 110, M), (1, "_drying_rack", 150, F),
+        ("fx", 2, "fx_smoke", 70, 40), (2, "_machine", 210, F), ("station", 2, 240, 128), (3, "_conveyor", 20, N),
+        ("fx", 3, "fx_conveyor", 21, 128), (4, "_sacks", 340, F), (4, "_pennant", 140, "wall:10")]),
+    "frigorifico": ("azulejo", "ceramica", "_counter_glass", 260, "_scale", [
+        (0, "_meat_hooks", 30, "wall:24"), (0, "_freezer", 40, M), (1, "_meat_hooks", 90, "wall:24"), (1, "_slicer", 260, "on"),
+        (2, "_cheese_shelf", 150, F), (2, "_prep_table", 100, N), ("station", 2, 124, 140), (3, "_freezer", 200, M),
+        (4, "_steel_tank", 330, F), (4, "_clock", 210, "wall:4")]),
+    "pasas": ("adobe", "cemento", "_counter_wood", 260, "_scale", [
+        (0, "_drying_rack", 30, F), (1, "_drying_rack", 100, F), (1, "_crate", 30, N), (2, "_wine_rack", 170, F),
+        (2, "_sacks", 200, M), (3, "_barrels_wood", 330, F), (3, "_pennant", 30, "wall:10"), (4, "_conveyor", 40, N),
+        ("fx", 4, "fx_conveyor", 41, 128)]),
+    "bodega_malbec": ("ladrillo", "madera", "_counter_wood", 250, "_register", [
+        (0, "_barrels_wood", 30, F), (0, "_wine_rack", 90, F), (1, "_wine_rack", 124, F), (1, "_barrels_wood", 30, N),
+        (2, "_steel_tank", 170, F), (2, "_steel_tank", 204, F), (2, "_lamp_hanging", 300, "wall:4"), (3, "_cafe_table", 330, N),
+        (3, "_chalkboard", 290, "wall:30"), (4, "_barrels_wood", 140, N), (4, "_fileteado_sign", 140, "wall:6")]),
+    "estancia_ovina": ("madera_rustica", "madera", "_counter_wood", 260, "_scale", [
+        (0, "_bales", 30, F), (0, "_meat_hooks", 100, "wall:24"), (1, "_bales", 80, M), (1, "_mate_set", 300, "wall:70"),
+        (2, "_freezer", 150, F), (2, "_pennant", 30, "wall:10"), (3, "_bales", 340, F), (3, "_poster", 200, "wall:24"),
+        (4, "_cafe_table", 150, N)]),
+    "lanera": ("chapa", "cemento", "_counter_metal", 300, "_register", [
+        (0, "_bales", 30, F), (0, "_machine", 90, F), ("station", 0, 120, 128), (1, "_bales", 150, M), (2, "_conveyor", 20, N),
+        ("fx", 2, "fx_conveyor", 21, 128), (2, "_machine", 200, F), ("station", 2, 230, 128), (3, "_pallet_rack", 200, N),
+        (4, "_forklift", 130, N)]),
+    "chacra_peras": ("madera_rustica", "cemento", "_counter_wood", 260, "_scale", [
+        (0, "_apple_bins", 30, M), (0, "_crate", 100, F), (1, "_apple_bins", 90, F), (1, "_prep_table", 150, M),
+        ("station", 1, 176, 130), (2, "_citrus_crates", 30, F), (3, "_cooler", 340, F), (3, "_pennant", 140, "wall:10"),
+        (4, "_conveyor", 40, N), ("fx", 4, "fx_conveyor", 41, 128)]),
+    "manzanas": ("chapa", "cemento", "_counter_metal", 300, "_scale", [
+        (0, "_apple_bins", 30, F), (0, "_apple_bins", 90, M), (1, "_conveyor", 20, N), ("fx", 1, "fx_conveyor", 21, 128),
+        (2, "_machine", 150, F), ("station", 2, 180, 128), (3, "_pallet_rack", 210, N), (4, "_forklift", 140, N),
+        (4, "_clock", 300, "wall:18")]),
+    "electronica": ("pintura_celeste", "goma", "_counter_metal", 300, "_register", [
+        (0, "_electronics_bench", 30, M), ("station", 0, 60, 132), (1, "_electronics_bench", 120, M), ("station", 1, 150, 132),
+        (2, "_shelf_metal", 220, F), (2, "_desk_pc", 30, F), (3, "_conveyor", 20, N), ("fx", 3, "fx_conveyor", 21, 128),
+        (3, "_clock", 140, "wall:14"), (4, "_machine", 160, F), ("fx", 4, "fx_tv", 280, 20)]),
+    "estancia_ganadera": ("madera_rustica", "madera", "_counter_wood", 260, "_scale", [
+        (0, "_meat_hooks", 30, "wall:24"), (0, "_sacks", 40, M), (1, "_mate_set", 300, "wall:70"), (1, "_freezer", 100, F),
+        (2, "_meat_hooks", 140, "wall:24"), (2, "_sacks", 160, M), (3, "_poster", 220, "wall:24"), (3, "_cafe_table", 340, N),
+        (4, "_pennant", 30, "wall:10"), (4, "_freezer", 200, F)]),
+    "salames": ("ladrillo", "ceramica", "_counter_glass", 260, "_slicer", [
+        (0, "_salames", 40, "wall:30"), (0, "_crate", 40, M), (1, "_salames", 90, "wall:30"), (1, "_prep_table", 100, M),
+        ("station", 1, 124, 130), (2, "_cheese_shelf", 170, F), (3, "_salames", 330, "wall:30"), (3, "_freezer", 330, M),
+        (4, "_machine", 210, F), (4, "_fileteado_sign", 30, "wall:6")]),
+    "usina_lactea": ("azulejo", "ceramica", "_counter_glass", 270, "_register", [
+        (0, "_cheese_shelf", 30, F), (0, "_freezer", 90, M), (1, "_steel_tank", 100, F), (1, "_steel_tank", 134, F),
+        (2, "_machine", 170, F), ("station", 2, 200, 126), (3, "_conveyor", 20, N), ("fx", 3, "fx_conveyor", 21, 128),
+        (4, "_steel_tank", 350, F), (4, "_clock", 220, "wall:18")]),
+    "molino_harinero": ("cal", "cemento", "_counter_metal", 300, "_scale", [
+        (0, "_sacks", 30, F), (0, "_sacks", 70, M), (1, "_machine", 110, F), ("station", 1, 140, 128), (2, "_sacks", 170, M),
+        (2, "_conveyor", 20, N), ("fx", 2, "fx_conveyor", 21, 128), (3, "_pallet_rack", 200, N), (4, "_forklift", 300, N)]),
+    "panaderia": ("madera_pared", "damero", "_counter_glass", 230, "_register", [
+        (0, "_oven", 30, F), (0, "_pastry_case", 100, M), (1, "_coffee_machine", 236, "on1"), (1, "_cafe_table", 340, N),
+        (2, "_shelf_wood", 150, F), (2, "_chalkboard", 290, "wall:30"), (3, "_cafe_table", 30, N), (3, "_fileteado_sign", 160, "wall:6"),
+        (4, "_lamp_hanging", 300, "wall:4"), (4, "_plant", 370, F), ("fx", 4, "fx_steam", 60, 20)]),
+}
 
 
-def almacen(t):
-    L = Layout("azulejo", "madera")
-    L.put("_shelf_almacen", 30, WALL)
-    L.counter("_counter_wood", 140, 1)
-    L.on_counter("_scale", 0)
-    L.wall_item("_salames", 150, 30)
-    if t >= 1:
-        L.put("_shelf_almacen", 92, WALL)
-        L.put("_crate", 240, 152)
-        L.put("_crate", 262, 152)
-    if t >= 2:
-        L.on_counter("_slicer", 1)
-        L.wall_item("_clock", 210, 18)
-        L.put("_shelf_almacen", 290, WALL)
-    if t >= 3:
-        L.put("_fridge_drinks", 30, WALL)
-        L.wall_item("_fileteado_sign", 150, 8)
-        L.on_counter("_mate_set", 1)
-        L.counter("_counter_glass", 220, 1)
-    if t >= 4:
-        L.wall_item("_pennant", 240, 6)
-        L.put("_plant", 6, 150)
-    ceiling_lamps(L, min(4, 2 + t // 2))
-    return L
-
-
-def cafeteria(t):
-    L = Layout("madera_pared", "damero")
-    L.put("_counter_wood", 40, WALL + 6)
-    L.put("_coffee_machine", 54, WALL - 22)
-    L.fx_at("fx_steam", 60, 50)
-    L.station(76, 120, "stand")
-    L.counter("_pastry_case", 140, 1)
-    L.on_counter("_register", 0)
-    L.wall_item("_chalkboard", 140, 20)
-    L.put("_cafe_table", 240, 154)
-    if t >= 1:
-        L.put("_cafe_table", 300, 158)
-    if t >= 2:
-        L.put("_cafe_table", 350, 150)
-        L.wall_item("_clock", 250, 20)
-    if t >= 3:
-        L.put("_shelf_wood", 330, WALL)
-        L.wall_item("_poster", 290, 22)
-        L.put("_plant", 214, 150)
-    if t >= 4:
-        L.fx_at("fx_neon", 230, 10)
-        L.counter("_counter_glass", 16, 1, queue=False)
-    ceiling_lamps(L, min(4, 2 + t))
-    return L
-
-
-def restaurante(t):
-    L = Layout("ladrillo", "madera")
-    L.put("_stove", 30, WALL)
-    L.fx_at("fx_smoke", 46, 24)
-    L.station(60, 128, "stand")
-    L.put("_prep_table", 100, WALL + 8)
-    L.counter("_counter_wood", 170, 1)
-    L.put("_dining_table", 260, 152)
-    L.wall_item("_fileteado_sign", 170, 10)
-    if t >= 1:
-        L.put("_dining_table", 320, 158)
-        L.put("_wine_rack", 360, WALL)
-    if t >= 2:
-        L.station(126, 128, "stand")
-        L.wall_item("_clock", 250, 20)
-    if t >= 3:
-        L.put("_dining_table", 300, 132)
-        L.wall_item("_jersey", 300, 24)
-    if t >= 4:
-        L.put("_stove", 230, WALL)
-        L.fx_at("fx_smoke", 246, 24)
-        L.station(258, 128, "stand")
-        L.put("_plant", 6, 150)
-    ceiling_lamps(L, min(4, 2 + t))
-    return L
-
-
-def supermercado(t):
-    L = Layout("pintura_super", "ceramica")
-    L.put("_gondola", 20, WALL)
-    L.counter("_checkout", 140, 1)
-    L.put("_cart", 100, 156)
-    if t >= 1:
-        L.put("_gondola", 96, WALL)
-        L.put("_fridge_drinks", 300, WALL)
-    if t >= 2:
-        L.put("_freezer", 330, 148)
-        L.put("_gondola", 214, WALL)
-    if t >= 3:
-        L.counter("_checkout", 230, 1)
-        L.wall_item("_poster", 180, 10)
-    if t >= 4:
-        L.put("_fridge_drinks", 40, WALL)
-        L.put("_cart", 370, 160)
-        L.fx_at("fx_tv", 160, 12)
-    ceiling_lamps(L, min(4, 2 + t))
-    return L
-
-
-def gimnasio(t):
-    L = Layout("pintura_gym", "goma")
-    L.wall_item("_mirror", 30, 22)
-    L.put("_treadmill", 30, 140)
-    L.station(54, 132, "stand")
-    L.counter("_counter_metal", 160, 1)
-    if t >= 1:
-        L.put("_weight_rack", 240, WALL + 2)
-        L.put("_water_cooler", 120, WALL)
-    if t >= 2:
-        L.put("_bench_press", 250, 150)
-        L.station(280, 136, "stand")
-        L.put("_punching_bag", 350, 120, top=40)
-    if t >= 3:
-        L.put("_treadmill", 90, 148)
-        L.wall_item("_mirror", 250, 20)
-        L.wall_item("_poster", 140, 22)
-    if t >= 4:
-        L.fx_at("fx_tv", 190, 8)
-        L.put("_plant", 376, 150)
-    ceiling_lamps(L, min(4, 2 + t))
-    return L
-
-
-def taller(t):
-    L = Layout("chapa", "cemento")
-    L.put("_car_lift", 30, 140)
-    L.station(130, 140, "stand", True)
-    L.wall_item("_tool_wall", 140, 30)
-    L.counter("_counter_metal", 290, 1)
-    if t >= 1:
-        L.put("_tires", 220, 140)
-        L.put("_drums", 254, WALL + 30)
-    if t >= 2:
-        L.put("_workbench", 140, WALL + 6)
-        L.station(170, 128, "stand")
-    if t >= 3:
-        L.put("_car", 200, 158)
-        L.wall_item("_poster", 290, 20)
-        L.wall_item("_clock", 340, 20)
-    if t >= 4:
-        L.fx_at("fx_tv", 360, 50)
-        L.wall_item("_fileteado_sign", 20, 4)
-    return L
-
-
-def mensajeria(t):
-    L = Layout("pintura_celeste", "ceramica")
-    L.put("_parcel_shelf", 20, WALL)
-    L.counter("_counter_wood", 150, 1)
-    L.on_counter("_scale", 0)
-    L.put("_scooter", 300, 150)
-    if t >= 1:
-        L.put("_desk_pc", 90, WALL + 4)
-        L.station(110, 126, "stand")
-    if t >= 2:
-        L.put("_parcel_shelf", 240, WALL)
-        L.put("_filing", 312, WALL)
-    if t >= 3:
-        L.put("_conveyor", 30, 156)
-        L.fx_at("fx_conveyor", 31, 128)
-        L.put("_scooter", 296, 156)
-    if t >= 4:
-        L.wall_item("_clock", 200, 16)
-        L.put("_water_cooler", 360, WALL)
-        L.fx_at("fx_tv", 200, 40)
-    ceiling_lamps(L, min(4, 2 + t))
-    return L
-
-
-def distribuidora(t):
-    L = Layout("chapa", "cemento")
-    L.put("_pallet_rack", 20, WALL + 10)
-    L.put("_pallet_boxes", 120, 150)
-    L.counter("_counter_metal", 300, 1)
-    if t >= 1:
-        L.put("_forklift", 160, 146)
-        L.station(186, 128, "stand")
-    if t >= 2:
-        L.put("_dock_door", 262, WALL - 4)
-        L.put("_pallet_rack", 176, WALL + 10)
-    if t >= 3:
-        L.put("_conveyor", 110, 156)
-        L.fx_at("fx_conveyor", 111, 128)
-        L.station(140, 136, "stand")
-    if t >= 4:
-        L.put("_machine", 100, WALL + 10)
-        L.station(160, 124, "stand")
-        L.wall_item("_poster", 230, 6)
+def province_layout(bid, t):
+    wall_kind, floor, counter, cx, on_top, items = PROVINCES[bid]
+    L = Layout(wall_kind, floor)
+    L.counter(counter, cx, 1 + (t >= 3))
+    L.on_counter(on_top, 0)
+    for it in items:
+        if it[0] == "station":
+            _, tmin, x, y = it
+            if t >= tmin:
+                L.station(x, y, "stand")
+            continue
+        if it[0] == "fx":
+            _, tmin, name, x, y = it
+            if t >= tmin:
+                L.fx_at(name, x, y)
+            continue
+        tmin, part, x, base = it
+        if t < tmin:
+            continue
+        if base == "on":
+            L.on_counter(part, 1)
+        elif base == "on1":
+            L.on_counter(part, 1)
+        elif isinstance(base, str) and base.startswith("wall:"):
+            L.wall_item(part, x, int(base[5:]))
+        else:
+            L.put(part, x, base)
     ceiling_lamps(L, min(4, 2 + t))
     return L
 
 
 # Rubros donde tiene sentido una repisa con mercadería en la pared.
-RETAIL = {"puesto", "kiosco", "almacen", "cafeteria", "supermercado", "restaurante"}
+RETAIL = {"panaderia", "papas_andinas", "salames"}
 
-BUSINESSES = {
-    "puesto": puesto, "kiosco": kiosco, "comida": comida, "lavadero": lavadero, "almacen": almacen, "cafeteria": cafeteria,
-    "restaurante": restaurante, "supermercado": supermercado, "gimnasio": gimnasio, "taller": taller,
-    "mensajeria": mensajeria, "distribuidora": distribuidora,
-}
+BUSINESSES = {bid: (lambda t, b=bid: province_layout(b, t)) for bid in PROVINCES}
 
 
 def add_wall_shelves(L, n):
@@ -429,7 +253,7 @@ def add_wall_shelves(L, n):
 
 ## Niveles sin local cerrado (mesita, carrito, lavadero a cielo abierto): el
 ## juego muestra sólo la vista de calle y oculta el botón FACHADA/ADENTRO.
-NO_INTERIOR = {"puesto": 2, "comida": 2, "lavadero": 2}
+NO_INTERIOR = {}
 
 
 ## Objetos con letras: no pueden quedar cortados por el borde de la pantalla
@@ -459,7 +283,7 @@ def js_items(items):
 
 
 def main():
-    js = ['// GENERADO por gen_interiors.py — no editar a mano.', 'include("furniture.px.js")', 'include("rooms.px.js")', ""]
+    js = ['// GENERADO por gen_interiors.py — no editar a mano.', 'include("furniture.px.js")', 'include("furniture_v10.px.js")', 'include("rooms.px.js")', ""]
     meta = {"_doc": "Generado por tools/art/pxl/gen_interiors.py. Coordenadas en píxeles del lienzo 400x170 de cada interior.",
             "size": [W, H], "behind_y": BEHIND, "queue_y": QUEUE_Y, "businesses": {}}
     errors = []

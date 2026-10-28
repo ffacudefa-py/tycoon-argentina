@@ -7,11 +7,11 @@
  "behind_y": 134,
  "queue_y": 164,
  "businesses": {
-  "puesto": [
+  "algodonal": [
    {
     "stations": [
      {
-      "x": 172,
+      "x": 268,
       "y": 134,
       "kind": "counter",
       "flip": false
@@ -19,18 +19,18 @@
     ],
     "queue": [
      [
-      195,
+      287,
       164
      ]
     ],
     "fx": [],
-    "outdoor": true,
-    "has_interior": false
+    "outdoor": false,
+    "has_interior": true
    },
    {
     "stations": [
      {
-      "x": 172,
+      "x": 268,
       "y": 134,
       "kind": "counter",
       "flip": false
@@ -38,351 +38,49 @@
     ],
     "queue": [
      [
-      195,
+      287,
       164
      ]
     ],
     "fx": [],
-    "outdoor": true,
-    "has_interior": false
+    "outdoor": false,
+    "has_interior": true
    },
    {
     "stations": [
      {
-      "x": 172,
+      "x": 268,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      287,
+      164
+     ]
+    ],
+    "fx": [],
+    "outdoor": false,
+    "has_interior": true
+   },
+   {
+    "stations": [
+     {
+      "x": 268,
       "y": 134,
       "kind": "counter",
       "flip": false
      },
      {
-      "x": 110,
-      "y": 138,
-      "kind": "stand",
-      "flip": false
-     }
-    ],
-    "queue": [
-     [
-      195,
-      164
-     ]
-    ],
-    "fx": [],
-    "outdoor": true,
-    "has_interior": false
-   },
-   {
-    "stations": [
-     {
-      "x": 168,
-      "y": 134,
-      "kind": "counter",
-      "flip": false
-     }
-    ],
-    "queue": [
-     [
-      187,
-      164
-     ]
-    ],
-    "fx": [],
-    "outdoor": false,
-    "has_interior": true
-   },
-   {
-    "stations": [
-     {
-      "x": 168,
+      "x": 298,
       "y": 134,
       "kind": "counter",
       "flip": false
      },
      {
-      "x": 254,
-      "y": 134,
-      "kind": "counter",
-      "flip": false
-     }
-    ],
-    "queue": [
-     [
-      187,
-      164
-     ],
-     [
-      273,
-      164
-     ]
-    ],
-    "fx": [
-     {
-      "anim": "fx_neon",
-      "x": 258,
-      "y": 40
-     }
-    ],
-    "outdoor": false,
-    "has_interior": true
-   }
-  ],
-  "kiosco": [
-   {
-    "stations": [
-     {
-      "x": 168,
-      "y": 134,
-      "kind": "counter",
-      "flip": false
-     }
-    ],
-    "queue": [
-     [
-      187,
-      164
-     ]
-    ],
-    "fx": [],
-    "outdoor": false,
-    "has_interior": true
-   },
-   {
-    "stations": [
-     {
-      "x": 168,
-      "y": 134,
-      "kind": "counter",
-      "flip": false
-     }
-    ],
-    "queue": [
-     [
-      187,
-      164
-     ]
-    ],
-    "fx": [],
-    "outdoor": false,
-    "has_interior": true
-   },
-   {
-    "stations": [
-     {
-      "x": 168,
-      "y": 134,
-      "kind": "counter",
-      "flip": false
-     }
-    ],
-    "queue": [
-     [
-      187,
-      164
-     ]
-    ],
-    "fx": [],
-    "outdoor": false,
-    "has_interior": true
-   },
-   {
-    "stations": [
-     {
-      "x": 168,
-      "y": 134,
-      "kind": "counter",
-      "flip": false
-     },
-     {
-      "x": 248,
-      "y": 134,
-      "kind": "counter",
-      "flip": false
-     }
-    ],
-    "queue": [
-     [
-      187,
-      164
-     ],
-     [
-      267,
-      164
-     ]
-    ],
-    "fx": [],
-    "outdoor": false,
-    "has_interior": true
-   },
-   {
-    "stations": [
-     {
-      "x": 168,
-      "y": 134,
-      "kind": "counter",
-      "flip": false
-     },
-     {
-      "x": 248,
-      "y": 134,
-      "kind": "counter",
-      "flip": false
-     }
-    ],
-    "queue": [
-     [
-      187,
-      164
-     ],
-     [
-      267,
-      164
-     ]
-    ],
-    "fx": [
-     {
-      "anim": "fx_neon",
-      "x": 40,
-      "y": 4
-     },
-     {
-      "anim": "fx_tv",
-      "x": 280,
-      "y": 4
-     }
-    ],
-    "outdoor": false,
-    "has_interior": true
-   }
-  ],
-  "comida": [
-   {
-    "stations": [
-     {
-      "x": 178,
-      "y": 134,
-      "kind": "counter",
-      "flip": false
-     }
-    ],
-    "queue": [
-     [
-      193,
-      164
-     ]
-    ],
-    "fx": [
-     {
-      "anim": "fx_smoke",
       "x": 180,
-      "y": 64
-     }
-    ],
-    "outdoor": true,
-    "has_interior": false
-   },
-   {
-    "stations": [
-     {
-      "x": 178,
-      "y": 134,
-      "kind": "counter",
-      "flip": false
-     }
-    ],
-    "queue": [
-     [
-      193,
-      164
-     ]
-    ],
-    "fx": [
-     {
-      "anim": "fx_smoke",
-      "x": 180,
-      "y": 64
-     }
-    ],
-    "outdoor": true,
-    "has_interior": false
-   },
-   {
-    "stations": [
-     {
-      "x": 178,
-      "y": 134,
-      "kind": "counter",
-      "flip": false
-     },
-     {
-      "x": 90,
-      "y": 134,
-      "kind": "stand",
-      "flip": false
-     }
-    ],
-    "queue": [
-     [
-      193,
-      164
-     ]
-    ],
-    "fx": [
-     {
-      "anim": "fx_smoke",
-      "x": 180,
-      "y": 64
-     }
-    ],
-    "outdoor": true,
-    "has_interior": false
-   },
-   {
-    "stations": [
-     {
-      "x": 64,
-      "y": 134,
-      "kind": "stand",
-      "flip": false
-     },
-     {
-      "x": 168,
-      "y": 134,
-      "kind": "counter",
-      "flip": false
-     }
-    ],
-    "queue": [
-     [
-      187,
-      164
-     ]
-    ],
-    "fx": [
-     {
-      "anim": "fx_smoke",
-      "x": 50,
-      "y": 22
-     }
-    ],
-    "outdoor": false,
-    "has_interior": true
-   },
-   {
-    "stations": [
-     {
-      "x": 64,
-      "y": 134,
-      "kind": "stand",
-      "flip": false
-     },
-     {
-      "x": 168,
-      "y": 134,
-      "kind": "counter",
-      "flip": false
-     },
-     {
-      "x": 282,
       "y": 128,
       "kind": "stand",
       "flip": false
@@ -390,264 +88,61 @@
     ],
     "queue": [
      [
-      187,
+      287,
       164
      ]
     ],
     "fx": [
      {
-      "anim": "fx_smoke",
-      "x": 50,
-      "y": 22
+      "anim": "fx_conveyor",
+      "x": 21,
+      "y": 128
+     }
+    ],
+    "outdoor": false,
+    "has_interior": true
+   },
+   {
+    "stations": [
+     {
+      "x": 268,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
      },
      {
-      "anim": "fx_smoke",
-      "x": 270,
-      "y": 30
+      "x": 298,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 180,
+      "y": 128,
+      "kind": "stand",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      287,
+      164
+     ]
+    ],
+    "fx": [
+     {
+      "anim": "fx_conveyor",
+      "x": 21,
+      "y": 128
      }
     ],
     "outdoor": false,
     "has_interior": true
    }
   ],
-  "lavadero": [
+  "papas_andinas": [
    {
     "stations": [
-     {
-      "x": 30,
-      "y": 140,
-      "kind": "stand",
-      "flip": false
-     }
-    ],
-    "queue": [
-     [
-      200,
-      164
-     ]
-    ],
-    "fx": [
-     {
-      "anim": "fx_foam",
-      "x": 78,
-      "y": 92
-     }
-    ],
-    "outdoor": false,
-    "has_interior": false
-   },
-   {
-    "stations": [
-     {
-      "x": 30,
-      "y": 140,
-      "kind": "stand",
-      "flip": false
-     }
-    ],
-    "queue": [
-     [
-      200,
-      164
-     ]
-    ],
-    "fx": [
-     {
-      "anim": "fx_foam",
-      "x": 78,
-      "y": 92
-     }
-    ],
-    "outdoor": false,
-    "has_interior": false
-   },
-   {
-    "stations": [
-     {
-      "x": 30,
-      "y": 140,
-      "kind": "stand",
-      "flip": false
-     },
-     {
-      "x": 170,
-      "y": 140,
-      "kind": "stand",
-      "flip": true
-     }
-    ],
-    "queue": [
-     [
-      200,
-      164
-     ]
-    ],
-    "fx": [
-     {
-      "anim": "fx_foam",
-      "x": 78,
-      "y": 92
-     },
-     {
-      "anim": "fx_foam",
-      "x": 218,
-      "y": 92
-     }
-    ],
-    "outdoor": false,
-    "has_interior": false
-   },
-   {
-    "stations": [
-     {
-      "x": 30,
-      "y": 140,
-      "kind": "stand",
-      "flip": false
-     },
-     {
-      "x": 170,
-      "y": 140,
-      "kind": "stand",
-      "flip": true
-     },
-     {
-      "x": 318,
-      "y": 134,
-      "kind": "counter",
-      "flip": false
-     }
-    ],
-    "queue": [
-     [
-      333,
-      164
-     ]
-    ],
-    "fx": [
-     {
-      "anim": "fx_foam",
-      "x": 78,
-      "y": 92
-     },
-     {
-      "anim": "fx_foam",
-      "x": 218,
-      "y": 92
-     }
-    ],
-    "outdoor": false,
-    "has_interior": true
-   },
-   {
-    "stations": [
-     {
-      "x": 30,
-      "y": 140,
-      "kind": "stand",
-      "flip": false
-     },
-     {
-      "x": 170,
-      "y": 140,
-      "kind": "stand",
-      "flip": true
-     },
-     {
-      "x": 318,
-      "y": 134,
-      "kind": "counter",
-      "flip": false
-     }
-    ],
-    "queue": [
-     [
-      333,
-      164
-     ]
-    ],
-    "fx": [
-     {
-      "anim": "fx_foam",
-      "x": 78,
-      "y": 92
-     },
-     {
-      "anim": "fx_foam",
-      "x": 218,
-      "y": 92
-     }
-    ],
-    "outdoor": false,
-    "has_interior": true
-   }
-  ],
-  "almacen": [
-   {
-    "stations": [
-     {
-      "x": 158,
-      "y": 134,
-      "kind": "counter",
-      "flip": false
-     }
-    ],
-    "queue": [
-     [
-      177,
-      164
-     ]
-    ],
-    "fx": [],
-    "outdoor": false,
-    "has_interior": true
-   },
-   {
-    "stations": [
-     {
-      "x": 158,
-      "y": 134,
-      "kind": "counter",
-      "flip": false
-     }
-    ],
-    "queue": [
-     [
-      177,
-      164
-     ]
-    ],
-    "fx": [],
-    "outdoor": false,
-    "has_interior": true
-   },
-   {
-    "stations": [
-     {
-      "x": 158,
-      "y": 134,
-      "kind": "counter",
-      "flip": false
-     }
-    ],
-    "queue": [
-     [
-      177,
-      164
-     ]
-    ],
-    "fx": [],
-    "outdoor": false,
-    "has_interior": true
-   },
-   {
-    "stations": [
-     {
-      "x": 158,
-      "y": 134,
-      "kind": "counter",
-      "flip": false
-     },
      {
       "x": 238,
       "y": 134,
@@ -656,10 +151,6 @@
      }
     ],
     "queue": [
-     [
-      177,
-      164
-     ],
      [
       257,
       164
@@ -672,11 +163,24 @@
    {
     "stations": [
      {
-      "x": 158,
+      "x": 238,
       "y": 134,
       "kind": "counter",
       "flip": false
-     },
+     }
+    ],
+    "queue": [
+     [
+      257,
+      164
+     ]
+    ],
+    "fx": [],
+    "outdoor": false,
+    "has_interior": true
+   },
+   {
+    "stations": [
      {
       "x": 238,
       "y": 134,
@@ -686,9 +190,55 @@
     ],
     "queue": [
      [
-      177,
+      257,
       164
-     ],
+     ]
+    ],
+    "fx": [],
+    "outdoor": false,
+    "has_interior": true
+   },
+   {
+    "stations": [
+     {
+      "x": 238,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 268,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      257,
+      164
+     ]
+    ],
+    "fx": [],
+    "outdoor": false,
+    "has_interior": true
+   },
+   {
+    "stations": [
+     {
+      "x": 238,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 268,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     }
+    ],
+    "queue": [
      [
       257,
       164
@@ -699,17 +249,11 @@
     "has_interior": true
    }
   ],
-  "cafeteria": [
+  "almazara": [
    {
     "stations": [
      {
-      "x": 76,
-      "y": 120,
-      "kind": "stand",
-      "flip": false
-     },
-     {
-      "x": 158,
+      "x": 288,
       "y": 134,
       "kind": "counter",
       "flip": false
@@ -717,15 +261,434 @@
     ],
     "queue": [
      [
-      171,
+      307,
+      164
+     ]
+    ],
+    "fx": [],
+    "outdoor": false,
+    "has_interior": true
+   },
+   {
+    "stations": [
+     {
+      "x": 288,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 70,
+      "y": 132,
+      "kind": "stand",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      307,
+      164
+     ]
+    ],
+    "fx": [],
+    "outdoor": false,
+    "has_interior": true
+   },
+   {
+    "stations": [
+     {
+      "x": 288,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 70,
+      "y": 132,
+      "kind": "stand",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      307,
+      164
+     ]
+    ],
+    "fx": [],
+    "outdoor": false,
+    "has_interior": true
+   },
+   {
+    "stations": [
+     {
+      "x": 288,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 318,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 70,
+      "y": 132,
+      "kind": "stand",
+      "flip": false
+     },
+     {
+      "x": 210,
+      "y": 126,
+      "kind": "stand",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      307,
+      164
+     ]
+    ],
+    "fx": [],
+    "outdoor": false,
+    "has_interior": true
+   },
+   {
+    "stations": [
+     {
+      "x": 288,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 318,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 70,
+      "y": 132,
+      "kind": "stand",
+      "flip": false
+     },
+     {
+      "x": 210,
+      "y": 126,
+      "kind": "stand",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      307,
+      164
+     ]
+    ],
+    "fx": [],
+    "outdoor": false,
+    "has_interior": true
+   }
+  ],
+  "olivar": [
+   {
+    "stations": [
+     {
+      "x": 278,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      297,
+      164
+     ]
+    ],
+    "fx": [],
+    "outdoor": false,
+    "has_interior": true
+   },
+   {
+    "stations": [
+     {
+      "x": 278,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      297,
+      164
+     ]
+    ],
+    "fx": [],
+    "outdoor": false,
+    "has_interior": true
+   },
+   {
+    "stations": [
+     {
+      "x": 278,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      297,
+      164
+     ]
+    ],
+    "fx": [],
+    "outdoor": false,
+    "has_interior": true
+   },
+   {
+    "stations": [
+     {
+      "x": 278,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 308,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      297,
+      164
+     ]
+    ],
+    "fx": [],
+    "outdoor": false,
+    "has_interior": true
+   },
+   {
+    "stations": [
+     {
+      "x": 278,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 308,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      297,
       164
      ]
     ],
     "fx": [
      {
-      "anim": "fx_steam",
-      "x": 60,
-      "y": 50
+      "anim": "fx_conveyor",
+      "x": 31,
+      "y": 128
+     }
+    ],
+    "outdoor": false,
+    "has_interior": true
+   }
+  ],
+  "bodega_torrontes": [
+   {
+    "stations": [
+     {
+      "x": 258,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      277,
+      164
+     ]
+    ],
+    "fx": [],
+    "outdoor": false,
+    "has_interior": true
+   },
+   {
+    "stations": [
+     {
+      "x": 258,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      277,
+      164
+     ]
+    ],
+    "fx": [],
+    "outdoor": false,
+    "has_interior": true
+   },
+   {
+    "stations": [
+     {
+      "x": 258,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      277,
+      164
+     ]
+    ],
+    "fx": [],
+    "outdoor": false,
+    "has_interior": true
+   },
+   {
+    "stations": [
+     {
+      "x": 258,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 288,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      277,
+      164
+     ]
+    ],
+    "fx": [],
+    "outdoor": false,
+    "has_interior": true
+   },
+   {
+    "stations": [
+     {
+      "x": 258,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 288,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      277,
+      164
+     ]
+    ],
+    "fx": [],
+    "outdoor": false,
+    "has_interior": true
+   }
+  ],
+  "citricola": [
+   {
+    "stations": [
+     {
+      "x": 308,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      323,
+      164
+     ]
+    ],
+    "fx": [],
+    "outdoor": false,
+    "has_interior": true
+   },
+   {
+    "stations": [
+     {
+      "x": 308,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 205,
+      "y": 130,
+      "kind": "stand",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      323,
+      164
+     ]
+    ],
+    "fx": [],
+    "outdoor": false,
+    "has_interior": true
+   },
+   {
+    "stations": [
+     {
+      "x": 308,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 205,
+      "y": 130,
+      "kind": "stand",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      323,
+      164
+     ]
+    ],
+    "fx": [
+     {
+      "anim": "fx_conveyor",
+      "x": 41,
+      "y": 128
      }
     ],
     "outdoor": false,
@@ -734,29 +697,35 @@
    {
     "stations": [
      {
-      "x": 76,
-      "y": 120,
-      "kind": "stand",
+      "x": 308,
+      "y": 134,
+      "kind": "counter",
       "flip": false
      },
      {
-      "x": 158,
+      "x": 338,
       "y": 134,
       "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 205,
+      "y": 130,
+      "kind": "stand",
       "flip": false
      }
     ],
     "queue": [
      [
-      171,
+      323,
       164
      ]
     ],
     "fx": [
      {
-      "anim": "fx_steam",
-      "x": 60,
-      "y": 50
+      "anim": "fx_conveyor",
+      "x": 41,
+      "y": 128
      }
     ],
     "outdoor": false,
@@ -765,13 +734,46 @@
    {
     "stations": [
      {
-      "x": 76,
-      "y": 120,
-      "kind": "stand",
+      "x": 308,
+      "y": 134,
+      "kind": "counter",
       "flip": false
      },
      {
-      "x": 158,
+      "x": 338,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 205,
+      "y": 130,
+      "kind": "stand",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      323,
+      164
+     ]
+    ],
+    "fx": [
+     {
+      "anim": "fx_conveyor",
+      "x": 41,
+      "y": 128
+     }
+    ],
+    "outdoor": false,
+    "has_interior": true
+   }
+  ],
+  "bananal": [
+   {
+    "stations": [
+     {
+      "x": 268,
       "y": 134,
       "kind": "counter",
       "flip": false
@@ -779,15 +781,185 @@
     ],
     "queue": [
      [
-      171,
+      287,
+      164
+     ]
+    ],
+    "fx": [],
+    "outdoor": false,
+    "has_interior": true
+   },
+   {
+    "stations": [
+     {
+      "x": 268,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 146,
+      "y": 130,
+      "kind": "stand",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      287,
+      164
+     ]
+    ],
+    "fx": [],
+    "outdoor": false,
+    "has_interior": true
+   },
+   {
+    "stations": [
+     {
+      "x": 268,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 146,
+      "y": 130,
+      "kind": "stand",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      287,
+      164
+     ]
+    ],
+    "fx": [],
+    "outdoor": false,
+    "has_interior": true
+   },
+   {
+    "stations": [
+     {
+      "x": 268,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 298,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 146,
+      "y": 130,
+      "kind": "stand",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      287,
+      164
+     ]
+    ],
+    "fx": [],
+    "outdoor": false,
+    "has_interior": true
+   },
+   {
+    "stations": [
+     {
+      "x": 268,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 298,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 146,
+      "y": 130,
+      "kind": "stand",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      287,
       164
      ]
     ],
     "fx": [
      {
-      "anim": "fx_steam",
-      "x": 60,
-      "y": 50
+      "anim": "fx_conveyor",
+      "x": 61,
+      "y": 128
+     }
+    ],
+    "outdoor": false,
+    "has_interior": true
+   }
+  ],
+  "desmotadora": [
+   {
+    "stations": [
+     {
+      "x": 318,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 120,
+      "y": 128,
+      "kind": "stand",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      333,
+      164
+     ]
+    ],
+    "fx": [],
+    "outdoor": false,
+    "has_interior": true
+   },
+   {
+    "stations": [
+     {
+      "x": 318,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 120,
+      "y": 128,
+      "kind": "stand",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      333,
+      164
+     ]
+    ],
+    "fx": [
+     {
+      "anim": "fx_conveyor",
+      "x": 21,
+      "y": 128
      }
     ],
     "outdoor": false,
@@ -796,156 +968,19 @@
    {
     "stations": [
      {
-      "x": 76,
-      "y": 120,
+      "x": 318,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 120,
+      "y": 128,
       "kind": "stand",
       "flip": false
      },
      {
-      "x": 158,
-      "y": 134,
-      "kind": "counter",
-      "flip": false
-     }
-    ],
-    "queue": [
-     [
-      171,
-      164
-     ]
-    ],
-    "fx": [
-     {
-      "anim": "fx_steam",
-      "x": 60,
-      "y": 50
-     }
-    ],
-    "outdoor": false,
-    "has_interior": true
-   },
-   {
-    "stations": [
-     {
-      "x": 76,
-      "y": 120,
-      "kind": "stand",
-      "flip": false
-     },
-     {
-      "x": 158,
-      "y": 134,
-      "kind": "counter",
-      "flip": false
-     },
-     {
-      "x": 34,
-      "y": 134,
-      "kind": "counter",
-      "flip": false
-     }
-    ],
-    "queue": [
-     [
-      171,
-      164
-     ]
-    ],
-    "fx": [
-     {
-      "anim": "fx_steam",
-      "x": 60,
-      "y": 50
-     },
-     {
-      "anim": "fx_neon",
       "x": 230,
-      "y": 10
-     }
-    ],
-    "outdoor": false,
-    "has_interior": true
-   }
-  ],
-  "restaurante": [
-   {
-    "stations": [
-     {
-      "x": 60,
-      "y": 128,
-      "kind": "stand",
-      "flip": false
-     },
-     {
-      "x": 188,
-      "y": 134,
-      "kind": "counter",
-      "flip": false
-     }
-    ],
-    "queue": [
-     [
-      207,
-      164
-     ]
-    ],
-    "fx": [
-     {
-      "anim": "fx_smoke",
-      "x": 46,
-      "y": 24
-     }
-    ],
-    "outdoor": false,
-    "has_interior": true
-   },
-   {
-    "stations": [
-     {
-      "x": 60,
-      "y": 128,
-      "kind": "stand",
-      "flip": false
-     },
-     {
-      "x": 188,
-      "y": 134,
-      "kind": "counter",
-      "flip": false
-     }
-    ],
-    "queue": [
-     [
-      207,
-      164
-     ]
-    ],
-    "fx": [
-     {
-      "anim": "fx_smoke",
-      "x": 46,
-      "y": 24
-     }
-    ],
-    "outdoor": false,
-    "has_interior": true
-   },
-   {
-    "stations": [
-     {
-      "x": 60,
-      "y": 128,
-      "kind": "stand",
-      "flip": false
-     },
-     {
-      "x": 188,
-      "y": 134,
-      "kind": "counter",
-      "flip": false
-     },
-     {
-      "x": 126,
       "y": 128,
       "kind": "stand",
       "flip": false
@@ -953,626 +988,14 @@
     ],
     "queue": [
      [
-      207,
-      164
-     ]
-    ],
-    "fx": [
-     {
-      "anim": "fx_smoke",
-      "x": 46,
-      "y": 24
-     }
-    ],
-    "outdoor": false,
-    "has_interior": true
-   },
-   {
-    "stations": [
-     {
-      "x": 60,
-      "y": 128,
-      "kind": "stand",
-      "flip": false
-     },
-     {
-      "x": 188,
-      "y": 134,
-      "kind": "counter",
-      "flip": false
-     },
-     {
-      "x": 126,
-      "y": 128,
-      "kind": "stand",
-      "flip": false
-     }
-    ],
-    "queue": [
-     [
-      207,
-      164
-     ]
-    ],
-    "fx": [
-     {
-      "anim": "fx_smoke",
-      "x": 46,
-      "y": 24
-     }
-    ],
-    "outdoor": false,
-    "has_interior": true
-   },
-   {
-    "stations": [
-     {
-      "x": 60,
-      "y": 128,
-      "kind": "stand",
-      "flip": false
-     },
-     {
-      "x": 188,
-      "y": 134,
-      "kind": "counter",
-      "flip": false
-     },
-     {
-      "x": 126,
-      "y": 128,
-      "kind": "stand",
-      "flip": false
-     },
-     {
-      "x": 258,
-      "y": 128,
-      "kind": "stand",
-      "flip": false
-     }
-    ],
-    "queue": [
-     [
-      207,
-      164
-     ]
-    ],
-    "fx": [
-     {
-      "anim": "fx_smoke",
-      "x": 46,
-      "y": 24
-     },
-     {
-      "anim": "fx_smoke",
-      "x": 246,
-      "y": 24
-     }
-    ],
-    "outdoor": false,
-    "has_interior": true
-   }
-  ],
-  "supermercado": [
-   {
-    "stations": [
-     {
-      "x": 158,
-      "y": 134,
-      "kind": "counter",
-      "flip": false
-     }
-    ],
-    "queue": [
-     [
-      174,
-      164
-     ]
-    ],
-    "fx": [],
-    "outdoor": false,
-    "has_interior": true
-   },
-   {
-    "stations": [
-     {
-      "x": 158,
-      "y": 134,
-      "kind": "counter",
-      "flip": false
-     }
-    ],
-    "queue": [
-     [
-      174,
-      164
-     ]
-    ],
-    "fx": [],
-    "outdoor": false,
-    "has_interior": true
-   },
-   {
-    "stations": [
-     {
-      "x": 158,
-      "y": 134,
-      "kind": "counter",
-      "flip": false
-     }
-    ],
-    "queue": [
-     [
-      174,
-      164
-     ]
-    ],
-    "fx": [],
-    "outdoor": false,
-    "has_interior": true
-   },
-   {
-    "stations": [
-     {
-      "x": 158,
-      "y": 134,
-      "kind": "counter",
-      "flip": false
-     },
-     {
-      "x": 248,
-      "y": 134,
-      "kind": "counter",
-      "flip": false
-     }
-    ],
-    "queue": [
-     [
-      174,
-      164
-     ],
-     [
-      264,
-      164
-     ]
-    ],
-    "fx": [],
-    "outdoor": false,
-    "has_interior": true
-   },
-   {
-    "stations": [
-     {
-      "x": 158,
-      "y": 134,
-      "kind": "counter",
-      "flip": false
-     },
-     {
-      "x": 248,
-      "y": 134,
-      "kind": "counter",
-      "flip": false
-     }
-    ],
-    "queue": [
-     [
-      174,
-      164
-     ],
-     [
-      264,
-      164
-     ]
-    ],
-    "fx": [
-     {
-      "anim": "fx_tv",
-      "x": 160,
-      "y": 12
-     }
-    ],
-    "outdoor": false,
-    "has_interior": true
-   }
-  ],
-  "gimnasio": [
-   {
-    "stations": [
-     {
-      "x": 54,
-      "y": 132,
-      "kind": "stand",
-      "flip": false
-     },
-     {
-      "x": 178,
-      "y": 134,
-      "kind": "counter",
-      "flip": false
-     }
-    ],
-    "queue": [
-     [
-      193,
-      164
-     ]
-    ],
-    "fx": [],
-    "outdoor": false,
-    "has_interior": true
-   },
-   {
-    "stations": [
-     {
-      "x": 54,
-      "y": 132,
-      "kind": "stand",
-      "flip": false
-     },
-     {
-      "x": 178,
-      "y": 134,
-      "kind": "counter",
-      "flip": false
-     }
-    ],
-    "queue": [
-     [
-      193,
-      164
-     ]
-    ],
-    "fx": [],
-    "outdoor": false,
-    "has_interior": true
-   },
-   {
-    "stations": [
-     {
-      "x": 54,
-      "y": 132,
-      "kind": "stand",
-      "flip": false
-     },
-     {
-      "x": 178,
-      "y": 134,
-      "kind": "counter",
-      "flip": false
-     },
-     {
-      "x": 280,
-      "y": 136,
-      "kind": "stand",
-      "flip": false
-     }
-    ],
-    "queue": [
-     [
-      193,
-      164
-     ]
-    ],
-    "fx": [],
-    "outdoor": false,
-    "has_interior": true
-   },
-   {
-    "stations": [
-     {
-      "x": 54,
-      "y": 132,
-      "kind": "stand",
-      "flip": false
-     },
-     {
-      "x": 178,
-      "y": 134,
-      "kind": "counter",
-      "flip": false
-     },
-     {
-      "x": 280,
-      "y": 136,
-      "kind": "stand",
-      "flip": false
-     }
-    ],
-    "queue": [
-     [
-      193,
-      164
-     ]
-    ],
-    "fx": [],
-    "outdoor": false,
-    "has_interior": true
-   },
-   {
-    "stations": [
-     {
-      "x": 54,
-      "y": 132,
-      "kind": "stand",
-      "flip": false
-     },
-     {
-      "x": 178,
-      "y": 134,
-      "kind": "counter",
-      "flip": false
-     },
-     {
-      "x": 280,
-      "y": 136,
-      "kind": "stand",
-      "flip": false
-     }
-    ],
-    "queue": [
-     [
-      193,
-      164
-     ]
-    ],
-    "fx": [
-     {
-      "anim": "fx_tv",
-      "x": 190,
-      "y": 8
-     }
-    ],
-    "outdoor": false,
-    "has_interior": true
-   }
-  ],
-  "taller": [
-   {
-    "stations": [
-     {
-      "x": 130,
-      "y": 140,
-      "kind": "stand",
-      "flip": true
-     },
-     {
-      "x": 308,
-      "y": 134,
-      "kind": "counter",
-      "flip": false
-     }
-    ],
-    "queue": [
-     [
-      323,
-      164
-     ]
-    ],
-    "fx": [],
-    "outdoor": false,
-    "has_interior": true
-   },
-   {
-    "stations": [
-     {
-      "x": 130,
-      "y": 140,
-      "kind": "stand",
-      "flip": true
-     },
-     {
-      "x": 308,
-      "y": 134,
-      "kind": "counter",
-      "flip": false
-     }
-    ],
-    "queue": [
-     [
-      323,
-      164
-     ]
-    ],
-    "fx": [],
-    "outdoor": false,
-    "has_interior": true
-   },
-   {
-    "stations": [
-     {
-      "x": 130,
-      "y": 140,
-      "kind": "stand",
-      "flip": true
-     },
-     {
-      "x": 308,
-      "y": 134,
-      "kind": "counter",
-      "flip": false
-     },
-     {
-      "x": 170,
-      "y": 128,
-      "kind": "stand",
-      "flip": false
-     }
-    ],
-    "queue": [
-     [
-      323,
-      164
-     ]
-    ],
-    "fx": [],
-    "outdoor": false,
-    "has_interior": true
-   },
-   {
-    "stations": [
-     {
-      "x": 130,
-      "y": 140,
-      "kind": "stand",
-      "flip": true
-     },
-     {
-      "x": 308,
-      "y": 134,
-      "kind": "counter",
-      "flip": false
-     },
-     {
-      "x": 170,
-      "y": 128,
-      "kind": "stand",
-      "flip": false
-     }
-    ],
-    "queue": [
-     [
-      323,
-      164
-     ]
-    ],
-    "fx": [],
-    "outdoor": false,
-    "has_interior": true
-   },
-   {
-    "stations": [
-     {
-      "x": 130,
-      "y": 140,
-      "kind": "stand",
-      "flip": true
-     },
-     {
-      "x": 308,
-      "y": 134,
-      "kind": "counter",
-      "flip": false
-     },
-     {
-      "x": 170,
-      "y": 128,
-      "kind": "stand",
-      "flip": false
-     }
-    ],
-    "queue": [
-     [
-      323,
-      164
-     ]
-    ],
-    "fx": [
-     {
-      "anim": "fx_tv",
-      "x": 360,
-      "y": 50
-     }
-    ],
-    "outdoor": false,
-    "has_interior": true
-   }
-  ],
-  "mensajeria": [
-   {
-    "stations": [
-     {
-      "x": 168,
-      "y": 134,
-      "kind": "counter",
-      "flip": false
-     }
-    ],
-    "queue": [
-     [
-      187,
-      164
-     ]
-    ],
-    "fx": [],
-    "outdoor": false,
-    "has_interior": true
-   },
-   {
-    "stations": [
-     {
-      "x": 168,
-      "y": 134,
-      "kind": "counter",
-      "flip": false
-     },
-     {
-      "x": 110,
-      "y": 126,
-      "kind": "stand",
-      "flip": false
-     }
-    ],
-    "queue": [
-     [
-      187,
-      164
-     ]
-    ],
-    "fx": [],
-    "outdoor": false,
-    "has_interior": true
-   },
-   {
-    "stations": [
-     {
-      "x": 168,
-      "y": 134,
-      "kind": "counter",
-      "flip": false
-     },
-     {
-      "x": 110,
-      "y": 126,
-      "kind": "stand",
-      "flip": false
-     }
-    ],
-    "queue": [
-     [
-      187,
-      164
-     ]
-    ],
-    "fx": [],
-    "outdoor": false,
-    "has_interior": true
-   },
-   {
-    "stations": [
-     {
-      "x": 168,
-      "y": 134,
-      "kind": "counter",
-      "flip": false
-     },
-     {
-      "x": 110,
-      "y": 126,
-      "kind": "stand",
-      "flip": false
-     }
-    ],
-    "queue": [
-     [
-      187,
+      333,
       164
      ]
     ],
     "fx": [
      {
       "anim": "fx_conveyor",
-      "x": 31,
+      "x": 21,
       "y": 128
      }
     ],
@@ -1582,45 +1005,540 @@
    {
     "stations": [
      {
-      "x": 168,
+      "x": 318,
       "y": 134,
       "kind": "counter",
       "flip": false
      },
      {
-      "x": 110,
-      "y": 126,
+      "x": 348,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 120,
+      "y": 128,
+      "kind": "stand",
+      "flip": false
+     },
+     {
+      "x": 230,
+      "y": 128,
       "kind": "stand",
       "flip": false
      }
     ],
     "queue": [
      [
-      187,
+      333,
       164
      ]
     ],
     "fx": [
      {
       "anim": "fx_conveyor",
-      "x": 31,
+      "x": 21,
       "y": 128
+     }
+    ],
+    "outdoor": false,
+    "has_interior": true
+   },
+   {
+    "stations": [
+     {
+      "x": 318,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
      },
      {
-      "anim": "fx_tv",
-      "x": 200,
+      "x": 348,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 120,
+      "y": 128,
+      "kind": "stand",
+      "flip": false
+     },
+     {
+      "x": 230,
+      "y": 128,
+      "kind": "stand",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      333,
+      164
+     ]
+    ],
+    "fx": [
+     {
+      "anim": "fx_conveyor",
+      "x": 21,
+      "y": 128
+     }
+    ],
+    "outdoor": false,
+    "has_interior": true
+   }
+  ],
+  "arrocera": [
+   {
+    "stations": [
+     {
+      "x": 278,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      297,
+      164
+     ]
+    ],
+    "fx": [],
+    "outdoor": false,
+    "has_interior": true
+   },
+   {
+    "stations": [
+     {
+      "x": 278,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      297,
+      164
+     ]
+    ],
+    "fx": [],
+    "outdoor": false,
+    "has_interior": true
+   },
+   {
+    "stations": [
+     {
+      "x": 278,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 180,
+      "y": 128,
+      "kind": "stand",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      297,
+      164
+     ]
+    ],
+    "fx": [],
+    "outdoor": false,
+    "has_interior": true
+   },
+   {
+    "stations": [
+     {
+      "x": 278,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 308,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 180,
+      "y": 128,
+      "kind": "stand",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      297,
+      164
+     ]
+    ],
+    "fx": [],
+    "outdoor": false,
+    "has_interior": true
+   },
+   {
+    "stations": [
+     {
+      "x": 278,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 308,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 180,
+      "y": 128,
+      "kind": "stand",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      297,
+      164
+     ]
+    ],
+    "fx": [],
+    "outdoor": false,
+    "has_interior": true
+   }
+  ],
+  "molino_arrocero": [
+   {
+    "stations": [
+     {
+      "x": 318,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 110,
+      "y": 128,
+      "kind": "stand",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      333,
+      164
+     ]
+    ],
+    "fx": [],
+    "outdoor": false,
+    "has_interior": true
+   },
+   {
+    "stations": [
+     {
+      "x": 318,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 110,
+      "y": 128,
+      "kind": "stand",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      333,
+      164
+     ]
+    ],
+    "fx": [
+     {
+      "anim": "fx_conveyor",
+      "x": 21,
+      "y": 128
+     }
+    ],
+    "outdoor": false,
+    "has_interior": true
+   },
+   {
+    "stations": [
+     {
+      "x": 318,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 110,
+      "y": 128,
+      "kind": "stand",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      333,
+      164
+     ]
+    ],
+    "fx": [
+     {
+      "anim": "fx_conveyor",
+      "x": 21,
+      "y": 128
+     }
+    ],
+    "outdoor": false,
+    "has_interior": true
+   },
+   {
+    "stations": [
+     {
+      "x": 318,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 348,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 110,
+      "y": 128,
+      "kind": "stand",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      333,
+      164
+     ]
+    ],
+    "fx": [
+     {
+      "anim": "fx_conveyor",
+      "x": 21,
+      "y": 128
+     }
+    ],
+    "outdoor": false,
+    "has_interior": true
+   },
+   {
+    "stations": [
+     {
+      "x": 318,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 348,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 110,
+      "y": 128,
+      "kind": "stand",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      333,
+      164
+     ]
+    ],
+    "fx": [
+     {
+      "anim": "fx_conveyor",
+      "x": 21,
+      "y": 128
+     }
+    ],
+    "outdoor": false,
+    "has_interior": true
+   }
+  ],
+  "yerbatal": [
+   {
+    "stations": [
+     {
+      "x": 278,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      297,
+      164
+     ]
+    ],
+    "fx": [],
+    "outdoor": false,
+    "has_interior": true
+   },
+   {
+    "stations": [
+     {
+      "x": 278,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      297,
+      164
+     ]
+    ],
+    "fx": [],
+    "outdoor": false,
+    "has_interior": true
+   },
+   {
+    "stations": [
+     {
+      "x": 278,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 240,
+      "y": 128,
+      "kind": "stand",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      297,
+      164
+     ]
+    ],
+    "fx": [
+     {
+      "anim": "fx_smoke",
+      "x": 70,
       "y": 40
      }
     ],
     "outdoor": false,
     "has_interior": true
+   },
+   {
+    "stations": [
+     {
+      "x": 278,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 308,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 240,
+      "y": 128,
+      "kind": "stand",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      297,
+      164
+     ]
+    ],
+    "fx": [
+     {
+      "anim": "fx_smoke",
+      "x": 70,
+      "y": 40
+     },
+     {
+      "anim": "fx_conveyor",
+      "x": 21,
+      "y": 128
+     }
+    ],
+    "outdoor": false,
+    "has_interior": true
+   },
+   {
+    "stations": [
+     {
+      "x": 278,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 308,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 240,
+      "y": 128,
+      "kind": "stand",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      297,
+      164
+     ]
+    ],
+    "fx": [
+     {
+      "anim": "fx_smoke",
+      "x": 70,
+      "y": 40
+     },
+     {
+      "anim": "fx_conveyor",
+      "x": 21,
+      "y": 128
+     }
+    ],
+    "outdoor": false,
+    "has_interior": true
    }
   ],
-  "distribuidora": [
+  "frigorifico": [
    {
     "stations": [
      {
-      "x": 318,
+      "x": 278,
       "y": 134,
       "kind": "counter",
       "flip": false
@@ -1628,7 +1546,7 @@
     ],
     "queue": [
      [
-      333,
+      297,
       164
      ]
     ],
@@ -1639,13 +1557,454 @@
    {
     "stations": [
      {
+      "x": 278,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      297,
+      164
+     ]
+    ],
+    "fx": [],
+    "outdoor": false,
+    "has_interior": true
+   },
+   {
+    "stations": [
+     {
+      "x": 278,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 124,
+      "y": 140,
+      "kind": "stand",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      297,
+      164
+     ]
+    ],
+    "fx": [],
+    "outdoor": false,
+    "has_interior": true
+   },
+   {
+    "stations": [
+     {
+      "x": 278,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 308,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 124,
+      "y": 140,
+      "kind": "stand",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      297,
+      164
+     ]
+    ],
+    "fx": [],
+    "outdoor": false,
+    "has_interior": true
+   },
+   {
+    "stations": [
+     {
+      "x": 278,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 308,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 124,
+      "y": 140,
+      "kind": "stand",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      297,
+      164
+     ]
+    ],
+    "fx": [],
+    "outdoor": false,
+    "has_interior": true
+   }
+  ],
+  "pasas": [
+   {
+    "stations": [
+     {
+      "x": 278,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      297,
+      164
+     ]
+    ],
+    "fx": [],
+    "outdoor": false,
+    "has_interior": true
+   },
+   {
+    "stations": [
+     {
+      "x": 278,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      297,
+      164
+     ]
+    ],
+    "fx": [],
+    "outdoor": false,
+    "has_interior": true
+   },
+   {
+    "stations": [
+     {
+      "x": 278,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      297,
+      164
+     ]
+    ],
+    "fx": [],
+    "outdoor": false,
+    "has_interior": true
+   },
+   {
+    "stations": [
+     {
+      "x": 278,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 308,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      297,
+      164
+     ]
+    ],
+    "fx": [],
+    "outdoor": false,
+    "has_interior": true
+   },
+   {
+    "stations": [
+     {
+      "x": 278,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 308,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      297,
+      164
+     ]
+    ],
+    "fx": [
+     {
+      "anim": "fx_conveyor",
+      "x": 41,
+      "y": 128
+     }
+    ],
+    "outdoor": false,
+    "has_interior": true
+   }
+  ],
+  "bodega_malbec": [
+   {
+    "stations": [
+     {
+      "x": 268,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      287,
+      164
+     ]
+    ],
+    "fx": [],
+    "outdoor": false,
+    "has_interior": true
+   },
+   {
+    "stations": [
+     {
+      "x": 268,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      287,
+      164
+     ]
+    ],
+    "fx": [],
+    "outdoor": false,
+    "has_interior": true
+   },
+   {
+    "stations": [
+     {
+      "x": 268,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      287,
+      164
+     ]
+    ],
+    "fx": [],
+    "outdoor": false,
+    "has_interior": true
+   },
+   {
+    "stations": [
+     {
+      "x": 268,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 298,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      287,
+      164
+     ]
+    ],
+    "fx": [],
+    "outdoor": false,
+    "has_interior": true
+   },
+   {
+    "stations": [
+     {
+      "x": 268,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 298,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      287,
+      164
+     ]
+    ],
+    "fx": [],
+    "outdoor": false,
+    "has_interior": true
+   }
+  ],
+  "estancia_ovina": [
+   {
+    "stations": [
+     {
+      "x": 278,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      297,
+      164
+     ]
+    ],
+    "fx": [],
+    "outdoor": false,
+    "has_interior": true
+   },
+   {
+    "stations": [
+     {
+      "x": 278,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      297,
+      164
+     ]
+    ],
+    "fx": [],
+    "outdoor": false,
+    "has_interior": true
+   },
+   {
+    "stations": [
+     {
+      "x": 278,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      297,
+      164
+     ]
+    ],
+    "fx": [],
+    "outdoor": false,
+    "has_interior": true
+   },
+   {
+    "stations": [
+     {
+      "x": 278,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 308,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      297,
+      164
+     ]
+    ],
+    "fx": [],
+    "outdoor": false,
+    "has_interior": true
+   },
+   {
+    "stations": [
+     {
+      "x": 278,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 308,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      297,
+      164
+     ]
+    ],
+    "fx": [],
+    "outdoor": false,
+    "has_interior": true
+   }
+  ],
+  "lanera": [
+   {
+    "stations": [
+     {
       "x": 318,
       "y": 134,
       "kind": "counter",
       "flip": false
      },
      {
-      "x": 186,
+      "x": 120,
       "y": 128,
       "kind": "stand",
       "flip": false
@@ -1670,7 +2029,7 @@
       "flip": false
      },
      {
-      "x": 186,
+      "x": 120,
       "y": 128,
       "kind": "stand",
       "flip": false
@@ -1695,14 +2054,14 @@
       "flip": false
      },
      {
-      "x": 186,
+      "x": 120,
       "y": 128,
       "kind": "stand",
       "flip": false
      },
      {
-      "x": 140,
-      "y": 136,
+      "x": 230,
+      "y": 128,
       "kind": "stand",
       "flip": false
      }
@@ -1716,7 +2075,7 @@
     "fx": [
      {
       "anim": "fx_conveyor",
-      "x": 111,
+      "x": 21,
       "y": 128
      }
     ],
@@ -1732,20 +2091,20 @@
       "flip": false
      },
      {
-      "x": 186,
+      "x": 348,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 120,
       "y": 128,
       "kind": "stand",
       "flip": false
      },
      {
-      "x": 140,
-      "y": 136,
-      "kind": "stand",
-      "flip": false
-     },
-     {
-      "x": 160,
-      "y": 124,
+      "x": 230,
+      "y": 128,
       "kind": "stand",
       "flip": false
      }
@@ -1759,8 +2118,1168 @@
     "fx": [
      {
       "anim": "fx_conveyor",
-      "x": 111,
+      "x": 21,
       "y": 128
+     }
+    ],
+    "outdoor": false,
+    "has_interior": true
+   },
+   {
+    "stations": [
+     {
+      "x": 318,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 348,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 120,
+      "y": 128,
+      "kind": "stand",
+      "flip": false
+     },
+     {
+      "x": 230,
+      "y": 128,
+      "kind": "stand",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      333,
+      164
+     ]
+    ],
+    "fx": [
+     {
+      "anim": "fx_conveyor",
+      "x": 21,
+      "y": 128
+     }
+    ],
+    "outdoor": false,
+    "has_interior": true
+   }
+  ],
+  "chacra_peras": [
+   {
+    "stations": [
+     {
+      "x": 278,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      297,
+      164
+     ]
+    ],
+    "fx": [],
+    "outdoor": false,
+    "has_interior": true
+   },
+   {
+    "stations": [
+     {
+      "x": 278,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 176,
+      "y": 130,
+      "kind": "stand",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      297,
+      164
+     ]
+    ],
+    "fx": [],
+    "outdoor": false,
+    "has_interior": true
+   },
+   {
+    "stations": [
+     {
+      "x": 278,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 176,
+      "y": 130,
+      "kind": "stand",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      297,
+      164
+     ]
+    ],
+    "fx": [],
+    "outdoor": false,
+    "has_interior": true
+   },
+   {
+    "stations": [
+     {
+      "x": 278,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 308,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 176,
+      "y": 130,
+      "kind": "stand",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      297,
+      164
+     ]
+    ],
+    "fx": [],
+    "outdoor": false,
+    "has_interior": true
+   },
+   {
+    "stations": [
+     {
+      "x": 278,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 308,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 176,
+      "y": 130,
+      "kind": "stand",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      297,
+      164
+     ]
+    ],
+    "fx": [
+     {
+      "anim": "fx_conveyor",
+      "x": 41,
+      "y": 128
+     }
+    ],
+    "outdoor": false,
+    "has_interior": true
+   }
+  ],
+  "manzanas": [
+   {
+    "stations": [
+     {
+      "x": 318,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      333,
+      164
+     ]
+    ],
+    "fx": [],
+    "outdoor": false,
+    "has_interior": true
+   },
+   {
+    "stations": [
+     {
+      "x": 318,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      333,
+      164
+     ]
+    ],
+    "fx": [
+     {
+      "anim": "fx_conveyor",
+      "x": 21,
+      "y": 128
+     }
+    ],
+    "outdoor": false,
+    "has_interior": true
+   },
+   {
+    "stations": [
+     {
+      "x": 318,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 180,
+      "y": 128,
+      "kind": "stand",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      333,
+      164
+     ]
+    ],
+    "fx": [
+     {
+      "anim": "fx_conveyor",
+      "x": 21,
+      "y": 128
+     }
+    ],
+    "outdoor": false,
+    "has_interior": true
+   },
+   {
+    "stations": [
+     {
+      "x": 318,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 348,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 180,
+      "y": 128,
+      "kind": "stand",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      333,
+      164
+     ]
+    ],
+    "fx": [
+     {
+      "anim": "fx_conveyor",
+      "x": 21,
+      "y": 128
+     }
+    ],
+    "outdoor": false,
+    "has_interior": true
+   },
+   {
+    "stations": [
+     {
+      "x": 318,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 348,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 180,
+      "y": 128,
+      "kind": "stand",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      333,
+      164
+     ]
+    ],
+    "fx": [
+     {
+      "anim": "fx_conveyor",
+      "x": 21,
+      "y": 128
+     }
+    ],
+    "outdoor": false,
+    "has_interior": true
+   }
+  ],
+  "electronica": [
+   {
+    "stations": [
+     {
+      "x": 318,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 60,
+      "y": 132,
+      "kind": "stand",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      333,
+      164
+     ]
+    ],
+    "fx": [],
+    "outdoor": false,
+    "has_interior": true
+   },
+   {
+    "stations": [
+     {
+      "x": 318,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 60,
+      "y": 132,
+      "kind": "stand",
+      "flip": false
+     },
+     {
+      "x": 150,
+      "y": 132,
+      "kind": "stand",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      333,
+      164
+     ]
+    ],
+    "fx": [],
+    "outdoor": false,
+    "has_interior": true
+   },
+   {
+    "stations": [
+     {
+      "x": 318,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 60,
+      "y": 132,
+      "kind": "stand",
+      "flip": false
+     },
+     {
+      "x": 150,
+      "y": 132,
+      "kind": "stand",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      333,
+      164
+     ]
+    ],
+    "fx": [],
+    "outdoor": false,
+    "has_interior": true
+   },
+   {
+    "stations": [
+     {
+      "x": 318,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 348,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 60,
+      "y": 132,
+      "kind": "stand",
+      "flip": false
+     },
+     {
+      "x": 150,
+      "y": 132,
+      "kind": "stand",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      333,
+      164
+     ]
+    ],
+    "fx": [
+     {
+      "anim": "fx_conveyor",
+      "x": 21,
+      "y": 128
+     }
+    ],
+    "outdoor": false,
+    "has_interior": true
+   },
+   {
+    "stations": [
+     {
+      "x": 318,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 348,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 60,
+      "y": 132,
+      "kind": "stand",
+      "flip": false
+     },
+     {
+      "x": 150,
+      "y": 132,
+      "kind": "stand",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      333,
+      164
+     ]
+    ],
+    "fx": [
+     {
+      "anim": "fx_conveyor",
+      "x": 21,
+      "y": 128
+     },
+     {
+      "anim": "fx_tv",
+      "x": 280,
+      "y": 20
+     }
+    ],
+    "outdoor": false,
+    "has_interior": true
+   }
+  ],
+  "estancia_ganadera": [
+   {
+    "stations": [
+     {
+      "x": 278,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      297,
+      164
+     ]
+    ],
+    "fx": [],
+    "outdoor": false,
+    "has_interior": true
+   },
+   {
+    "stations": [
+     {
+      "x": 278,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      297,
+      164
+     ]
+    ],
+    "fx": [],
+    "outdoor": false,
+    "has_interior": true
+   },
+   {
+    "stations": [
+     {
+      "x": 278,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      297,
+      164
+     ]
+    ],
+    "fx": [],
+    "outdoor": false,
+    "has_interior": true
+   },
+   {
+    "stations": [
+     {
+      "x": 278,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 308,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      297,
+      164
+     ]
+    ],
+    "fx": [],
+    "outdoor": false,
+    "has_interior": true
+   },
+   {
+    "stations": [
+     {
+      "x": 278,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 308,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      297,
+      164
+     ]
+    ],
+    "fx": [],
+    "outdoor": false,
+    "has_interior": true
+   }
+  ],
+  "salames": [
+   {
+    "stations": [
+     {
+      "x": 278,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      297,
+      164
+     ]
+    ],
+    "fx": [],
+    "outdoor": false,
+    "has_interior": true
+   },
+   {
+    "stations": [
+     {
+      "x": 278,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 124,
+      "y": 130,
+      "kind": "stand",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      297,
+      164
+     ]
+    ],
+    "fx": [],
+    "outdoor": false,
+    "has_interior": true
+   },
+   {
+    "stations": [
+     {
+      "x": 278,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 124,
+      "y": 130,
+      "kind": "stand",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      297,
+      164
+     ]
+    ],
+    "fx": [],
+    "outdoor": false,
+    "has_interior": true
+   },
+   {
+    "stations": [
+     {
+      "x": 278,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 308,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 124,
+      "y": 130,
+      "kind": "stand",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      297,
+      164
+     ]
+    ],
+    "fx": [],
+    "outdoor": false,
+    "has_interior": true
+   },
+   {
+    "stations": [
+     {
+      "x": 278,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 308,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 124,
+      "y": 130,
+      "kind": "stand",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      297,
+      164
+     ]
+    ],
+    "fx": [],
+    "outdoor": false,
+    "has_interior": true
+   }
+  ],
+  "usina_lactea": [
+   {
+    "stations": [
+     {
+      "x": 288,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      307,
+      164
+     ]
+    ],
+    "fx": [],
+    "outdoor": false,
+    "has_interior": true
+   },
+   {
+    "stations": [
+     {
+      "x": 288,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      307,
+      164
+     ]
+    ],
+    "fx": [],
+    "outdoor": false,
+    "has_interior": true
+   },
+   {
+    "stations": [
+     {
+      "x": 288,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 200,
+      "y": 126,
+      "kind": "stand",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      307,
+      164
+     ]
+    ],
+    "fx": [],
+    "outdoor": false,
+    "has_interior": true
+   },
+   {
+    "stations": [
+     {
+      "x": 288,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 318,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 200,
+      "y": 126,
+      "kind": "stand",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      307,
+      164
+     ]
+    ],
+    "fx": [
+     {
+      "anim": "fx_conveyor",
+      "x": 21,
+      "y": 128
+     }
+    ],
+    "outdoor": false,
+    "has_interior": true
+   },
+   {
+    "stations": [
+     {
+      "x": 288,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 318,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 200,
+      "y": 126,
+      "kind": "stand",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      307,
+      164
+     ]
+    ],
+    "fx": [
+     {
+      "anim": "fx_conveyor",
+      "x": 21,
+      "y": 128
+     }
+    ],
+    "outdoor": false,
+    "has_interior": true
+   }
+  ],
+  "molino_harinero": [
+   {
+    "stations": [
+     {
+      "x": 318,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      333,
+      164
+     ]
+    ],
+    "fx": [],
+    "outdoor": false,
+    "has_interior": true
+   },
+   {
+    "stations": [
+     {
+      "x": 318,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 140,
+      "y": 128,
+      "kind": "stand",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      333,
+      164
+     ]
+    ],
+    "fx": [],
+    "outdoor": false,
+    "has_interior": true
+   },
+   {
+    "stations": [
+     {
+      "x": 318,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 140,
+      "y": 128,
+      "kind": "stand",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      333,
+      164
+     ]
+    ],
+    "fx": [
+     {
+      "anim": "fx_conveyor",
+      "x": 21,
+      "y": 128
+     }
+    ],
+    "outdoor": false,
+    "has_interior": true
+   },
+   {
+    "stations": [
+     {
+      "x": 318,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 348,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 140,
+      "y": 128,
+      "kind": "stand",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      333,
+      164
+     ]
+    ],
+    "fx": [
+     {
+      "anim": "fx_conveyor",
+      "x": 21,
+      "y": 128
+     }
+    ],
+    "outdoor": false,
+    "has_interior": true
+   },
+   {
+    "stations": [
+     {
+      "x": 318,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 348,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 140,
+      "y": 128,
+      "kind": "stand",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      333,
+      164
+     ]
+    ],
+    "fx": [
+     {
+      "anim": "fx_conveyor",
+      "x": 21,
+      "y": 128
+     }
+    ],
+    "outdoor": false,
+    "has_interior": true
+   }
+  ],
+  "panaderia": [
+   {
+    "stations": [
+     {
+      "x": 248,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      267,
+      164
+     ]
+    ],
+    "fx": [],
+    "outdoor": false,
+    "has_interior": true
+   },
+   {
+    "stations": [
+     {
+      "x": 248,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      267,
+      164
+     ]
+    ],
+    "fx": [],
+    "outdoor": false,
+    "has_interior": true
+   },
+   {
+    "stations": [
+     {
+      "x": 248,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      267,
+      164
+     ]
+    ],
+    "fx": [],
+    "outdoor": false,
+    "has_interior": true
+   },
+   {
+    "stations": [
+     {
+      "x": 248,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 278,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      267,
+      164
+     ]
+    ],
+    "fx": [],
+    "outdoor": false,
+    "has_interior": true
+   },
+   {
+    "stations": [
+     {
+      "x": 248,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     },
+     {
+      "x": 278,
+      "y": 134,
+      "kind": "counter",
+      "flip": false
+     }
+    ],
+    "queue": [
+     [
+      267,
+      164
+     ]
+    ],
+    "fx": [
+     {
+      "anim": "fx_steam",
+      "x": 60,
+      "y": 20
      }
     ],
     "outdoor": false,

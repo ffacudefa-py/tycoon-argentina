@@ -53,6 +53,9 @@ function room(wall, floor, outdoor, tier) {
       case "pintura_super": wallPaint(c, "W", "w", "l", ["r", "p", "R"]); break
       case "pintura_gym": wallPaint(c, "u", "x", "o", ["y", "Z", "Y"]); break
       case "pintura_celeste": wallPaint(c, "c", "W", "C", ["B", "C", "A"]); break
+      case "adobe": wallPaint(c, "E", "e", "s", ["S", "s", "M"]); break          // 10.0: NOA / Cuyo
+      case "cal": wallPaint(c, "w", "W", "l", ["n", "N", "G"]); break            // 10.0: galpón encalado
+      case "madera_rustica": wallPaint(c, "t", "T", "M", ["M", "t", "m"]); break  // 10.0: NEA / Patagonia
       default: wallPaint(c, "e", "w", "E", null)
     }
     // ventana a la calle en la pared (luz natural) a partir del nivel 2

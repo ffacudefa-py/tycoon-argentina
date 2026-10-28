@@ -134,7 +134,10 @@ func test_nombre_de_empresa_largo() -> void:
 
 
 func test_niveles_sin_interior() -> void:
-	# 10.0: BusinessScene.has_interior da false para los negocios que no están
-	# en data/interiors.json (sin interior dibujado: sólo fachada).
+	# 10.0: los 24 negocios provinciales tienen interior dibujado en sus 5 niveles
+	# (mismo dato que usa BusinessScene.has_interior: data/interiors.json).
 	var d: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/interiors.json"))["businesses"]
-	check(not d.has(B0), "el primer negocio todavía no tiene interior dibujado")
+	for b in data().businesses:
+		check(d.has(b["id"]) and (d[b["id"]] as Array).size() == 5, "%s tiene 5 interiores" % b["id"])
+		for t in 5:
+			check(ResourceLoader.exists("res://assets/pixel_art/interiors/%s_%d_back.png" % [b["id"], t]), "%s nivel %d: imagen del interior" % [b["id"], t])
