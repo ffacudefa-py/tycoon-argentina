@@ -110,6 +110,9 @@ static func mission_done(card: Control, on_done: Callable) -> void:
 	fill.color = Color(0.30, 0.69, 0.36, 0.82)
 	fill.size.x = 0.0
 	# La capa recién agregada recibe su tamaño en el próximo acomodo del contenedor.
+	if not card.is_inside_tree():
+		on_done.call()
+		return
 	await card.get_tree().process_frame
 	if not is_instance_valid(card):
 		on_done.call()
