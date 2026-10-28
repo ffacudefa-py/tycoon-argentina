@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://07cpgamv148"
-path="res://.godot/imported/city_map.png-40ec50644e90f14c1e7de43b4c39fd25.ctex"
+uid="uid://b1iuidivw0b0o"
+path="res://.godot/imported/region_patagonia_santa_cruz.png-4932d8e0191281b64d8842c2a20cbc50.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/pixel_art/map/city_map.png"
-dest_files=["res://.godot/imported/city_map.png-40ec50644e90f14c1e7de43b4c39fd25.ctex"]
+source_file="res://assets/pixel_art/map/region_patagonia_santa_cruz.png"
+dest_files=["res://.godot/imported/region_patagonia_santa_cruz.png-4932d8e0191281b64d8842c2a20cbc50.ctex"]
 
 [params]
 

@@ -21,6 +21,7 @@ import chars2  # noqa: E402
 import coin_art  # noqa: E402
 import icons32  # noqa: E402
 import logo  # noqa: E402
+import map_art  # noqa: E402
 import fx_art  # noqa: E402
 import map_avatars  # noqa: E402
 import ui_art  # noqa: E402
@@ -86,8 +87,10 @@ def main():
     print(f"Píxeles huérfanos corregidos en edificios: {fixed}")
     logo.main()
     world = json.load(open(os.path.join(DATA, "world.json"), encoding="utf-8"))
-    backgrounds.generate(OUT, [z["id"] for z in world["zones"]])
+    # 10.0: fondos provisorios por región (las calles de la 0.7) hasta el arte de F3.
+    backgrounds.generate(OUT, sorted({z.get("street", z["id"]) for z in world["zones"]}))
     map_avatars.generate(OUT, DATA)
+    map_art.generate(OUT, DATA)     # mapas de la Argentina (10.0)
     contact_sheet()
     for p in problems:
         print("AVISO:", p)

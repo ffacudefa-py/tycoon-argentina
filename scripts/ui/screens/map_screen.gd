@@ -13,6 +13,7 @@ const TAG_NAMES := {
 
 var m: GameModel
 var region := ""                 ## "" = vista país
+static var _layout := {}
 var _col: VBoxContainer
 var _timer := 0.0
 var _refreshers: Array[Callable] = []
@@ -74,7 +75,25 @@ func _build_country() -> void:
 	head.add_child(t)
 	head.add_child(U.label("%d/%d" % [ConquestSystem.conquered_count(m), m.data.zones.size()], U.SIZE_BODY, U.GOLD, true))
 	_col.add_child(head)
-	_col.add_child(U.para("Dominá el mercado de cada provincia para conquistarla. Con la región completa ganás su producto estrella y se abre la siguiente.", U.SIZE_SMALL, Color("c2c0d6")))
+	_col.add_child(U.para("Tocá una región del mapa. Dominá el mercado de cada provincia para conquistarla; con la región completa ganás su producto estrella y se abre la siguiente.", U.SIZE_SMALL, Color("c2c0d6")))
+	var lay: Dictionary = layout()["country"]
+	var shades := {}
+	var labels := {}
+	for r in m.data.regions:
+		var rid: String = r["id"]
+		var done := ConquestSystem.conquered_in_region(m, rid)
+		var total := m.data.zones_in_region(rid).size()
+		shades[rid] = _shade(not region_open(rid), done == total, false)
+		labels[rid] = "%s %d/%d" % [r["name"], done, total]
+	var groups := {}
+	for i in (lay["ids"] as Array).size():
+		groups[i + 1] = m.data.zone_by_id[lay["ids"][i]]["region"]
+	_col.add_child(_map_view("map/argentina.png", "map/argentina_mask.png", "map/argentina_%s.png", shades, labels, lay["region_centers"], groups,
+		func(rid: String) -> void:
+			if region_open(rid):
+				open_region(rid)
+			else:
+				Main.instance.toast("Se abre al conquistar la región anterior.", "info")))
 	for r in m.data.regions:
 		_col.add_child(_region_card(r))
 
@@ -130,6 +149,19 @@ func _build_region(r: Dictionary) -> void:
 	head.add_child(t)
 	_col.add_child(head)
 	_col.add_child(U.para("Estrella de la región: %s. Tocá una provincia para ver su mercado." % r["star_product"], U.SIZE_SMALL, Color("c2c0d6")))
+	var lay: Dictionary = layout()["regions"][r["id"]]
+	var shades := {}
+	var labels := {}
+	var groups := {}
+	for i in (lay["ids"] as Array).size():
+		var zid: String = lay["ids"][i]
+		groups[i + 1] = zid
+		var st := m.zone_status(zid)
+		shades[zid] = _shade(not st["unlocked"] and not st["available"], st["conquered"], not st["unlocked"] and st["available"])
+		labels[zid] = "%s %s" % [m.data.zone_by_id[zid]["name"].replace("Ciudad Autónoma de Buenos Aires", "CABA"),
+			"✓" if st["conquered"] else ("%d%%" % int(floorf(float(st["share"]) * 100.0)) if st["unlocked"] else "")]
+	_col.add_child(_map_view("map/region_%s.png" % r["id"], "map/region_%s_mask.png" % r["id"], "map/region_" + r["id"] + "_%s.png", shades, labels, lay["centers"], groups,
+		func(zid: String) -> void: ZoneModal.open(zid)))
 	for z in m.data.zones_in_region(r["id"]):
 		_col.add_child(_province_card(z))
 
@@ -183,6 +215,95 @@ func _province_card(z: Dictionary) -> Control:
 	b.set_anchors_preset(Control.PRESET_FULL_RECT)
 	holder.add_child(b)
 	return holder
+
+
+static func layout() -> Dictionary:
+	if _layout.is_empty():
+		_layout = JSON.parse_string(FileAccess.get_file_as_string("res://data/map_layout.json"))
+	return _layout
+
+
+## Tinte de la silueta: bloqueada oscura, conquistada dorada, disponible clara.
+func _shade(locked: bool, conquered: bool, available: bool) -> Color:
+	if conquered:
+		return Color(1.0, 0.82, 0.25, 0.45)
+	if locked:
+		return Color(0.04, 0.03, 0.1, 0.5)
+	if available:
+		return Color(1, 1, 1, 0.22)
+	return Color(1, 1, 1, 0.0)
+
+
+## Mapa tocable: base + siluetas teñidas + rótulos. Al tocar, la máscara
+## (canal R = índice) dice qué región o provincia se tocó (groups: índice -> id).
+func _map_view(base: String, mask_path: String, sil_fmt: String, shades: Dictionary, labels: Dictionary,
+		centers: Dictionary, groups: Dictionary, on_pick: Callable) -> Control:
+	var tex := U.tex(base)
+	var holder := Control.new()
+	holder.custom_minimum_size = tex.get_size()
+	holder.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	var bg := TextureRect.new()
+	bg.texture = tex
+	bg.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	holder.add_child(bg)
+	for id in shades:
+		var sil := TextureRect.new()
+		sil.texture = U.tex(sil_fmt % id)
+		sil.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		sil.modulate = shades[id]
+		sil.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		holder.add_child(sil)
+	for id in labels:
+		if not centers.has(id):
+			continue
+		var l := U.label(labels[id], U.SIZE_SMALL, Color("f0eee6"), true, HORIZONTAL_ALIGNMENT_CENTER)
+		l.add_theme_color_override("font_outline_color", Color("1b1a2e"))
+		l.add_theme_constant_override("outline_size", 4)
+		l.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		holder.add_child(l)
+		l.reset_size()
+		var c: Array = centers[id]
+		var w := l.get_combined_minimum_size().x
+		l.position = Vector2(clampf(float(c[0]) - w / 2.0, 0.0, tex.get_width() - w), float(c[1]) - 9.0).round()
+	var mask_img: Image = U.tex(mask_path).get_image()
+	var b := Button.new()
+	b.flat = true
+	b.focus_mode = Control.FOCUS_NONE
+	b.mouse_filter = Control.MOUSE_FILTER_PASS
+	b.set_anchors_preset(Control.PRESET_FULL_RECT)
+	b.add_theme_stylebox_override("hover", StyleBoxEmpty.new())
+	b.add_theme_stylebox_override("pressed", StyleBoxEmpty.new())
+	b.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
+	# La posición sale del propio evento de toque (en Android el mouse emulado
+	# no siempre actualiza la posición antes del clic).
+	var last := {"p": Vector2.ZERO}
+	b.gui_input.connect(func(ev: InputEvent) -> void:
+		if ev is InputEventMouseButton and ev.button_index == MOUSE_BUTTON_LEFT:
+			last["p"] = ev.position)
+	U.on_press(b, func() -> void:
+		var id := pick(mask_img, last["p"], groups)
+		if id != "":
+			on_pick.call(id))
+	holder.add_child(b)
+	holder.set_meta("pick_button", b)
+	return holder
+
+
+## Id de lo que hay en el punto p de la máscara ("" si es mar). Si se toca el
+## borde, busca el píxel más cercano en un radio chico (dedos gordos).
+static func pick(mask: Image, p: Vector2, groups: Dictionary) -> String:
+	var w := mask.get_width()
+	var h := mask.get_height()
+	for r: int in [0, 2, 4, 6]:
+		for off: Vector2i in [Vector2i(0, 0), Vector2i(r, 0), Vector2i(-r, 0), Vector2i(0, r), Vector2i(0, -r)]:
+			var q: Vector2i = Vector2i(int(p.x), int(p.y)) + off
+			if q.x < 0 or q.y < 0 or q.x >= w or q.y >= h:
+				continue
+			var idx := int(round(mask.get_pixelv(q).r * 255.0))
+			if idx > 0 and groups.has(idx):
+				return groups[idx]
+	return ""
 
 
 ## Ficha corta del rival de una provincia, con el botón de campaña.

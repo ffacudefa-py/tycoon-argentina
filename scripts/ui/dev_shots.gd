@@ -139,6 +139,7 @@ func _run() -> void:
 	ZoneModal.open(m.data.zone_for_business(B2))
 	await _shot("11_zona", 0.5)
 	main.modal_host.close_all()
+	await _map_check()
 	OfflineReport.open({"elapsed": 12000.0, "credited": 12000.0, "capped": false, "clock_issue": false, "earned": 845000,
 		"spent": 120000, "per_business": {B0: 600000, B1: 245000}, "stockouts": [{"business": B2, "after": 1500.0}], "salaries": 2000})
 	await _shot("12_offline", 0.5)
@@ -447,3 +448,42 @@ func _bus_check() -> void:
 	scene._bus.visible = false
 	Settings.set_value("scene_view", prev_view)
 	Settings.set_value("scene_anim", prev_anim)
+
+
+## Tocar el NOA en el mapa del país entra a la región; Volver vuelve al país.
+func _map_check() -> void:
+	var main := Main.instance
+	var ms: MapScreen = main.find_children("*", "MapScreen", true, false)[0]
+	ms.open_region("")
+	await get_tree().process_frame
+	await _shot("05c_mapa_pais", 0.3)
+	var holders := ms.find_children("*", "Control", true, false).filter(func(n: Node) -> bool: return n.has_meta("pick_button"))
+	if holders.is_empty():
+		print("MAPA_REGION FALLÓ (sin mapa)")
+		return
+	var b: Button = holders[0].get_meta("pick_button")
+	var c: Array = MapScreen.layout()["country"]["region_centers"]["noa"]
+	main.modal_host.close_all()
+	UnlockShow.dismiss_all()
+	await get_tree().create_timer(0.3).timeout
+	await _tap_at(b.get_global_rect().position + Vector2(float(c[0]), float(c[1])))
+	var entered := ms.region == "noa"
+	await _shot("05d_mapa_region_noa", 0.3)
+	ms.open_region("")
+	print("MAPA_REGION ", "OK" if entered and ms.region == "" else "FALLÓ (región=%s)" % ms.region)
+
+
+func _tap_at(p: Vector2) -> void:
+	var mv := InputEventMouseMotion.new()
+	mv.position = p
+	mv.global_position = p
+	get_viewport().push_input(mv)
+	await get_tree().process_frame
+	for pressed in [true, false]:
+		var ev := InputEventMouseButton.new()
+		ev.button_index = MOUSE_BUTTON_LEFT
+		ev.pressed = pressed
+		ev.position = p
+		ev.global_position = p
+		get_viewport().push_input(ev)
+		await get_tree().process_frame

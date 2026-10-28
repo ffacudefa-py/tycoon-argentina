@@ -1,0 +1,243 @@
+{
+ "_doc": "Generado por tools/art/map_art.py. mask: canal R = índice (1..n) del orden de 'ids'.",
+ "regions": {
+  "noa": {
+   "size": [
+    290,
+    461
+   ],
+   "ids": [
+    "santiago_del_estero",
+    "jujuy",
+    "catamarca",
+    "la_rioja",
+    "salta",
+    "tucuman"
+   ],
+   "centers": {
+    "santiago_del_estero": [
+     227,
+     268
+    ],
+    "jujuy": [
+     141,
+     75
+    ],
+    "catamarca": [
+     101,
+     249
+    ],
+    "la_rioja": [
+     93,
+     350
+    ],
+    "salta": [
+     173,
+     117
+    ],
+    "tucuman": [
+     155,
+     232
+    ]
+   }
+  },
+  "nea": {
+   "size": [
+    314,
+    460
+   ],
+   "ids": [
+    "formosa",
+    "chaco",
+    "corrientes",
+    "entre_rios",
+    "misiones"
+   ],
+   "centers": {
+    "formosa": [
+     114,
+     101
+    ],
+    "chaco": [
+     89,
+     158
+    ],
+    "corrientes": [
+     178,
+     249
+    ],
+    "entre_rios": [
+     136,
+     374
+    ],
+    "misiones": [
+     272,
+     177
+    ]
+   }
+  },
+  "cuyo": {
+   "size": [
+    236,
+    460
+   ],
+   "ids": [
+    "san_luis",
+    "san_juan",
+    "mendoza"
+   ],
+   "centers": {
+    "san_luis": [
+     182,
+     267
+    ],
+    "san_juan": [
+     73,
+     128
+    ],
+    "mendoza": [
+     85,
+     309
+    ]
+   }
+  },
+  "patagonia": {
+   "size": [
+    311,
+    460
+   ],
+   "ids": [
+    "santa_cruz",
+    "chubut",
+    "rio_negro",
+    "neuquen",
+    "tierra_del_fuego"
+   ],
+   "centers": {
+    "santa_cruz": [
+     76,
+     305
+    ],
+    "chubut": [
+     102,
+     188
+    ],
+    "rio_negro": [
+     126,
+     109
+    ],
+    "neuquen": [
+     72,
+     68
+    ],
+    "tierra_del_fuego": [
+     184,
+     408
+    ]
+   }
+  },
+  "pampeana": {
+   "size": [
+    344,
+    382
+   ],
+   "ids": [
+    "la_pampa"
+   ],
+   "centers": {
+    "la_pampa": [
+     197,
+     187
+    ]
+   }
+  },
+  "centro": {
+   "size": [
+    263,
+    460
+   ],
+   "ids": [
+    "cordoba",
+    "santa_fe",
+    "buenos_aires",
+    "caba"
+   ],
+   "centers": {
+    "cordoba": [
+     61,
+     149
+    ],
+    "santa_fe": [
+     138,
+     101
+    ],
+    "buenos_aires": [
+     148,
+     303
+    ],
+    "caba": [
+     206,
+     232
+    ]
+   }
+  }
+ },
+ "country": {
+  "size": [
+   262,
+   540
+  ],
+  "ids": [
+   "santiago_del_estero",
+   "jujuy",
+   "catamarca",
+   "la_rioja",
+   "salta",
+   "tucuman",
+   "formosa",
+   "chaco",
+   "corrientes",
+   "entre_rios",
+   "misiones",
+   "san_luis",
+   "san_juan",
+   "mendoza",
+   "santa_cruz",
+   "chubut",
+   "rio_negro",
+   "neuquen",
+   "tierra_del_fuego",
+   "la_pampa",
+   "cordoba",
+   "santa_fe",
+   "buenos_aires",
+   "caba"
+  ],
+  "region_centers": {
+   "noa": [
+    108,
+    82
+   ],
+   "nea": [
+    187,
+    102
+   ],
+   "cuyo": [
+    74,
+    188
+   ],
+   "patagonia": [
+    68,
+    369
+   ],
+   "pampeana": [
+    106,
+    249
+   ],
+   "centro": [
+    156,
+    203
+   ]
+  }
+ }
+}

@@ -7,7 +7,7 @@ pxl-pixel-art (~/.claude/skills/pxl-pixel-art). Uso:
 Salidas:
   assets/pixel_art/interiors/<negocio>_<nivel>_back.png / _front.png
   assets/pixel_art/locations/street_<zona>.png y start_bg.png
-  assets/pixel_art/map/city_map.png y assets/pixel_art/avatars/<id>.png (32x32)
+  assets/pixel_art/avatars/<id>.png (32x32)
   assets/pixel_art/effects/<anim>.png (+ .json con la duración de cada cuadro)
 """
 import glob
@@ -33,7 +33,7 @@ def pxl(fname):
 
 def main():
     subprocess.run([sys.executable, os.path.join(HERE, "gen_interiors.py")], check=True)
-    for f in ("furniture.px.js", "locations.px.js", "interiors.px.js", "map.px.js", "avatars.px.js"):
+    for f in ("furniture.px.js", "locations.px.js", "interiors.px.js", "avatars.px.js"):
         pxl(f)
     out = os.path.join(HERE, "out")
     d = os.path.join(ART, "interiors"); os.makedirs(d, exist_ok=True)
@@ -49,8 +49,8 @@ def main():
     for f in glob.glob(os.path.join(out, "scenes", "loc_*.png")):
         shutil.copy(f, os.path.join(d, "street_" + os.path.basename(f)[4:]))
     shutil.copy(os.path.join(out, "scenes", "start_bg.png"), os.path.join(d, "start_bg.png"))
-    d = os.path.join(ART, "map"); os.makedirs(d, exist_ok=True)
-    shutil.copy(os.path.join(out, "scenes", "city_map.png"), os.path.join(d, "city_map.png"))
+    # 10.0: el mapa de la ciudad ficticia se reemplazó por el de la Argentina
+    # (tools/art/map_art.py).
     d = os.path.join(ART, "avatars"); os.makedirs(d, exist_ok=True)
     for f in glob.glob(os.path.join(out, "sprites", "av_*.png")):
         shutil.copy(f, os.path.join(d, os.path.basename(f)[3:]))
