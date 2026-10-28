@@ -24,6 +24,10 @@ var _chip_cycle: Label
 var _chip_stock: Button
 var _cycle_bar: ProgressBar
 var _main_btn: Button
+var _goal_label: Label        ## próxima meta del negocio (Engagement.next_goal)
+var _goal_bar: ProgressBar
+var _combo_label: Label
+var _chest_btn: Button
 var _level_btn: Button
 var _mode_btn: Button
 var _manage_btn: Button
@@ -72,6 +76,20 @@ func _ready() -> void:
 	_events_row = U.hbox(4)
 	_events_row.position = Vector2(6, 6)
 	scene_wrap.add_child(_events_row)
+	# Cofres ganados (se abren con premio variable) y combo de ventas a mano.
+	_chest_btn = U.button("", "amarillo", "regalo", 34, U.SIZE_SMALL)
+	_chest_btn.position = Vector2(6, 46)
+	_chest_btn.visible = false
+	U.on_press(_chest_btn, func() -> void: ChestModal.open(), "coin")
+	scene_wrap.add_child(_chest_btn)
+	_combo_label = U.label("", U.SIZE_TITLE, Color("ffd458"), true, HORIZONTAL_ALIGNMENT_CENTER)
+	_combo_label.add_theme_color_override("font_outline_color", Color("1b1a2e"))
+	_combo_label.add_theme_constant_override("outline_size", 6)
+	_combo_label.set_anchors_preset(Control.PRESET_CENTER_TOP)
+	_combo_label.position = Vector2(-60, 44)
+	_combo_label.size = Vector2(120, 28)
+	_combo_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	scene_wrap.add_child(_combo_label)
 	# Cambiar entre ver el local por dentro y la fachada en la calle. Botones
 	# de ícono chicos para tapar lo menos posible del escenario.
 	_view_btn = U.icon_button("edificio", "crema", 34)
@@ -131,6 +149,20 @@ func _ready() -> void:
 	chips.add_child(_chip_stock)
 	body.add_child(chips)
 	Main.instance.register_target("restock", _chip_stock)
+
+	# Próxima meta: siempre hay algo cerca.
+	var goal_row := U.hbox(6)
+	goal_row.add_child(U.icon("flecha_arriba"))
+	var goal_col := U.vbox(1)
+	goal_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_goal_label = U.label("", U.SIZE_SMALL, U.TEXT, true)
+	_goal_label.clip_text = true
+	_goal_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	goal_col.add_child(_goal_label)
+	_goal_bar = U.progress("amarillo", 4)
+	goal_col.add_child(_goal_bar)
+	goal_row.add_child(goal_col)
+	body.add_child(goal_row)
 
 	_cycle_bar = U.progress("verde", 8)
 	body.add_child(_cycle_bar)
@@ -295,6 +327,17 @@ func _update() -> void:
 	_name.text = def["name"]
 	_update_view_btn()
 	_level.text = "Nv %d" % int(s["level"])
+	var goal := Engagement.next_goal(m, bid)
+	_goal_label.text = goal["text"]
+	_goal_bar.value = float(goal["value"])
+	var cmb := Engagement.combo(m)
+	_combo_label.visible = cmb >= 1.05 and not d["auto_sell"]
+	_combo_label.text = "COMBO x%s" % str(snappedf(cmb, 0.1))
+	_combo_label.scale = Vector2.ONE * (1.0 + (cmb - 1.0) * 0.3)
+	_combo_label.pivot_offset = _combo_label.size / 2.0
+	var chests := int(m.engage.get("chests", 0))
+	_chest_btn.visible = chests > 0
+	_chest_btn.text = "COFRE x%d" % chests
 	_sub.text = ["Atendés vos", "Vende solo", "Vende y repone solo", "Gestión total"][int(d["automation"])] + " · " + m.data.zone_by_id[s["zone"]]["name"]
 	if _stars.get_child_count() == 0:
 		for i in 5:

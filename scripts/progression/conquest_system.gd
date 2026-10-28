@@ -132,9 +132,11 @@ static func conquer(m: GameModel, zid: String) -> void:
 	m.add_milestone("Conquistaste %s con %s." % [z["name"], m.data.business_by_id[z["business"]]["name"]])
 	m.notify.emit("¡%s es tuya! +%d %% en %s." % [z["name"], int(round(float(m.data.world.get("province_bonus", 0.0)) * 100)), region["name"]], "good")
 	m.celebrate.emit("conquest", {"zone": zid})
+	Engagement.grant_chest(m, "Premio por conquistar %s." % z["name"])
 	if not was_complete and region_complete(m, z["region"]):
 		m.add_milestone("Conquistaste toda la región %s." % region["name"])
 		m.notify.emit("¡Región %s completa! %s: +%d %% en todos tus negocios." % [region["name"], region["star_product"], int(round(float(region.get("bonus", 0.0)) * 100))], "reward")
 		m.celebrate.emit("region", {"region": region["id"]})
+		Engagement.grant_chest(m, "Premio por completar la región %s." % region["name"], 2)
 	m.world_changed.emit()
 	m.businesses_changed.emit()

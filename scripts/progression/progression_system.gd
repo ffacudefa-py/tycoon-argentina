@@ -54,6 +54,7 @@ static func update(m: GameModel) -> void:
 			m.notify.emit("¡Logro desbloqueado! %s" % a["name"], "reward")
 			m.celebrate.emit("achievement", {"id": a["id"]})
 			grant(m, a["reward"], "logros")
+			Engagement.grant_chest(m, "Premio por el logro %s." % a["name"])
 			m.add_milestone("Logro: %s." % a["name"])
 	if changed:
 		m.progress_changed.emit()

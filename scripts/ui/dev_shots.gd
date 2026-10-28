@@ -83,6 +83,14 @@ func _run() -> void:
 	await get_tree().create_timer(1.3).timeout
 	print("TOQUE_VENDER ", "OK" if m.counter("sales_total") > before else "FALLÓ")
 	await _shot("04_paso4_subir", 0.4)
+	m.engage["chests"] = 2
+	m.engage["combo"] = 1.6
+	m.engage["combo_t"] = 30.0
+	await _shot("04e_combo_cofre", 0.4)
+	ChestModal.open()
+	await _shot("04f_cofre", 0.3)
+	main.modal_host.close_all()
+	m.engage["combo"] = 1.0
 	# Partida avanzada para ver el resto de la interfaz
 	m.economy.earn(3_000_000, "dev")
 	m.update_progress()

@@ -64,3 +64,18 @@ conserva) y reemplaza al viejo ajuste de inflación ficticia. Lógica en
 - **Robos**: cada 4-8 min una banda se lleva 20-40 % de la mercadería de un negocio.
 - **Seguridad (coima)**: 2 min de ingresos por provincia → 30 min sin robos.
 - Juicios y robos sólo pasan con el juego abierto.
+
+## Ciclo de enganche (10.3)
+
+`scripts/progression/engagement.gd`, balance en `progression.json → balance.engagement`:
+
+- **Combo**: vender a mano seguido sube un multiplicador sobre esas ventas
+  (+0,1 por venta hasta x2; si pasan 3 s sin vender baja 0,25 por segundo).
+- **Cofres** con premio variable (plata, turbo x2 o avatar). Sólo se ganan
+  jugando: conquistar una provincia (1), completar una región (2), cada logro (1),
+  niveles 25/50/100 de cada negocio (1 c/u) y desafíos de eventos. Nunca se compran.
+- **Próxima meta** debajo del negocio: la más cercana entre cuota de mercado,
+  próximo hito de nivel y la mejora más barata.
+- **Eventos regionales con desafío**: Vendimia, Zafra, Fiesta de la Yerba Mate,
+  Temporada de esquí y Exposición Rural (bonus por 8-10 min y cofre si llegás a N ventas).
+  Perderlos no tiene castigo.

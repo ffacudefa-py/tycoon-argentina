@@ -189,6 +189,125 @@
      "revenue": 1.5
     }
    }
+  },
+  {
+   "id": "vendimia",
+   "name": "Fiesta de la Vendimia",
+   "icon": "estrella",
+   "description": "Mendoza y Salta celebran la cosecha: las bodegas venden 60 % más. Desafío: 40 ventas durante la fiesta.",
+   "duration": 600,
+   "weight": 4,
+   "stage": 1,
+   "kind": "good",
+   "target": {
+    "business_tags": [
+     "vino"
+    ]
+   },
+   "effects": {
+    "revenue": 1.6
+   },
+   "goal": {
+    "metric": "sales_total",
+    "target": 40,
+    "chests": 1
+   }
+  },
+  {
+   "id": "zafra",
+   "name": "Temporada de zafra",
+   "icon": "sol",
+   "description": "Llega la cosecha al norte: frutas y campo venden 50 % más. Desafío: 50 ventas.",
+   "duration": 600,
+   "weight": 4,
+   "stage": 1,
+   "kind": "good",
+   "target": {
+    "business_tags": [
+     "fruta",
+     "agro"
+    ]
+   },
+   "effects": {
+    "revenue": 1.5
+   },
+   "goal": {
+    "metric": "sales_total",
+    "target": 50,
+    "chests": 1
+   }
+  },
+  {
+   "id": "fiesta_yerba",
+   "name": "Fiesta Nacional de la Yerba Mate",
+   "icon": "yerba",
+   "description": "Mate para todo el país: las infusiones vuelan. Desafío: 30 ventas.",
+   "duration": 480,
+   "weight": 3,
+   "stage": 2,
+   "kind": "good",
+   "target": {
+    "business_tags": [
+     "infusion"
+    ]
+   },
+   "effects": {
+    "revenue": 1.7
+   },
+   "goal": {
+    "metric": "sales_total",
+    "target": 30,
+    "chests": 1
+   }
+  },
+  {
+   "id": "temporada_esqui",
+   "name": "Temporada de esquí",
+   "icon": "estrella",
+   "description": "Bariloche y el sur se llenan de turistas: los negocios patagónicos venden más. Desafío: 30 ventas.",
+   "duration": 600,
+   "weight": 3,
+   "stage": 4,
+   "kind": "good",
+   "target": {
+    "business_tags": [
+     "ganaderia",
+     "fruta",
+     "industria"
+    ]
+   },
+   "effects": {
+    "revenue": 1.4
+   },
+   "goal": {
+    "metric": "sales_total",
+    "target": 30,
+    "chests": 1
+   }
+  },
+  {
+   "id": "exposicion_rural",
+   "name": "Exposición Rural",
+   "icon": "trofeo",
+   "description": "La Rural abre sus puertas: ganadería y lácteos al tope. Desafío: 40 ventas.",
+   "duration": 600,
+   "weight": 3,
+   "stage": 5,
+   "kind": "good",
+   "target": {
+    "business_tags": [
+     "ganaderia",
+     "lacteo"
+    ]
+   },
+   "effects": {
+    "revenue": 1.5
+   },
+   "goal": {
+    "metric": "sales_total",
+    "target": 40,
+    "chests": 1
+   }
   }
  ],
  "inflation": {

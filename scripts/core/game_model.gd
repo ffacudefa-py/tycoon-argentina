@@ -54,6 +54,7 @@ var salary_debt := 0
 var next_employee_id := 1
 var stage := 1
 var hard := HardMode.default_state()  ## modo bien argentino (ver HardMode)
+var engage := Engagement.default_state()  ## combo, cofres e hitos (ver Engagement)
 var tz_bias_minutes := 0           ## zona horaria local, para saber cuándo cambia el día
 
 var _derived := {}
@@ -96,6 +97,7 @@ func new_game() -> void:
 	social = {"day": -1, "gifts_claimed": 0}
 	tutorial = {"step": 0, "done": false}
 	hard = HardMode.default_state()
+	engage = Engagement.default_state()
 	missions = {"main_index": 0, "completed": {}, "claimed": {}}
 	daily_missions = {"day": -1, "list": [], "baseline": {}, "completed": {}, "claimed": {}}
 	time_state = {"last_active": now(), "max_seen": now()}
@@ -985,6 +987,8 @@ func simulate(dt: float, offline := false) -> void:
 	EmployeeSystem.advance(self, dt, offline)
 	HardMode.advance(self, dt, offline)
 	if not offline:
+		Engagement.advance(self, dt)
+	if not offline:
 		stats["play_time"] = float(stats.get("play_time", 0.0)) + dt
 		_progress_timer += dt
 		if _progress_timer >= 1.0:
@@ -1036,6 +1040,8 @@ func update_progress() -> void:
 		for id in owned_ids():
 			EmployeeSystem.ensure_candidates(self, id)
 	stats["best_income"] = maxf(float(stats.get("best_income", 0.0)), income_per_sec())
+	Engagement.check_level_marks(self)
+	Engagement.check_event_goals(self)
 	ProgressionSystem.update(self)
 	var t := now()
 	time_state["last_active"] = t
@@ -1084,6 +1090,7 @@ func to_dict() -> Dictionary:
 		"next_employee_id": next_employee_id,
 		"stage": stage,
 		"hard": hard.duplicate(true),
+		"engage": engage.duplicate(true),
 	}
 
 
@@ -1166,6 +1173,10 @@ func from_dict(d: Dictionary) -> void:
 	hard = _merge(HardMode.default_state(), d.get("hard"))
 	if not hard["protected"] is Dictionary:
 		hard["protected"] = {}
+	engage = _merge(Engagement.default_state(), d.get("engage"))
+	if not engage["marks"] is Dictionary:
+		engage["marks"] = {}
+	engage["chests"] = maxi(0, int(engage["chests"]))
 	invalidate()
 
 

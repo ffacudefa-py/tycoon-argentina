@@ -320,3 +320,39 @@ func test_normal_mode_has_no_hard_events() -> void:
 	check(not m.inflation_active(), "sin inflación")
 	m.salary_debt = 50
 	eq(HardMode.lawsuit_eta(m), -1.0, "sin cuenta regresiva de juicio")
+
+
+## 10.3: ciclo de enganche (combo, cofres, próxima meta, desafíos de evento).
+func test_engagement_combo_chests_goals() -> void:
+	var m := make_model()
+	eq(Engagement.combo(m), 1.0, "sin combo al empezar")
+	var before := m.economy.money
+	var extra := Engagement.on_manual_sale(m, 100)
+	eq(extra, 0, "la primera venta no tiene extra")
+	near(Engagement.combo(m), 1.1, 0.001, "sube el combo")
+	for i in 20:
+		Engagement.on_manual_sale(m, 100)
+	near(Engagement.combo(m), 2.0, 0.001, "tope x2")
+	check(m.economy.money > before, "el combo paga extra")
+	for i in 10:
+		Engagement.advance(m, 1.0)
+	check(Engagement.combo(m) < 2.0, "si parás, baja")
+	# Cofres: por conquista y al abrirlos dan algo.
+	conquer(m, B0)
+	eq(int(m.engage["chests"]), 1, "cofre por conquistar")
+	var r := Engagement.open_chest(m)
+	check(r["ok"] and str(r["text"]) != "", "el cofre da un premio")
+	eq(int(m.engage["chests"]), 0, "se consumió")
+	check(not Engagement.open_chest(m)["ok"], "sin cofres no se abre")
+	# Hito de nivel 25.
+	m.biz[B0]["level"] = 25
+	Engagement.check_level_marks(m)
+	eq(int(m.engage["chests"]), 1, "cofre por nivel 25")
+	Engagement.check_level_marks(m)
+	eq(int(m.engage["chests"]), 1, "una sola vez")
+	# Próxima meta siempre tiene texto.
+	check(str(Engagement.next_goal(m, B0)["text"]) != "", "hay próxima meta")
+	# Se guarda.
+	var m2 := make_model(2)
+	m2.from_dict(m.to_dict())
+	eq(int(m2.engage["chests"]), 1, "cofres guardados")

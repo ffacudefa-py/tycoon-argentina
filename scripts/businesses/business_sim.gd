@@ -92,6 +92,8 @@ static func _complete(m: GameModel, id: String, s: Dictionary, d: Dictionary, n:
 	var whole := Economy.to_int_floor(total)
 	s["carry"] = clampf(total - whole, 0.0, 1.0)
 	var credited := m.economy.earn(whole, "ventas")
+	if not d["auto_sell"]:
+		credited += Engagement.on_manual_sale(m, credited)
 	s["earned"] = Economy.sat_add(int(s["earned"]), credited)
 	s["sales"] = int(s["sales"]) + n
 	m._count("sales_total", n)

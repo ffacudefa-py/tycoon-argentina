@@ -11,6 +11,11 @@ static func open(index: int) -> void:
 	var e: Dictionary = m.data.event_by_id[inst["id"]]
 	var body := U.vbox(5)
 	body.add_child(U.para(e["description"], U.SIZE_SMALL, U.TEXT))
+	if e.has("goal"):
+		var done: bool = inst.get("goal_done", false)
+		var prog := Engagement.event_goal_progress(m, inst)
+		body.add_child(UiColors.requirement_row({"text": "Desafío: %d ventas → cofre" % int(e["goal"]["target"]), "current": prog,
+			"target": float(e["goal"]["target"]), "met": done, "money": false}))
 	if inst["business"] != "":
 		body.add_child(U.stat_row("Afecta a", m.data.business_by_id[inst["business"]]["name"]))
 	body.add_child(U.stat_row("Termina en", Fmt.duration(inst["remaining"])))

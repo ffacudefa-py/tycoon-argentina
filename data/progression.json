@@ -80,6 +80,47 @@
     "price_lag": 120,
     "max_index": 10.0
    }
+  },
+  "engagement": {
+   "_doc": "Ciclo de enganche (scripts/progression/engagement.gd): combo de ventas a mano y cofres con premio variable. Los cofres sólo se ganan jugando.",
+   "combo_step": 0.1,
+   "combo_max": 2.0,
+   "combo_window": 3.0,
+   "combo_decay": 0.25,
+   "chest": [
+    {
+     "kind": "money",
+     "weight": 50,
+     "seconds": [
+      120,
+      480
+     ],
+     "min": 200
+    },
+    {
+     "kind": "money",
+     "weight": 15,
+     "seconds": [
+      900,
+      1500
+     ],
+     "min": 800
+    },
+    {
+     "kind": "boost",
+     "weight": 25,
+     "mult": 2.0,
+     "seconds": [
+      300,
+      600,
+      900
+     ]
+    },
+    {
+     "kind": "avatar",
+     "weight": 10
+    }
+   ]
   }
  },
  "friends": {

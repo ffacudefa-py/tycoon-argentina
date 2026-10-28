@@ -75,6 +75,8 @@ static func try_spawn(m: GameModel, forced_id := "") -> Dictionary:
 			chosen = e
 			break
 	var inst := {"id": chosen["id"], "remaining": float(chosen["duration"]), "business": ""}
+	if chosen.has("goal"):
+		inst["goal_base"] = m.metric(chosen["goal"]["metric"])
 	if chosen["target"].get("businesses", "") == "random_owned":
 		var owned := m.owned_ids()
 		inst["business"] = owned[m.rng.randi() % owned.size()]
