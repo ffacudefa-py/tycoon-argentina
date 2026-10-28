@@ -101,12 +101,12 @@ func _process(delta: float) -> void:
 	var st: Dictionary = TutorialSteps.current(m)
 	var modal_open := Main.instance.modal_host.has_open()
 	# Los pasos se muestran en IMPERIO sin ventanas abiertas, salvo el de
-	# contratar (acompaña dentro de Administrar) y el del kiosco (Negocios).
+	# contratar (acompaña dentro de Administrar) y el de la cuota (también en MAPA).
 	var show := Main.instance.section == 0 and not modal_open
 	if step == 4 and modal_open:
 		show = true
 	if step == 5:
-		show = Main.instance.section in [0, 1] and not modal_open
+		show = Main.instance.section in [0, 2] and not modal_open
 	if not show:
 		_hide()
 		return

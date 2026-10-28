@@ -707,7 +707,7 @@ func pending_order_eta(id: String) -> float:
 	return eta
 
 
-## Requisitos con progreso, para mostrar barras ("Kiosco nivel 10: 3/10").
+## Requisitos con progreso, para mostrar barras ("Conquistá Jujuy: 42 %").
 ## Cada uno: {text, current, target, met, money (si se muestra como plata)}.
 func requirements_for_business(id: String) -> Array:
 	var u: Dictionary = data.business_by_id[id]["unlock"]

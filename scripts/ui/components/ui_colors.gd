@@ -59,7 +59,7 @@ static func refresh(b: Button) -> void:
 		b.disabled = false
 
 
-## Fila de requisito con barra: "🔒 Kiosco nivel 10   [████░░] 3/10".
+## Fila de requisito con barra: "🔒 Conquistá Jujuy   [████░░] 42 %".
 static func requirement_row(req: Dictionary, dark := false) -> Control:
 	var v := U.vbox(2)
 	var h := U.hbox(4)
