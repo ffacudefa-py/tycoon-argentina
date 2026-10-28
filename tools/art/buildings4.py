@@ -1406,7 +1406,7 @@ def electronica(t, f):
         roof(cv, 60, G - 34, 70, "dos_aguas")
         door(cv, 74, 16, 26)
         window(cv, 100, G - 26, 18, 12, "simple", lit=True)
-        post_sign(cv, 136, "REPARACIONES", "C2")
+        post_sign(cv, 140, "SERVICE", "C2")
     elif t == 1:
         wall(cv, 40, G - 42, 100, 43, "chapa")
         roof(cv, 40, G - 42, 100, "chapa", 8)
@@ -1629,7 +1629,7 @@ def molino_harinero(t, f):
         door(cv, 34, 34, 36, "persiana")
         for i in range(4):
             silo(cv, 104 + i * 22, 112 - i * 4, 20)
-        neon_sign(cv, 52, G - 110, "MOLINOS PAMPA HÚMEDA", f, ("Y3", "W"))
+        neon_sign(cv, 96, G - 120, "MOLINOS PAMPA HÚMEDA", f, ("Y3", "W"))
     return done(cv)
 
 
