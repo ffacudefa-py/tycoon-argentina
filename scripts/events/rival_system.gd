@@ -2,7 +2,7 @@ class_name RivalSystem
 extends RefCounted
 ## Empresas rivales simuladas (sin economía propia en tiempo real).
 ##
-## Cada rival tiene un poder 1..10 en ciertas zonas y rubros. Le quita
+## 10.0: un rival local por provincia, con poder 1..10. Le quita
 ## clientes a tus negocios de ese rubro en esas zonas. Crece más cuando
 ## tenés presencia en su terreno; podés frenarlo con campañas.
 
@@ -40,6 +40,9 @@ static func advance(m: GameModel, dt: float) -> void:
 	var changed := false
 	for r in m.data.rivals:
 		var st: Dictionary = m.rivals[r["id"]]
+		# Rival de una provincia ya conquistada: queda fuera de juego.
+		if ConquestSystem.is_conquered(m, r["zones"][0]):
+			continue
 		st["timer"] = float(st.get("timer", 0.0)) + dt
 		if float(st.get("cooldown", 0.0)) > 0.0:
 			st["cooldown"] = maxf(0.0, float(st["cooldown"]) - dt)
@@ -82,6 +85,8 @@ static func campaign(m: GameModel, rid: String) -> Dictionary:
 	var st: Dictionary = m.rivals[rid]
 	if float(st.get("cooldown", 0.0)) > 0.0:
 		return GameModel.fail("Tu equipo de marketing descansa: %s." % Fmt.duration(st["cooldown"]))
+	if ConquestSystem.is_conquered(m, m.data.rival_by_id[rid]["zones"][0]):
+		return GameModel.fail("Esa provincia ya es tuya.")
 	if int(st["power"]) <= 1:
 		return GameModel.fail("Este rival ya está en su mínimo.")
 	var cost := campaign_cost(m)
@@ -89,6 +94,7 @@ static func campaign(m: GameModel, rid: String) -> Dictionary:
 		return GameModel.fail("No te alcanza (%s)." % Fmt.cost(cost))
 	var r: Dictionary = m.data.rival_by_id[rid]
 	st["power"] = maxi(1, int(st["power"]) - int(m.data.world["campaign_power_reduction"]))
+	ConquestSystem.campaign_push(m, r["zones"][0])
 	st["cooldown"] = float(m.data.world["campaign_cooldown_seconds"])
 	st["trend"] = -1
 	st["last"] = _line(m, m.data.world["rival_lines"]["campaign"], r["name"], "")

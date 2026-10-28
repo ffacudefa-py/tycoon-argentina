@@ -112,8 +112,9 @@ func _on_setting(key: String, _v: Variant) -> void:
 ## lavadero a cielo abierto no: ahí no se puede cambiar a "adentro".
 static func has_interior(id: String, tier: int) -> bool:
 	var tiers: Array = interiors_data().get("businesses", {}).get(id, [])
+	# 10.0: los negocios sin interior dibujado todavía sólo muestran la fachada.
 	if tier < 0 or tier >= tiers.size():
-		return true
+		return false
 	return bool(tiers[tier].get("has_interior", true))
 
 
@@ -170,8 +171,12 @@ func refresh() -> void:
 		_int_back.texture = U.tex("interiors/%s_%d_back.png" % [bid, tier])
 		_int_front.texture = U.tex("interiors/%s_%d_front.png" % [bid, tier])
 	else:
+		# Fondo propio de la provincia si existe; si no, el provisorio de su región.
+		var street: String = Game.m.data.zone_by_id[s["zone"]].get("street", s["zone"])
 		var loc := "locations/street_%s.png" % s["zone"]
-		_bg.texture = U.tex(loc) if ResourceLoader.exists(U.PA + loc) else U.tex("backgrounds/street_%s.png" % s["zone"])
+		if not ResourceLoader.exists(U.PA + loc):
+			loc = "locations/street_%s.png" % street
+		_bg.texture = U.tex(loc) if ResourceLoader.exists(U.PA + loc) else U.tex("backgrounds/street_%s.png" % street)
 		_building.texture = U.tex("businesses/%s_%d.png" % [bid, tier])
 		_building.hframes = 2 if _building.texture and _building.texture.get_width() >= 384 else 1
 	if _last_tier >= 0 and tier > _last_tier:

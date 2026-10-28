@@ -15,7 +15,7 @@ var _decide_timer := 0.0
 func _init(model: GameModel, holder: Dictionary) -> void:
 	m = model
 	clock_holder = holder
-	m.open_business("puesto")
+	m.open_business(m.first_business())
 
 
 func mark(key: String) -> void:
@@ -111,7 +111,7 @@ func _decide() -> void:
 		if st["available"] and (goal_cost < 0 or st["cost"] < goal_cost * 3):
 			goal_cost = st["cost"]
 			var nb: String = def["id"]
-			goal = func() -> bool: return m.buy_business(nb, "barrio")["ok"]
+			goal = func() -> bool: return m.buy_business(nb)["ok"]
 		break
 	if goal.is_valid() and m.economy.money - reserve >= goal_cost:
 		goal.call()
@@ -119,20 +119,20 @@ func _decide() -> void:
 	for _k in 6:
 		if not _buy_best(reserve, goal_cost):
 			break
-	# Zonas: si una zona sale menos del 15 % del dinero, la compra (para misiones/demanda)
-	for z in m.data.zones:
-		var st := m.zone_status(z["id"])
-		if not st["unlocked"] and st["available"] and st["cost"] < m.economy.money * 0.15:
-			if m.unlock_zone(z["id"])["ok"]:
-				mark("zone_" + z["id"])
-	# Campaña contra rivales cuando es barata
-	for r in m.data.rivals:
-		if int(m.rivals[r["id"]]["power"]) >= 5 and RivalSystem.campaign_cost(m) < m.economy.money * 0.05:
-			RivalSystem.campaign(m, r["id"])
+	# Campaña contra el rival de una provincia en disputa cuando es barata
+	for zid in m.zones:
+		if ConquestSystem.is_conquered(m, zid):
+			continue
+		var rid: String = m.data.zone_by_id[zid]["rival"]
+		if int(m.rivals[rid]["power"]) >= 4 and RivalSystem.campaign_cost(m) < m.economy.money * 0.05:
+			RivalSystem.campaign(m, rid)
 	m.update_progress()
 	mark("stage_%d" % m.stage)
 	for id in m.owned_ids():
 		mark("own_" + id)
+	for zid in m.zones:
+		if ConquestSystem.is_conquered(m, zid):
+			mark("conquer_" + zid)
 
 
 func _buy_best(reserve: int, goal_cost: int) -> bool:

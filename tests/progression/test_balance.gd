@@ -22,15 +22,14 @@ func test_early_game_pacing() -> void:
 		print("      %-13s nv %3d  %s  auto %d  stock %d%%" % [id, m.biz[id]["level"], Fmt.per_sec(d["profit_sec"]), d["automation"], int(m.stock_ratio(id) * 100)])
 	check(tl.has("first_upgrade") or m.total_upgrades() > 0, "compró mejoras")
 	check(tl.get("first_hire", INF) < 240.0, "primer empleado antes de 4 min (fue %s)" % Fmt.duration(tl.get("first_hire", -1)))
-	check(tl.get("own_kiosco", INF) < 420.0, "kiosco antes de 7 min (fue %s)" % Fmt.duration(tl.get("own_kiosco", -1)))
-	check(tl.get("stage_2", INF) < 300.0, "etapa 2 antes de 5 min")
-	check(tl.get("own_comida", INF) < 1500.0, "tercer negocio antes de 25 min")
-	check(tl.get("stage_3", INF) < 3600.0, "etapa 3 antes de 1 h")
-	# Cotas inferiores: si algo explota (cascadas de recompensas, bugs de dinero) se nota acá.
-	check(tl.get("own_kiosco", 0.0) > 45.0, "el kiosco no llega en menos de 45 s (fue %s)" % Fmt.duration(tl.get("own_kiosco", 0.0)))
-	check(tl.get("own_lavadero", INF) > 150.0, "el lavadero no llega antes de 2,5 min")
-	check(tl.get("stage_4", INF) > 300.0, "la etapa 4 no llega antes de 5 min")
-	check(tl.get("stage_5", INF) > 1800.0, "el prestigio no se habilita antes de 30 min")
+	# 10.0: conquistas. La primera provincia en 8-20 min; tres antes de 1 h.
+	var z: Array = data().zones
+	var c0: float = tl.get("conquer_" + z[0]["id"], INF)
+	check(c0 < 1200.0, "primera conquista antes de 20 min (fue %s)" % Fmt.duration(c0))
+	check(c0 > 480.0, "la primera conquista no llega antes de 8 min (fue %s)" % Fmt.duration(c0))
+	check(tl.get("conquer_" + z[2]["id"], INF) < 3600.0, "tres provincias antes de 1 h")
+	check(tl.get("conquer_" + z[1]["id"], INF) - c0 > 600.0, "la segunda conquista tarda más de 10 min")
+	check(not tl.has("stage_2") or tl["stage_2"] > 5400.0, "el NOA completo no llega antes de 1 h 30 min")
 	check(m.economy.money >= 0, "nunca negativo")
 	# Ningún negocio nuevo debe ser peor que el anterior en ganancia por nivel.
 	var prev := 0.0

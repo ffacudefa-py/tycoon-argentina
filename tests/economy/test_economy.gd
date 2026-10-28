@@ -59,10 +59,10 @@ func test_format() -> void:
 
 func test_manual_sale_once_per_tap() -> void:
 	var m := make_model()
-	check(m.tap_sell("puesto")["ok"], "primer toque vende")
-	check(not m.tap_sell("puesto")["ok"], "segundo toque mientras atiende no duplica")
+	check(m.tap_sell(B0)["ok"], "primer toque vende")
+	check(not m.tap_sell(B0)["ok"], "segundo toque mientras atiende no duplica")
 	run(m, 1.2)
-	var d := m.derive("puesto")
+	var d := m.derive(B0)
 	var expected := 0.0
 	for p in d["products"]:
 		expected += p["u"] * p["price"]
@@ -75,25 +75,25 @@ func test_manual_sale_once_per_tap() -> void:
 func test_level_purchase() -> void:
 	var m := make_model()
 	m.economy.reset_run(1000)
-	var c1 := m.level_cost("puesto", 1)
-	var c10 := m.level_cost("puesto", 10)
+	var c1 := m.level_cost(B0, 1)
+	var c10 := m.level_cost(B0, 10)
 	check(c10 > c1 * 10, "10 niveles cuestan más que 10 veces el primero")
-	var n := m.max_affordable_levels("puesto")
-	check(m.level_cost("puesto", n) <= 1000 and m.level_cost("puesto", n + 1) > 1000, "máximo comprable correcto")
-	check(m.buy_levels("puesto", 1)["ok"], "compra")
+	var n := m.max_affordable_levels(B0)
+	check(m.level_cost(B0, n) <= 1000 and m.level_cost(B0, n + 1) > 1000, "máximo comprable correcto")
+	check(m.buy_levels(B0, 1)["ok"], "compra")
 	eq(m.economy.money, 1000 - c1, "descuenta exacto")
-	eq(int(m.biz["puesto"]["level"]), 2, "nivel 2")
+	eq(int(m.biz[B0]["level"]), 2, "nivel 2")
 	m.economy.reset_run(0)
-	check(not m.buy_levels("puesto", 1)["ok"], "sin plata no compra")
-	eq(int(m.biz["puesto"]["level"]), 2, "nivel intacto")
+	check(not m.buy_levels(B0, 1)["ok"], "sin plata no compra")
+	eq(int(m.biz[B0]["level"]), 2, "nivel intacto")
 
 
 func test_milestone_speed_and_units() -> void:
 	var m := make_model()
-	var c1: float = m.derive("puesto")["cycle"]
-	m.biz["puesto"]["level"] = 10
+	var c1: float = m.derive(B0)["cycle"]
+	m.biz[B0]["level"] = 10
 	m.invalidate()
-	var d := m.derive("puesto")
+	var d := m.derive(B0)
 	near(d["cycle"], c1, 0.001, "el hito 10 no cambia la velocidad")
 	eq(d["slots"], 2, "el hito 10 suma un puesto de empleado")
 	near(d["units"], 10.0, 0.001, "10 clientes por ciclo")
@@ -101,28 +101,28 @@ func test_milestone_speed_and_units() -> void:
 
 func test_upgrades_have_real_effects() -> void:
 	var m := make_model()
-	m.biz["puesto"]["level"] = 60
+	m.biz[B0]["level"] = 60
 	m.invalidate()
-	var before := m.derive("puesto").duplicate(true)
+	var before := m.derive(B0).duplicate(true)
 	for uid in data().upgrade_by_id:
 		var u: Dictionary = data().upgrade_by_id[uid]
 		for req in u["requires"]:
-			m.biz["puesto"]["upgrades"][req] = maxi(int(m.biz["puesto"]["upgrades"].get(req, 0)), int(u["requires"][req]))
-	m.biz["puesto"]["upgrades"] = {}
+			m.biz[B0]["upgrades"][req] = maxi(int(m.biz[B0]["upgrades"].get(req, 0)), int(u["requires"][req]))
+	m.biz[B0]["upgrades"] = {}
 	m.invalidate()
 	# Cada mejora debe cambiar al menos una variable del juego.
 	for uid in data().upgrade_by_id:
 		var m2 := make_model()
-		m2.biz["puesto"]["level"] = 60
+		m2.biz[B0]["level"] = 60
 		var u: Dictionary = data().upgrade_by_id[uid]
 		for req in u["requires"]:
-			m2.biz["puesto"]["upgrades"][req] = int(u["requires"][req])
+			m2.biz[B0]["upgrades"][req] = int(u["requires"][req])
 		m2.invalidate()
-		var a := m2.derive("puesto").duplicate(true)
+		var a := m2.derive(B0).duplicate(true)
 		m2.economy.reset_run(10_000_000_000)
-		var r := m2.buy_upgrade("puesto", uid)
+		var r := m2.buy_upgrade(B0, uid)
 		check(r["ok"], "%s se puede comprar: %s" % [uid, r["msg"]])
-		var b := m2.derive("puesto")
+		var b := m2.derive(B0)
 		var changed: bool = a["cycle"] != b["cycle"] or a["units"] != b["units"] or a["price_mult"] != b["price_mult"] \
 			or a["cost_mult"] != b["cost_mult"] or a["slots"] != b["slots"] or a["products"][0]["cap"] != b["products"][0]["cap"] \
 			or a["mods"]["employee_eff"] != b["mods"]["employee_eff"] or a["mods"]["salary_reduction"] != b["mods"]["salary_reduction"]
@@ -133,65 +133,64 @@ func test_upgrades_have_real_effects() -> void:
 func test_upgrade_requirements() -> void:
 	var m := make_model()
 	m.economy.reset_run(1_000_000_000)
-	var st := m.upgrade_status("puesto", "sucursal")
+	var st := m.upgrade_status(B0, "sucursal")
 	check(st["locked"], "sucursal bloqueada al inicio")
-	check(not m.buy_upgrade("puesto", "sucursal")["ok"], "no se compra bloqueada")
-	m.biz["puesto"]["level"] = 2
-	check(m.buy_upgrade("puesto", "stock_ampliado")["ok"], "stock ampliado a nivel 2")
+	check(not m.buy_upgrade(B0, "sucursal")["ok"], "no se compra bloqueada")
+	m.biz[B0]["level"] = 2
+	check(m.buy_upgrade(B0, "stock_ampliado")["ok"], "stock ampliado a nivel 2")
 	for i in 10:
-		m.buy_upgrade("puesto", "stock_ampliado")
-	eq(int(m.biz["puesto"]["upgrades"]["stock_ampliado"]), 5, "respeta el máximo")
+		m.buy_upgrade(B0, "stock_ampliado")
+	eq(int(m.biz[B0]["upgrades"]["stock_ampliado"]), 5, "respeta el máximo")
 
 
 func test_restock_and_delivery() -> void:
 	var m := make_model()
 	m.economy.reset_run(10_000)
-	var q := m.restock_quote("puesto")
+	var q := m.restock_quote(B0)
 	check(q["total"] > 0, "hay algo para reponer al empezar a medio stock")
 	var money0 := m.economy.money
-	check(m.restock("puesto")["ok"], "repone")
+	check(m.restock(B0)["ok"], "repone")
 	eq(m.economy.money, money0 - q["total"], "cobra lo cotizado")
-	check(not m.biz["puesto"]["orders"].is_empty(), "pedido en camino")
-	run(m, float(data().business_by_id["puesto"]["restock_time"]) + 0.2)
-	check(m.biz["puesto"]["orders"].is_empty(), "llegó")
-	near(m.stock_ratio("puesto"), 1.0, 0.01, "depósito lleno")
-	check(not m.restock("puesto")["ok"], "lleno: no repone de nuevo")
+	check(not m.biz[B0]["orders"].is_empty(), "pedido en camino")
+	run(m, float(data().business_by_id[B0]["restock_time"]) + 0.2)
+	check(m.biz[B0]["orders"].is_empty(), "llegó")
+	near(m.stock_ratio(B0), 1.0, 0.01, "depósito lleno")
+	check(not m.restock(B0)["ok"], "lleno: no repone de nuevo")
 
 
 func test_restock_partial_when_short() -> void:
 	var m := make_model()
 	m.economy.reset_run(5)
-	var r := m.restock("puesto")
+	var r := m.restock(B0)
 	check(r["ok"], "compra parcial con poca plata")
 	eq(m.economy.money, 0, "usa lo que hay, sin negativos")
 
 
 func test_no_stock_no_sale() -> void:
 	var m := make_model()
-	for pid in m.biz["puesto"]["stock"]:
-		m.biz["puesto"]["stock"][pid] = 0.0
-	check(not m.tap_sell("puesto")["ok"], "sin stock no se vende")
+	for pid in m.biz[B0]["stock"]:
+		m.biz[B0]["stock"][pid] = 0.0
+	check(not m.tap_sell(B0)["ok"], "sin stock no se vende")
 
 
 func test_buy_business_requirements() -> void:
 	var m := make_model()
 	m.economy.reset_run(1_000_000)
-	var r := m.buy_business("kiosco")
-	check(not r["ok"], "kiosco requiere puesto nivel 10")
-	m.biz["puesto"]["level"] = 10
-	m.invalidate()
-	r = m.buy_business("kiosco")
+	var r := m.buy_business(B1)
+	check(not r["ok"], "el segundo negocio requiere conquistar la primera provincia")
+	conquer(m, B0)
+	r = m.buy_business(B1)
 	check(r["ok"], "ahora sí: %s" % r["msg"])
-	check(m.biz["kiosco"]["owned"], "kiosco propio")
-	near(m.stock_ratio("kiosco"), 1.0, 0.01, "viene con stock lleno")
-	check(not m.buy_business("kiosco")["ok"], "no se compra dos veces")
-	check(not m.buy_business("lavadero")["ok"], "lavadero bloqueado por etapa/requisitos")
+	check(m.biz[B1]["owned"], "segundo negocio propio")
+	near(m.stock_ratio(B1), 1.0, 0.01, "viene con stock lleno")
+	check(not m.buy_business(B1)["ok"], "no se compra dos veces")
+	check(not m.buy_business(B3)["ok"], "el cuarto sigue bloqueado")
 
 
 func test_net_worth_rules() -> void:
 	var m := make_model()
 	m.economy.reset_run(1000)
 	var nw0 := m.net_worth()
-	var cost := m.level_cost("puesto", 1)
-	m.buy_levels("puesto", 1)
+	var cost := m.level_cost(B0, 1)
+	m.buy_levels(B0, 1)
 	near(m.net_worth(), nw0 - cost + cost * 0.5, 0.01, "una inversión vale la mitad en el patrimonio")

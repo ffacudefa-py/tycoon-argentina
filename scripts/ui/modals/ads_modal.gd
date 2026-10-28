@@ -27,7 +27,7 @@ static func open(business := "") -> void:
 
 
 static func _current_business() -> String:
-	return Main.instance.selected_business if Main.instance else "puesto"
+	return Main.instance.selected_business if Main.instance else Game.m.first_business()
 
 
 static func _fill(holder: Control, params: Dictionary) -> void:

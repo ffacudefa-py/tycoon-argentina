@@ -31,7 +31,7 @@ var economy := Economy.new()
 
 var biz := {}                 ## id -> estado del negocio (Dictionary)
 var employees := {}           ## emp_id -> empleado
-var zones := {}               ## zone_id -> {"paid": int}
+var zones := {}               ## provincia abierta -> {"paid", "share", "conquered", "at"}
 var counters := {}            ## métricas acumuladas (ventas, reposiciones...)
 var stats := {}               ## tiempo de juego, récords
 var profile := {}
@@ -100,11 +100,16 @@ func new_game() -> void:
 	time_state = {"last_active": now(), "max_seen": now()}
 	economy.lifetime_earned = 0
 	_reset_run()
-	# Primera partida: el puesto arranca cerrado y sin mercadería; la misión
-	# guiada enseña abrir → comprar mercadería → vender.
-	biz["puesto"]["closed"] = true
-	for pid in biz["puesto"]["stock"]:
-		biz["puesto"]["stock"][pid] = 0.0
+	# Primera partida: el primer negocio arranca cerrado y sin mercadería; la
+	# misión guiada enseña abrir → comprar mercadería → vender.
+	var first := first_business()
+	biz[first]["closed"] = true
+	for pid in biz[first]["stock"]:
+		biz[first]["stock"][pid] = 0.0
+
+
+func first_business() -> String:
+	return data.first_business()
 
 
 ## Reinicia lo que se pierde al fundar un nuevo grupo (y al empezar).
@@ -113,7 +118,7 @@ func _reset_run() -> void:
 	for def in data.businesses:
 		biz[def["id"]] = _new_business_state(def["id"])
 	employees = {}
-	zones = {"barrio": {"paid": 0}}
+	zones = {}
 	boosts = []
 	salary_due = 0.0
 	salary_debt = 0
@@ -129,11 +134,12 @@ func _reset_run() -> void:
 	if seed_lvl > 0:
 		start_money = maxi(start_money, int(data.perk_by_id["capital_semilla"]["effects"]["start_money"][seed_lvl - 1]))
 	economy.reset_run(start_money)
-	_own_business("puesto", "barrio", float(data.balance["start_stock_fraction"]))
+	_own_business(first_business(), float(data.balance["start_stock_fraction"]))
 	var fr := perk_level("franquicia")
 	if fr > 0:
 		for extra in data.perk_by_id["franquicia"]["effects"]["start_businesses"][fr - 1]:
-			_own_business(extra, "barrio", 1.0)
+			if biz.has(extra):
+				_own_business(extra, 1.0)
 	invalidate()
 
 
@@ -143,7 +149,7 @@ func _new_business_state(id: String) -> Dictionary:
 	for p in def["products"]:
 		stock[p["id"]] = 0.0
 	return {
-		"id": id, "owned": false, "level": 0, "zone": "barrio",
+		"id": id, "owned": false, "level": 0, "zone": data.zone_for_business(id),
 		"upgrades": {}, "stock": stock, "orders": {},
 		"progress": 0.0, "running": false, "carry": 0.0,
 		"invested": 0, "earned": 0, "sales": 0,
@@ -152,11 +158,14 @@ func _new_business_state(id: String) -> Dictionary:
 	}
 
 
-func _own_business(id: String, zone: String, stock_fraction: float) -> void:
+## Cada negocio vive en su provincia: abrirlo abre la provincia (cuota 0 %).
+func _own_business(id: String, stock_fraction: float) -> void:
 	var s: Dictionary = biz[id]
 	s["owned"] = true
 	s["level"] = 1
-	s["zone"] = zone
+	s["zone"] = data.zone_for_business(id)
+	if not zones.has(s["zone"]):
+		zones[s["zone"]] = {"paid": 0, "share": 0.0, "conquered": false}
 	invalidate()
 	var d := derive(id)
 	for p in d["products"]:
@@ -239,10 +248,11 @@ func _compute(id: String) -> Dictionary:
 		salary += float(e["salary"])
 	salary *= maxf(0.0, 1.0 - mods["salary_reduction"])
 
-	# Directores regionales de la misma zona (de cualquier negocio)
+	# Directores regionales de la misma región (de cualquier negocio)
 	var director_bonus := 0.0
+	var region: String = data.zone_by_id[s["zone"]]["region"]
 	for e in employees.values():
-		if e["role"] == "director" and biz.has(e["business"]) and biz[e["business"]]["zone"] == s["zone"]:
+		if e["role"] == "director" and biz.has(e["business"]) and data.zone_by_id[biz[e["business"]]["zone"]]["region"] == region:
 			director_bonus += float(data.role_by_id["director"]["effects"]["zone_revenue"]) * employee_efficiency(e) * debt_mult
 
 	# Zona y competencia
@@ -257,7 +267,7 @@ func _compute(id: String) -> Dictionary:
 	# income_rate (0,8) achica precios y costo de mercadería por igual: el margen
 	# se mantiene y la ganancia neta baja 20 %.
 	var rate := income_rate()
-	var income_mult := prestige_multiplier() * boost_multiplier() * rate
+	var income_mult := prestige_multiplier() * boost_multiplier() * rate * ConquestSystem.income_mult(self, id)
 	var price_index := float(inflation["price_index"]) if inflation_enabled else 1.0
 	var cost_index := float(inflation["cost_index"]) if inflation_enabled else 1.0
 
@@ -479,13 +489,13 @@ static func fail(msg: String) -> Dictionary:
 	return {"ok": false, "msg": msg}
 
 
-## Abre el negocio (sólo el puesto empieza cerrado en la primera partida).
+## Abre el negocio (sólo el primero empieza cerrado en la primera partida).
 func open_business(id: String) -> Dictionary:
 	var s: Dictionary = biz[id]
 	if not s.get("closed", false):
 		return fail("Ya está abierto.")
 	s["closed"] = false
-	add_milestone("Abriste tu primer puestito en el Barrio Villa Esperanza.")
+	add_milestone("Abriste %s en %s." % [data.business_by_id[id]["name"], data.zone_by_id[s["zone"]]["name"]])
 	celebrate.emit("unlock", {"business": id})
 	business_changed.emit(id)
 	return ok()
@@ -508,7 +518,7 @@ func tap_sell(id: String) -> Dictionary:
 	if not s["owned"]:
 		return fail("No tenés este negocio.")
 	if s.get("closed", false):
-		return fail("El puesto está cerrado: tocá ABRIR.")
+		return fail("Está cerrado: tocá ABRIR.")
 	if s["running"]:
 		return fail("Ya estás atendiendo.")
 	if not has_stock(id):
@@ -680,7 +690,7 @@ func restock(id: String, automatic := false) -> Dictionary:
 ## el mayorista fía un poco de stock para volver a arrancar.
 func _emergency_stock(id: String, d: Dictionary) -> Dictionary:
 	var s: Dictionary = biz[id]
-	if id != "puesto" or has_stock(id) or not s["orders"].is_empty():
+	if id != first_business() or has_stock(id) or not s["orders"].is_empty():
 		return fail("No te alcanza para reponer.")
 	for p in d["products"]:
 		s["orders"][p["id"]] = {"units": maxf(1.0, float(p["cap"]) * 0.1), "eta": d["restock_time"]}
@@ -705,7 +715,12 @@ func requirements_for_business(id: String) -> Array:
 	if stage < int(u["stage"]):
 		out.append(_stage_requirement(int(u["stage"])))
 	var req = u.get("requires")
-	if req != null:
+	if req != null and req.get("conquer", false):
+		var zid := data.zone_for_business(req["business"])
+		var sh := ConquestSystem.share(self, zid)
+		out.append({"text": "Conquistá %s" % data.zone_by_id[zid]["name"],
+			"current": floorf(sh * 100.0), "target": 100.0, "met": ConquestSystem.is_conquered(self, zid), "money": false, "percent": true})
+	elif req != null:
 		var rs: Dictionary = biz[req["business"]]
 		var lvl := int(rs["level"]) if rs["owned"] else 0
 		out.append({"text": "%s nivel %d" % [data.business_by_id[req["business"]]["name"], int(req["level"])],
@@ -719,12 +734,8 @@ func requirements_for_zone(zid: String) -> Array:
 
 
 func _stage_requirement(target_stage: int) -> Dictionary:
-	var need := 0.0
-	for st in data.stages:
-		if int(st["id"]) == target_stage:
-			need = float(st["earnings"])
-	return {"text": "Etapa %d: %s (ganá %s en total)" % [target_stage, data.stage_name(target_stage), Fmt.money(need)],
-		"current": float(economy.run_earned), "target": need, "met": false, "money": true}
+	return {"text": "Etapa %d: %s" % [target_stage, data.stage_name(target_stage)],
+		"current": float(stage), "target": float(target_stage), "met": false, "money": false}
 
 
 ## Requisitos para comprar un negocio.
@@ -735,7 +746,10 @@ func unlock_status(id: String) -> Dictionary:
 	if stage < int(u["stage"]):
 		reasons.append("Etapa %d: %s" % [int(u["stage"]), data.stage_name(int(u["stage"]))])
 	var req = u.get("requires")
-	if req != null:
+	if req != null and req.get("conquer", false):
+		if not ConquestSystem.business_conquered(self, req["business"]):
+			reasons.append("Conquistá %s" % data.zone_by_id[data.zone_for_business(req["business"])]["name"])
+	elif req != null:
 		var rs: Dictionary = biz[req["business"]]
 		if not rs["owned"] or int(rs["level"]) < int(req["level"]):
 			reasons.append("%s nivel %d" % [data.business_by_id[req["business"]]["name"], int(req["level"])])
@@ -743,17 +757,18 @@ func unlock_status(id: String) -> Dictionary:
 	return {"cost": cost, "reasons": reasons, "available": reasons.is_empty(), "affordable": economy.can_afford(cost)}
 
 
-func buy_business(id: String, zone_id: String = "barrio") -> Dictionary:
+## Abre el negocio en su provincia (zone_id se ignora: queda por compatibilidad).
+func buy_business(id: String, _zone_id: String = "") -> Dictionary:
 	if biz[id]["owned"]:
 		return fail("Ya tenés este negocio.")
-	if not zones.has(zone_id):
-		return fail("Todavía no tenés acceso a esa zona.")
+	var zone_id := data.zone_for_business(id)
 	var st := unlock_status(id)
 	if not st["available"]:
 		return fail("Falta: " + ", ".join(st["reasons"]))
 	if not economy.spend(st["cost"], "negocios"):
 		return fail("No te alcanza la plata.")
-	_own_business(id, zone_id, 1.0)
+	_own_business(id, 1.0)
+	zones[zone_id]["paid"] = st["cost"]
 	biz[id]["invested"] = st["cost"]
 	var name: String = data.business_by_id[id]["name"]
 	add_milestone("Abriste %s en %s." % [name, data.zone_by_id[zone_id]["name"]])
@@ -762,6 +777,7 @@ func buy_business(id: String, zone_id: String = "barrio") -> Dictionary:
 	EmployeeSystem.ensure_candidates(self, id)
 	businesses_changed.emit()
 	business_changed.emit(id)
+	world_changed.emit()
 	return ok()
 
 
@@ -770,7 +786,10 @@ func relocate_cost(id: String) -> int:
 	return maxi(100, Economy.to_int_ceil(c))
 
 
+## 10.0: cada negocio pertenece a su provincia; no hay mudanzas.
 func relocate(id: String, zone_id: String) -> Dictionary:
+	if zone_id != data.zone_for_business(id):
+		return fail("Cada negocio pertenece a su provincia.")
 	var s: Dictionary = biz[id]
 	if not s["owned"]:
 		return fail("No tenés este negocio.")
@@ -806,31 +825,20 @@ func preview_profit_gain(id: String, mutator: Callable) -> float:
 # Acciones: mapa
 # ---------------------------------------------------------------------------
 
+## Estado de una provincia: abierta = tenés su negocio. Abrirla = comprar el negocio.
 func zone_status(zid: String) -> Dictionary:
-	var z: Dictionary = data.zone_by_id[zid]
-	var reasons := []
-	if stage < int(z["stage"]):
-		reasons.append("Etapa %d: %s" % [int(z["stage"]), data.stage_name(int(z["stage"]))])
-	var cost := Economy.to_int_ceil(float(z["cost"]))
-	return {"unlocked": zones.has(zid), "cost": cost, "reasons": reasons, "available": reasons.is_empty(), "affordable": economy.can_afford(cost)}
+	var bid: String = data.zone_by_id[zid]["business"]
+	var st := unlock_status(bid)
+	st["unlocked"] = zones.has(zid)
+	st["conquered"] = ConquestSystem.is_conquered(self, zid)
+	st["share"] = ConquestSystem.share(self, zid)
+	return st
 
 
 func unlock_zone(zid: String) -> Dictionary:
 	if zones.has(zid):
-		return fail("Ya tenés esa zona.")
-	var st := zone_status(zid)
-	if not st["available"]:
-		return fail("Falta: " + ", ".join(st["reasons"]))
-	if not economy.spend(st["cost"], "zonas"):
-		return fail("No te alcanza la plata.")
-	zones[zid] = {"paid": st["cost"]}
-	var zname: String = data.zone_by_id[zid]["name"]
-	add_milestone("Desembarcaste en %s." % zname)
-	celebrate.emit("zone", {"zone": zid})
-	notify.emit("¡Nueva zona: %s!" % zname, "good")
-	invalidate()
-	world_changed.emit()
-	return ok()
+		return fail("Ya tenés esa provincia.")
+	return buy_business(data.zone_by_id[zid]["business"])
 
 
 func businesses_in_zone(zid: String) -> Array:
@@ -934,6 +942,8 @@ func metric(name: String) -> float:
 				mx = maxi(mx, int(biz[id]["level"]))
 			return float(mx)
 		"zones_unlocked": return float(zones.size())
+		"conquered": return float(ConquestSystem.conquered_count(self))
+		"regions_conquered": return float(ConquestSystem.regions_conquered(self))
 		"branches":
 			var br := 0
 			for id in owned_ids():
@@ -963,6 +973,7 @@ func simulate(dt: float, offline := false) -> void:
 		RivalSystem.advance(self, dt)
 	for id in owned_ids():
 		BusinessSim.advance(self, id, dt)
+	ConquestSystem.advance(self, dt)
 	EmployeeSystem.advance(self, dt, offline)
 	if not offline:
 		stats["play_time"] = float(stats.get("play_time", 0.0)) + dt
@@ -998,9 +1009,14 @@ func add_boost(mult: float, seconds: float) -> void:
 	invalidate()
 
 
+## 10.0: la etapa es 1 + regiones conquistadas por completo (7 = toda la Argentina).
+func conquest_stage() -> int:
+	return mini(1 + ConquestSystem.regions_conquered(self), data.stages.size())
+
+
 ## Se llama una vez por segundo: etapas, misiones, logros, récords.
 func update_progress() -> void:
-	var new_stage := data.stage_for(float(economy.run_earned))
+	var new_stage := conquest_stage()
 	if new_stage > stage:
 		stage = new_stage
 		invalidate()
@@ -1030,7 +1046,8 @@ func to_dict() -> Dictionary:
 		bdict[id] = s
 	var zdict := {}
 	for z in zones:
-		zdict[z] = {"paid": str(zones[z]["paid"])}
+		zdict[z] = {"paid": str(zones[z]["paid"]), "share": float(zones[z].get("share", 0.0)),
+			"conquered": bool(zones[z].get("conquered", false)), "at": float(zones[z].get("at", 0.0))}
 	return {
 		"economy": economy.to_dict(),
 		"businesses": bdict,
@@ -1063,14 +1080,18 @@ func to_dict() -> Dictionary:
 ## Carga tolerante: cualquier campo faltante o inválido toma un valor seguro.
 func from_dict(d: Dictionary) -> void:
 	new_game()
+	if d.get("fresh_start", false):
+		_load_fresh_start(d)
+		return
 	economy.from_dict(d.get("economy", {}))
 	var bdict: Dictionary = d.get("businesses", {})
 	for id in biz:
 		if bdict.has(id) and bdict[id] is Dictionary:
 			biz[id] = _sanitize_business(id, bdict[id])
-	if not biz["puesto"]["owned"]:
-		biz["puesto"]["owned"] = true
-		biz["puesto"]["level"] = maxi(1, int(biz["puesto"]["level"]))
+	var first := first_business()
+	if not biz[first]["owned"]:
+		biz[first]["owned"] = true
+		biz[first]["level"] = maxi(1, int(biz[first]["level"]))
 	employees = {}
 	var edict = d.get("employees", {})
 	if edict is Dictionary:
@@ -1084,12 +1105,17 @@ func from_dict(d: Dictionary) -> void:
 				e["name"] = str(e.get("name", "Empleado"))
 				e["id"] = str(eid)
 				employees[str(eid)] = e
-	zones = {"barrio": {"paid": 0}}
+	zones = {}
 	var zd = d.get("zones", {})
 	if zd is Dictionary:
 		for z in zd:
-			if data.zone_by_id.has(z):
-				zones[z] = {"paid": maxi(0, Economy.s2i(zd[z].get("paid", 0)) if zd[z] is Dictionary else 0)}
+			if data.zone_by_id.has(z) and zd[z] is Dictionary:
+				zones[z] = {"paid": maxi(0, Economy.s2i(zd[z].get("paid", 0))),
+					"share": clampf(float(zd[z].get("share", 0.0)), 0.0, 1.0),
+					"conquered": bool(zd[z].get("conquered", false)), "at": float(zd[z].get("at", 0.0))}
+	for id in owned_ids():
+		if not zones.has(biz[id]["zone"]):
+			zones[biz[id]["zone"]] = {"paid": 0, "share": 0.0, "conquered": false}
 	counters = _dict_or(d.get("counters"), {})
 	stats = _merge(stats, d.get("stats"))
 	profile = _merge(profile, d.get("profile"))
@@ -1126,7 +1152,28 @@ func from_dict(d: Dictionary) -> void:
 	salary_due = maxf(0.0, float(d.get("salary_due", 0.0)))
 	salary_debt = maxi(0, Economy.s2i(d.get("salary_debt", 0)))
 	next_employee_id = maxi(int(d.get("next_employee_id", 1)), employees.size() + 1)
-	stage = maxi(1, data.stage_for(float(economy.run_earned)))
+	stage = conquest_stage()
+	invalidate()
+
+
+## 10.0: las partidas 0.7 empiezan de cero (Migrations._v3_to_v4); sólo se
+## conservan perfil, recompensa diaria, anuncios, amigos y fecha de creación.
+func _load_fresh_start(d: Dictionary) -> void:
+	profile = _merge(profile, d.get("profile"))
+	if not profile["avatars"] is Array:
+		profile["avatars"] = _default_avatars()
+	profile["milestones"] = []
+	daily_reward = _merge(daily_reward, d.get("daily_reward"))
+	ads = _merge(ads, d.get("ads"))
+	social = _merge(social, d.get("social"))
+	if not ads["granted"] is Array:
+		ads["granted"] = []
+	if not ads["cooldowns"] is Dictionary:
+		ads["cooldowns"] = {}
+	var created = d.get("stats", {}).get("created") if d.get("stats") is Dictionary else null
+	if created != null:
+		stats["created"] = float(created)
+	add_milestone("Arrancó la 10.0 Sigma Deza: a conquistar la Argentina desde el NOA.")
 	invalidate()
 
 
@@ -1135,7 +1182,7 @@ func _sanitize_business(id: String, src: Dictionary) -> Dictionary:
 	var s := _new_business_state(id)
 	s["owned"] = bool(src.get("owned", false))
 	s["level"] = clampi(int(src.get("level", 0)), 1 if s["owned"] else 0, int(def["max_level"]))
-	s["zone"] = str(src.get("zone", "barrio")) if data.zone_by_id.has(str(src.get("zone", ""))) else "barrio"
+	s["zone"] = data.zone_for_business(id)
 	var up = src.get("upgrades", {})
 	if up is Dictionary:
 		for uid in up:

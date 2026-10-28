@@ -305,17 +305,13 @@ func _process(delta: float) -> void:
 func _refresh() -> void:
 	if _stage_bar == null or not is_instance_valid(_stage_bar):
 		return
-	var cur := 0.0
-	var nxt := -1.0
-	for st in m.data.stages:
-		if int(st["id"]) == m.stage:
-			cur = float(st["earnings"])
-		if int(st["id"]) == m.stage + 1:
-			nxt = float(st["earnings"])
-	if nxt < 0.0:
+	# 10.0: la etapa avanza con cada región conquistada.
+	if m.stage >= m.data.stages.size():
 		_stage_bar.value = 1.0
-		_stage_label.text = "¡Etapa máxima!"
+		_stage_label.text = "¡Toda la Argentina es tuya!"
 	else:
-		var e := float(m.economy.run_earned)
-		_stage_bar.value = clampf((e - cur) / (nxt - cur), 0.0, 1.0)
-		_stage_label.text = "Ganado: %s / %s para la etapa %d" % [Fmt.money(e), Fmt.money(nxt), m.stage + 1]
+		var region: Dictionary = m.data.regions[m.stage - 1]
+		var total := m.data.zones_in_region(region["id"]).size()
+		var done := ConquestSystem.conquered_in_region(m, region["id"])
+		_stage_bar.value = float(done) / maxf(1.0, float(total))
+		_stage_label.text = "%s: %d/%d provincias para la etapa %d" % [region["name"], done, total, m.stage + 1]

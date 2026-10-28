@@ -17,7 +17,7 @@ signal business_selected(id: String)
 const SECTIONS := ["Imperio", "Negocios", "Mapa", "Objetivos", "Perfil"]
 
 var m: GameModel
-var selected_business := "puesto"
+var selected_business := ""
 var section := 0
 var targets := {}            ## controles que el tutorial puede señalar
 
@@ -37,6 +37,7 @@ var _back_armed := 0
 func _ready() -> void:
 	instance = self
 	m = Game.m
+	selected_business = m.first_business()
 	_fit_integer_scale()
 	get_window().size_changed.connect(_fit_integer_scale)
 	theme = ThemeBuilder.build()
@@ -237,7 +238,7 @@ func fx_center() -> Vector2:
 
 ## Se cargó la partida de la nube: se rearman las pantallas sin reiniciar el tutorial.
 func _on_model_loaded() -> void:
-	selected_business = "puesto"
+	selected_business = m.first_business()
 	for s in screens:
 		if s.has_method("rebuild"):
 			s.rebuild()
@@ -245,7 +246,7 @@ func _on_model_loaded() -> void:
 
 
 func _on_model_reset() -> void:
-	selected_business = "puesto"
+	selected_business = m.first_business()
 	for s in screens:
 		if s.has_method("rebuild"):
 			s.rebuild()

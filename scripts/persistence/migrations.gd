@@ -8,7 +8,7 @@ extends RefCounted
 ## Los campos que falten después se completan con valores por defecto en
 ## GameModel.from_dict(), así que agregar campos nuevos no requiere migración.
 
-const CURRENT_VERSION := 3
+const CURRENT_VERSION := 4
 
 
 static func migrate(payload: Dictionary, from_version: int) -> Dictionary:
@@ -20,6 +20,8 @@ static func migrate(payload: Dictionary, from_version: int) -> Dictionary:
 				p = _v1_to_v2(p)
 			2:
 				p = _v2_to_v3(p)
+			3:
+				p = _v3_to_v4(p)
 			_:
 				pass
 		v += 1
@@ -58,3 +60,24 @@ static func _v2_to_v3(p: Dictionary) -> Dictionary:
 					if c is Dictionary and c.has("salary"):
 						c["salary"] = snappedf(float(c["salary"]) * V3_SALARY_RATE, 0.01)
 	return p
+
+
+## v3 -> v4 (10.0 "Sigma Deza"): el juego pasa a ser conquistar la Argentina
+## con negocios provinciales nuevos. Las partidas viejas empiezan de cero sin
+## premio (decisión de diseño); sólo se conserva lo que no es progreso:
+## perfil (nombre, avatar, foto, banner), recompensa diaria, anuncios, amigos
+## y la fecha de creación. GameModel.from_dict() lo detecta por fresh_start.
+const V4_KEEP := ["profile", "daily_reward", "ads", "social", "time"]
+
+static func _v3_to_v4(p: Dictionary) -> Dictionary:
+	var out := {"fresh_start": true, "economy": {"money": "0"}, "businesses": {}}
+	for k in V4_KEEP:
+		if p.has(k):
+			out[k] = p[k]
+	if p.get("stats") is Dictionary and p["stats"].has("created"):
+		out["stats"] = {"created": p["stats"]["created"]}
+	if not out.get("profile") is Dictionary:
+		out["profile"] = {}
+	if not out.get("time") is Dictionary:
+		out["time"] = {}
+	return out

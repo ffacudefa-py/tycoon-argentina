@@ -13,9 +13,9 @@
   },
   {
    "id": "m_nivel5",
-   "title": "Agrandar el puesto",
-   "description": "Subí el puesto callejero a nivel 5.",
-   "metric": "level:puesto",
+   "title": "Agrandar el campo",
+   "description": "Subí el campo algodonero a nivel 5.",
+   "metric": "level:algodonal",
    "target": 5,
    "reward": {
     "money": 50
@@ -23,7 +23,7 @@
   },
   {
    "id": "m_reponer",
-   "title": "Mercadería al día",
+   "title": "Insumos al día",
    "description": "Reponé mercadería por primera vez.",
    "metric": "restock_count",
    "target": 1,
@@ -33,9 +33,9 @@
   },
   {
    "id": "m_nivel10",
-   "title": "Puesto con onda",
-   "description": "Llevá el puesto callejero a nivel 10.",
-   "metric": "level:puesto",
+   "title": "Productor en serio",
+   "description": "Subí el campo algodonero a nivel 10.",
+   "metric": "level:algodonal",
    "target": 10,
    "reward": {
     "money": 150
@@ -43,8 +43,8 @@
   },
   {
    "id": "m_contratar",
-   "title": "El primer empleado",
-   "description": "Contratá a tu primer empleado desde Administrar.",
+   "title": "Primer empleado",
+   "description": "Contratá a tu primer empleado.",
    "metric": "hires_total",
    "target": 1,
    "reward": {
@@ -54,7 +54,7 @@
   {
    "id": "m_automatizar",
    "title": "Que trabaje solo",
-   "description": "Automatizá un negocio con un vendedor.",
+   "description": "Tené un negocio que venda solo.",
    "metric": "automated",
    "target": 1,
    "reward": {
@@ -65,10 +65,10 @@
    }
   },
   {
-   "id": "m_kiosco",
-   "title": "Tu primer kiosco",
-   "description": "Comprá tu primer kiosco en la sección Negocios.",
-   "metric": "level:kiosco",
+   "id": "m_conquista1",
+   "title": "Primera conquista",
+   "description": "Conquistá Santiago del Estero: llegá al 100 % del mercado.",
+   "metric": "conquered",
    "target": 1,
    "reward": {
     "money": 600
@@ -76,8 +76,8 @@
   },
   {
    "id": "m_mejora",
-   "title": "Invertir para crecer",
-   "description": "Comprá una mejora en cualquier negocio.",
+   "title": "Invertir",
+   "description": "Comprá tu primera mejora.",
    "metric": "upgrades_bought",
    "target": 1,
    "reward": {
@@ -87,7 +87,7 @@
   {
    "id": "m_capital",
    "title": "Capital propio",
-   "description": "Alcanzá un capital de $10.000.",
+   "description": "Juntá $10.000 en la caja.",
    "metric": "money",
    "target": 10000,
    "reward": {
@@ -96,8 +96,8 @@
   },
   {
    "id": "m_repositor",
-   "title": "Nunca más sin stock",
-   "description": "Conseguí reposición automática (Repositor o Encargado).",
+   "title": "Insumos solos",
+   "description": "Tené un negocio que reponga solo.",
    "metric": "auto_restock",
    "target": 1,
    "reward": {
@@ -108,31 +108,31 @@
    }
   },
   {
-   "id": "m_tres",
-   "title": "Pequeño grupo",
-   "description": "Abrí tres negocios.",
-   "metric": "businesses_owned",
+   "id": "m_conquista3",
+   "title": "Avanzar por el norte",
+   "description": "Conquistá 3 provincias.",
+   "metric": "conquered",
    "target": 3,
    "reward": {
     "money": 5000
    }
   },
   {
-   "id": "m_zona",
-   "title": "Salir del barrio",
-   "description": "Desbloqueá una nueva zona en el Mapa.",
-   "metric": "zones_unlocked",
-   "target": 2,
+   "id": "m_noa",
+   "title": "Dueño del NOA",
+   "description": "Conquistá toda la región del NOA.",
+   "metric": "regions_conquered",
+   "target": 1,
    "reward": {
     "money": 20000
    }
   },
   {
-   "id": "m_etapa3",
-   "title": "Empresario local",
-   "description": "Alcanzá la etapa 3: Empresario local.",
-   "metric": "stage",
-   "target": 3,
+   "id": "m_nea",
+   "title": "Rumbo al litoral",
+   "description": "Conquistá toda la región del NEA.",
+   "metric": "regions_conquered",
+   "target": 2,
    "reward": {
     "boost": {
      "mult": 2.0,
@@ -141,19 +141,19 @@
    }
   },
   {
-   "id": "m_cinco",
-   "title": "Multirubro",
-   "description": "Abrí cinco negocios.",
+   "id": "m_ocho",
+   "title": "Ocho provincias",
+   "description": "Tené negocios en 8 provincias.",
    "metric": "businesses_owned",
-   "target": 5,
+   "target": 8,
    "reward": {
     "money": 400000
    }
   },
   {
    "id": "m_sucursal",
-   "title": "Primera sucursal",
-   "description": "Comprá la mejora de sucursal en algún negocio (requiere nivel 50).",
+   "title": "Expansión",
+   "description": "Abrí una sucursal en cualquier negocio.",
    "metric": "branches",
    "target": 1,
    "reward": {
@@ -161,11 +161,11 @@
    }
   },
   {
-   "id": "m_etapa5",
-   "title": "Cadena comercial",
-   "description": "Alcanzá la etapa 5: Dueño de una cadena comercial.",
-   "metric": "stage",
-   "target": 5,
+   "id": "m_cuyo",
+   "title": "El vino es tuyo",
+   "description": "Conquistá toda la región de Cuyo.",
+   "metric": "regions_conquered",
+   "target": 3,
    "reward": {
     "boost": {
      "mult": 2.0,
@@ -175,8 +175,8 @@
   },
   {
    "id": "m_prestigio",
-   "title": "Nuevo grupo empresarial",
-   "description": "Fundá un nuevo grupo empresarial (prestigio) desde Perfil.",
+   "title": "Refundar",
+   "description": "Fundá un nuevo grupo con prestigio.",
    "metric": "prestige_count",
    "target": 1,
    "reward": {
@@ -184,21 +184,21 @@
    }
   },
   {
-   "id": "m_ocho",
-   "title": "Holding",
-   "description": "Abrí ocho negocios.",
-   "metric": "businesses_owned",
-   "target": 8,
+   "id": "m_patagonia",
+   "title": "Fin del mundo",
+   "description": "Conquistá toda la Patagonia.",
+   "metric": "regions_conquered",
+   "target": 4,
    "reward": {
     "money": 50000000
    }
   },
   {
-   "id": "m_etapa7",
-   "title": "Conglomerado",
-   "description": "Alcanzá la etapa 7: Propietario de un conglomerado.",
-   "metric": "stage",
-   "target": 7,
+   "id": "m_pampeana",
+   "title": "Tierra de estancias",
+   "description": "Conquistá la región Pampeana.",
+   "metric": "regions_conquered",
+   "target": 5,
    "reward": {
     "boost": {
      "mult": 2.0,
@@ -207,11 +207,11 @@
    }
   },
   {
-   "id": "m_doce",
-   "title": "El imperio completo",
-   "description": "Abrí los doce negocios.",
-   "metric": "businesses_owned",
-   "target": 12,
+   "id": "m_argentina",
+   "title": "¡Toda la Argentina!",
+   "description": "Conquistá las 24 provincias.",
+   "metric": "conquered",
+   "target": 24,
    "reward": {
     "money": 5000000000
    }
@@ -220,9 +220,9 @@
  "challenges": [
   {
    "id": "c_alfajores",
-   "title": "Alfajorero",
-   "description": "Vendé 300 alfajores.",
-   "metric": "sold:alfajor",
+   "title": "Cosecha récord",
+   "description": "Vendé 300 de algodón.",
+   "metric": "sold:algodon",
    "target": 300,
    "reward": {
     "money": 400
@@ -300,9 +300,9 @@
   },
   {
    "id": "c_kiosco25",
-   "title": "Kiosco de cabecera",
-   "description": "Llevá el kiosco a nivel 25.",
-   "metric": "level:kiosco",
+   "title": "Papas para todos",
+   "description": "Subí chacra de papas andinas a nivel 25.",
+   "metric": "level:papas_andinas",
    "target": 25,
    "reward": {
     "money": 8000
@@ -320,9 +320,9 @@
   },
   {
    "id": "c_zonas",
-   "title": "Conocer la ciudad",
-   "description": "Desbloqueá 4 zonas.",
-   "metric": "zones_unlocked",
+   "title": "Conquistador",
+   "description": "Conquistá 4 provincias.",
+   "metric": "conquered",
    "target": 4,
    "reward": {
     "money": 2000000
@@ -475,10 +475,10 @@
   },
   {
    "id": "rey_kiosco",
-   "name": "Rey del kiosco",
-   "description": "Mejorá un kiosco hasta su nivel máximo inicial (100).",
+   "name": "Papa de oro",
+   "description": "Llevá chacra de papas andinas al nivel 100.",
    "icon": "golosina",
-   "metric": "level:kiosco",
+   "metric": "level:papas_andinas",
    "target": 100,
    "reward": {
     "icon": "kiosquero"
@@ -486,10 +486,10 @@
   },
   {
    "id": "mil_alfajores",
-   "name": "Mil alfajores",
-   "description": "Vendé 1.000 alfajores.",
+   "name": "Rey del algodón",
+   "description": "Vendé 1000 de algodón.",
    "icon": "alfajor",
-   "metric": "sold:alfajor",
+   "metric": "sold:algodon",
    "target": 1000,
    "reward": {
     "icon": "alfajor"
@@ -519,11 +519,11 @@
   },
   {
    "id": "cartografo",
-   "name": "Cartógrafo",
-   "description": "Desbloqueá todas las zonas.",
+   "name": "Toda la Argentina",
+   "description": "Conquistá las 24 provincias.",
    "icon": "mapa",
-   "metric": "zones_unlocked",
-   "target": 7,
+   "metric": "conquered",
+   "target": 24,
    "reward": {
     "money": 1000000000
    }

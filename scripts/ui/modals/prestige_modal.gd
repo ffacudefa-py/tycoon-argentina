@@ -19,4 +19,4 @@ static func open() -> void:
 		Main.instance.confirm("¿Seguro?", "Esta acción reinicia tu partida actual a cambio de %d puntos de prestigio. No se puede deshacer." % gain, "Fundar",
 			func() -> void:
 				if Main.instance.result(PrestigeSystem.perform(m)):
-					Main.instance.select_business("puesto"), true, true))
+					Main.instance.select_business(Game.m.first_business()), true, true))

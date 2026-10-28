@@ -74,6 +74,8 @@ static func requirement_row(req: Dictionary, dark := false) -> Control:
 		bar.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		row.add_child(bar)
 		var txt := ("%s/%s" % [Fmt.money(req["current"]), Fmt.money(req["target"])]) if req["money"] else ("%d/%d" % [int(req["current"]), int(req["target"])])
+		if req.get("percent", false):
+			txt = "%d %%" % int(req["current"])
 		row.add_child(U.label(txt, U.SIZE_SMALL, Color("f0eee6") if dark else U.TEXT, true))
 		v.add_child(row)
 	return v

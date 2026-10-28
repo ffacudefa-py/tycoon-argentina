@@ -12,7 +12,7 @@ extends Control
 const BUY_MODES := [1, 10, -1]   ## -1 = máximo
 
 var m: GameModel
-var bid := "puesto"
+var bid := ""
 var _scene: BusinessScene
 var _events_row: HBoxContainer
 var _name: Label
@@ -200,7 +200,7 @@ func on_shown() -> void:
 
 
 func rebuild() -> void:
-	_select("puesto")
+	_select(m.first_business())
 
 
 func _select(id: String) -> void:

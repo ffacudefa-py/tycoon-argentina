@@ -4,7 +4,7 @@ extends TestCase
 func test_missions_progress_automatically_and_claim_once() -> void:
 	var m := make_model()
 	for i in 10:
-		m.tap_sell("puesto")
+		m.tap_sell(B0)
 		run(m, 1.1)
 	ProgressionSystem.update(m)
 	check(m.missions["completed"].has("m_ventas"), "10 ventas completan la misión sin reclamar")
@@ -19,7 +19,7 @@ func test_missions_progress_automatically_and_claim_once() -> void:
 
 func test_achievement_reward_once() -> void:
 	var m := make_model()
-	m.tap_sell("puesto")
+	m.tap_sell(B0)
 	run(m, 1.2)
 	ProgressionSystem.update(m)
 	check(m.achievements.has("primera_venta"), "logro primera venta")
@@ -70,56 +70,95 @@ func test_daily_missions_generated_and_tracked() -> void:
 func test_stage_progression() -> void:
 	var m := make_model()
 	eq(m.stage, 1)
-	m.economy.earn(5000, "test")
+	m.economy.earn(5_000_000, "test")
 	m.update_progress()
-	eq(m.stage, 2, "etapa 2 con $5.000 ganados")
+	eq(m.stage, 1, "la plata sola no sube de etapa")
+	conquer_first(m, 5)
+	eq(m.stage, 1, "falta una provincia del NOA")
+	conquer_first(m, 6)
+	eq(m.stage, 2, "NOA completo: etapa 2")
+	eq(int(m.metric("regions_conquered")), 1)
+	eq(int(m.metric("conquered")), 6)
 
 
 func test_zone_unlock() -> void:
 	var m := make_model()
-	m.economy.earn(100_000, "test")
-	m.update_progress()
-	check(not m.unlock_zone("universidad")["ok"], "universidad requiere etapa 3")
-	check(m.unlock_zone("centro")["ok"], "centro disponible en etapa 2")
-	check(not m.unlock_zone("centro")["ok"], "no dos veces")
-	check(m.zones.has("centro"), "zona registrada")
+	m.economy.earn(1_000_000, "test")
+	check(not m.unlock_zone(Z1)["ok"], "la segunda provincia requiere conquistar la primera")
+	conquer(m, B0)
+	check(m.unlock_zone(Z1)["ok"], "conquistada la primera, se abre la segunda")
+	check(not m.unlock_zone(Z1)["ok"], "no dos veces")
+	check(m.zones.has(Z1) and m.biz[B1]["owned"], "provincia y negocio registrados")
+
+
+func test_conquest_share_grows_and_conquers() -> void:
+	var m := make_model()
+	var zid := Z0
+	eq(ConquestSystem.share(m, zid), 0.0, "arranca en 0 %")
+	m.biz[B0]["level"] = 60
+	m.biz[B0]["upgrades"]["caja_rapida"] = 3
+	m.invalidate()
+	check(ConquestSystem.target_share(m, zid) >= 1.0, "con ganancia alta apunta al 100 %")
+	m.biz[B0]["stock"] = {}
+	for p in m.data.business_by_id[B0]["products"]:
+		m.biz[B0]["stock"][p["id"]] = 1e9
+	for i in 60:
+		ConquestSystem.advance(m, 20.0)
+	check(ConquestSystem.is_conquered(m, zid), "conquistada (cuota %s)" % str(ConquestSystem.share(m, zid)))
+	eq(int(m.rivals[m.data.zone_by_id[zid]["rival"]]["power"]), 1, "el rival cae")
+	check(m.derive(B0)["price_mult"] > 0.0 and ConquestSystem.income_mult(m, B0) > 1.0, "bonus de provincia")
 
 
 func test_competition_and_campaign() -> void:
 	var m := make_model()
-	var comp0 := RivalSystem.competition_for(m, "puesto")
-	check(comp0 > 0.0, "hay competencia en el barrio")
+	var rid: String = m.data.zone_by_id[Z0]["rival"]
+	var comp0 := RivalSystem.competition_for(m, B0)
+	check(comp0 > 0.0, "hay competencia local")
 	m.economy.earn(10_000, "test")
-	m.rivals["ramon"]["power"] = 6
+	m.rivals[rid]["power"] = 6
 	m.invalidate()
-	var comp1 := RivalSystem.competition_for(m, "puesto")
+	var comp1 := RivalSystem.competition_for(m, B0)
 	check(comp1 > comp0, "rival más fuerte, más competencia")
-	check(RivalSystem.campaign(m, "ramon")["ok"], "campaña")
-	eq(int(m.rivals["ramon"]["power"]), 3, "baja el poder")
-	check(not RivalSystem.campaign(m, "ramon")["ok"], "cooldown")
+	var share0 := ConquestSystem.share(m, Z0)
+	check(RivalSystem.campaign(m, rid)["ok"], "campaña")
+	eq(int(m.rivals[rid]["power"]), 4, "baja el poder")
+	check(ConquestSystem.share(m, Z0) > share0, "la campaña suma cuota")
+	check(not RivalSystem.campaign(m, rid)["ok"], "cooldown")
 
 
 func test_events_spawn_and_clamp() -> void:
 	var m := make_model(3)
-	m.biz["puesto"]["level"] = 10
 	m.economy.reset_run(10_000)
-	m.invalidate()
-	m.buy_business("kiosco")
+	conquer(m, B0)
+	m.buy_business(B1)
+	# Un negocio con bebidas (la bodega de torrontés) vende más bebidas.
+	var wine := ""
+	var other := ""
+	for b in m.data.businesses:
+		for p in b["products"]:
+			if (p["tags"] as Array).has("bebida") and wine == "":
+				wine = b["id"]
+	m._own_business(wine, 1.0)
 	var inst := EventSystem.try_spawn(m, "ola_calor")
 	check(not inst.is_empty(), "spawnea ola de calor")
-	var mods := EventSystem.modifiers_for(m, "puesto")
-	near(float(mods["demand"].get("bebida", 1.0)), 1.8, 0.001, "más demanda de bebidas")
-	check(not mods["demand"].has("alfajor"), "alfajores igual")
+	var mods := EventSystem.modifiers_for(m, wine)
+	var hit := false
+	for p in m.data.business_by_id[wine]["products"]:
+		if (p["tags"] as Array).has("bebida"):
+			hit = hit or is_equal_approx(float(mods["demand"].get(p["id"], 1.0)), 1.8)
+		else:
+			other = p["id"]
+	check(hit, "más demanda de bebidas")
+	check(not mods["demand"].has(other), "el resto igual")
 	run(m, 200.0)
 	eq(m.events["active"].size() > 0 and m.events["active"][0]["id"] == "ola_calor", false, "terminó la ola de calor")
 
 
 func test_supply_failure_resolution() -> void:
 	var m := make_model(5)
-	m.biz["puesto"]["level"] = 10
 	m.economy.reset_run(100_000)
-	m.invalidate()
-	m.buy_business("kiosco")
+	conquer(m, B0)
+	m.buy_business(B1)
 	var inst := EventSystem.try_spawn(m, "falla_suministro")
 	check(not inst.is_empty(), "falla")
 	var bid: String = inst["business"]
@@ -134,13 +173,13 @@ func test_supply_failure_resolution() -> void:
 
 func test_inflation_optional_and_bounded() -> void:
 	var m := make_model()
-	var c0: float = m.derive("puesto")["products"][0]["cost"]
+	var c0: float = m.derive(B0)["products"][0]["cost"]
 	run(m, 700.0)
-	near(m.derive("puesto")["products"][0]["cost"], c0, 0.0001, "desactivada: sin cambios")
+	near(m.derive(B0)["products"][0]["cost"], c0, 0.0001, "desactivada: sin cambios")
 	m.inflation_enabled = true
 	m.invalidate()
 	run(m, 610.0)
-	check(m.derive("puesto")["products"][0]["cost"] > c0, "activa: sube el costo")
+	check(m.derive(B0)["products"][0]["cost"] > c0, "activa: sube el costo")
 	run(m, 100.0)
 	check(float(m.inflation["price_index"]) > 1.0, "los precios acompañan")
 
@@ -150,8 +189,8 @@ func test_prestige_flow() -> void:
 	check(not PrestigeSystem.unlocked(m), "bloqueado al inicio")
 	eq(PrestigeSystem.pending_points(m), 0)
 	m.economy.earn(20_000_000_000, "test")
-	m.update_progress()
-	check(PrestigeSystem.unlocked(m), "etapa 5 lo habilita")
+	conquer_first(m, 14)
+	check(PrestigeSystem.unlocked(m), "conquistar Cuyo (etapa 4) lo habilita")
 	var pts := PrestigeSystem.pending_points(m)
 	check(pts > 0, "puntos pendientes")
 	m.achievements["primera_venta"] = 1.0
@@ -159,8 +198,8 @@ func test_prestige_flow() -> void:
 	var lifetime := m.economy.lifetime_earned
 	check(PrestigeSystem.perform(m)["ok"], "prestigio")
 	eq(int(m.prestige["points"]), pts, "acredita puntos")
-	eq(int(m.biz["puesto"]["level"]), 1, "reinicia negocios")
-	check(not m.biz["kiosco"]["owned"], "sin kiosco")
+	eq(int(m.biz[B0]["level"]), 1, "reinicia negocios")
+	check(not m.biz[B1]["owned"], "sin el segundo negocio")
 	check(m.achievements.has("primera_venta"), "conserva logros")
 	eq(m.profile["company"], "La Gran Empresa", "conserva nombre")
 	eq(m.economy.lifetime_earned, lifetime, "conserva histórico")
@@ -175,31 +214,31 @@ func test_prestige_franchise_and_seed_capital() -> void:
 	PrestigeSystem.buy_perk(m, "franquicia")
 	PrestigeSystem.buy_perk(m, "capital_semilla")
 	m.economy.earn(20_000_000_000, "test")
-	m.update_progress()
+	conquer_first(m, 14)
 	PrestigeSystem.perform(m)
-	check(m.biz["kiosco"]["owned"], "franquicia: arranca con kiosco")
+	check(m.biz[B1]["owned"], "franquicia: arranca con el segundo negocio")
 	eq(m.economy.money, 2000, "capital semilla")
 
 
 func test_onboarding_start_closed_and_affordable_first_stock() -> void:
 	var m := make_model(1, false)
-	check(m.biz["puesto"]["closed"], "arranca cerrado")
-	check(not m.has_stock("puesto"), "arranca sin mercadería")
-	check(not m.tap_sell("puesto")["ok"], "cerrado no vende")
-	check(m.open_business("puesto")["ok"], "abre")
-	var q := m.restock_quote("puesto")
+	check(m.biz[B0]["closed"], "arranca cerrado")
+	check(not m.has_stock(B0), "arranca sin mercadería")
+	check(not m.tap_sell(B0)["ok"], "cerrado no vende")
+	check(m.open_business(B0)["ok"], "abre")
+	var q := m.restock_quote(B0)
 	check(q["total"] <= m.economy.money, "la primera mercadería completa se puede pagar (%d de %d)" % [q["total"], m.economy.money])
-	check(m.restock("puesto")["ok"], "compra mercadería")
+	check(m.restock(B0)["ok"], "compra mercadería")
 	run(m, 3.5)
-	check(m.tap_sell("puesto")["ok"], "con mercadería vende")
+	check(m.tap_sell(B0)["ok"], "con mercadería vende")
 
 
 func test_guided_tutorial_rewards_once() -> void:
 	var m := make_model(1, false)
-	m.open_business("puesto")
+	m.open_business(B0)
 	TutorialSteps.update(m)
 	eq(int(m.tutorial["step"]), 1, "paso 1 cumplido")
-	m.restock("puesto")
+	m.restock(B0)
 	var money := m.economy.money
 	TutorialSteps.update(m)
 	eq(int(m.tutorial["step"]), 2, "paso 2 cumplido")
@@ -214,7 +253,7 @@ func test_reclamar_todo() -> void:
 	eq(ProgressionSystem.claim_all(m)["ok"], had, "sólo reclama si había algo pendiente")
 	m.economy.earn(5_000_000, "dev")
 	for i in 30:
-		m.tap_sell("puesto")
+		m.tap_sell(B0)
 		run(m, 1.1)
 	ProgressionSystem.update(m)
 	var pending := ProgressionSystem.unclaimed_count(m)

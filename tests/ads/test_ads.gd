@@ -149,13 +149,13 @@ func test_turbo_y_reposicion() -> void:
 	eq(m.boosts.size(), 1, "turbo activo")
 	near(float(m.boosts[0]["remaining"]), 600.0, 0.01)
 	fake.load_ad()
-	for p in m.derive("puesto")["products"]:
-		m.biz["puesto"]["stock"][p["id"]] = 0.0
+	for p in m.derive(B0)["products"]:
+		m.biz[B0]["stock"][p["id"]] = 0.0
 	var money := m.economy.money
-	_watch(m, cfg, fake, "restock", {"business": "puesto"})
+	_watch(m, cfg, fake, "restock", {"business": B0})
 	fake.finish(true)
-	for p in m.derive("puesto")["products"]:
-		near(float(m.biz["puesto"]["stock"][p["id"]]), float(p["cap"]), 0.01, "depósito lleno")
+	for p in m.derive(B0)["products"]:
+		near(float(m.biz[B0]["stock"][p["id"]]), float(p["cap"]), 0.01, "depósito lleno")
 	eq(m.economy.money, money, "gratis")
 
 

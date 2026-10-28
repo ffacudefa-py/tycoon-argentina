@@ -6,6 +6,10 @@ extends Node
 ## Ver tools/screenshots.sh.
 
 var out_dir := "user://shots"
+## Primeros tres negocios (10.0: provincias del NOA), tomados de los datos.
+var B0 := ""
+var B1 := ""
+var B2 := ""
 
 
 func _ready() -> void:
@@ -35,6 +39,10 @@ func _shot(name: String, wait := 0.35) -> void:
 
 
 func _run() -> void:
+	var bl: Array = Game.m.data.businesses
+	B0 = bl[0]["id"]
+	B1 = bl[1]["id"]
+	B2 = bl[2]["id"]
 	for a in OS.get_cmdline_user_args():
 		# --shots-scale=2: dibuja a x2 dentro de la misma ventana (como un
 		# teléfono de alta densidad) para revisar la nitidez de la letra.
@@ -66,7 +74,7 @@ func _run() -> void:
 	# Misión guiada con TOQUES REALES (eventos de entrada) sobre el botón principal.
 	await _tap(main.targets["main"])
 	await _shot("02_paso2_reponer", 0.6)
-	print("TOQUE_ABRIR ", "OK" if not m.biz["puesto"]["closed"] else "FALLÓ")
+	print("TOQUE_ABRIR ", "OK" if not m.biz[B0]["closed"] else "FALLÓ")
 	await _tap(main.targets["main"])
 	await get_tree().create_timer(3.6).timeout
 	await _shot("03_paso3_vender", 0.3)
@@ -78,46 +86,47 @@ func _run() -> void:
 	# Partida avanzada para ver el resto de la interfaz
 	m.economy.earn(3_000_000, "dev")
 	m.update_progress()
-	m.biz["puesto"]["level"] = 28
+	m.biz[B0]["level"] = 28
 	m.invalidate()
-	m.buy_business("kiosco")
-	m.biz["kiosco"]["level"] = 12
-	m.buy_business("comida")
+	ConquestSystem.conquer(m, m.data.zone_for_business(B0))
+	m.buy_business(B1)
+	m.biz[B1]["level"] = 12
+	ConquestSystem.conquer(m, m.data.zone_for_business(B1))
+	m.buy_business(B2)
 	await _shot("05a_festejo_negocio", 1.2)
 	UnlockShow.dismiss_all()
 	m.invalidate()
-	for id in ["puesto", "kiosco"]:
+	for id in [B0, B1]:
 		EmployeeSystem.generate_candidates(m, id)
 		EmployeeSystem.hire(m, id, 0)
-	m.buy_upgrade("puesto", "stock_ampliado")
-	m.buy_upgrade("puesto", "caja_rapida")
-	m.unlock_zone("centro")
+	m.buy_upgrade(B0, "stock_ampliado")
+	m.buy_upgrade(B0, "caja_rapida")
 	m.update_progress()
 	EventSystem.try_spawn(m, "ola_calor")
-	main.select_business("puesto")
+	main.select_business(B0)
 	main.tutorial._skip()
 	await _shot("03b_imperio_automatizado", 1.2)
-	main.select_business("comida")
+	main.select_business(B2)
 	await _shot("04b_imperio_comida", 1.0)
-	main.select_business("kiosco")
+	main.select_business(B1)
 	await _shot("04c_imperio_kiosco_interior", 1.5)
 	Settings.set_value("scene_view", "fachada")
 	await _shot("04d_imperio_kiosco_fachada", 1.0)
 	Settings.set_value("scene_view", "interior")
-	main.select_business("puesto")
+	main.select_business(B0)
 	for i in 5:
 		main.go_to(i)
 		await _shot("05_seccion_%d_%s" % [i, Main.SECTIONS[i].to_lower()], 0.6)
 	main.go_to(0)
 	await _bus_check()
-	ManageBusinessModal.open("puesto", 0)
+	ManageBusinessModal.open(B0, 0)
 	await _shot("06_admin_negocio", 0.6)
 	main.modal_host.close_all()
-	ManageBusinessModal.open("puesto", 1)
+	ManageBusinessModal.open(B0, 1)
 	await _shot("07_admin_empleados", 0.6)
 	await _drag_check()
 	main.modal_host.close_all()
-	ManageBusinessModal.open("puesto", 2)
+	ManageBusinessModal.open(B0, 2)
 	await _shot("08_admin_mejoras", 0.6)
 	main.modal_host.close_all()
 	SettingsModal.open()
@@ -127,11 +136,11 @@ func _run() -> void:
 	await _shot("10_estadisticas", 0.5)
 	main.modal_host.close_all()
 	main.go_to(2)
-	ZoneModal.open("centro")
+	ZoneModal.open(m.data.zone_for_business(B2))
 	await _shot("11_zona", 0.5)
 	main.modal_host.close_all()
 	OfflineReport.open({"elapsed": 12000.0, "credited": 12000.0, "capped": false, "clock_issue": false, "earned": 845000,
-		"spent": 120000, "per_business": {"puesto": 600000, "kiosco": 245000}, "stockouts": [{"business": "comida", "after": 1500.0}], "salaries": 2000})
+		"spent": 120000, "per_business": {B0: 600000, B1: 245000}, "stockouts": [{"business": B2, "after": 1500.0}], "salaries": 2000})
 	await _shot("12_offline", 0.5)
 	main.modal_host.close_all()
 	main.go_to(0)
@@ -139,7 +148,7 @@ func _run() -> void:
 	m.economy.earn(m.economy.money, "misiones")      # premio grande: rodillos girando
 	await _shot("13b_jackpot_girando", 0.2)
 	await _shot("13c_jackpot_final", 1.4)
-	AdsModal.open("puesto")
+	AdsModal.open(B0)
 	await _shot("14_bonos_anuncio", 0.5)
 	main.modal_host.close_all()
 	# Recorte con una imagen sintética (degradé + cuadrícula, 1200x800)
@@ -181,7 +190,7 @@ func _juice_shots() -> void:
 	var main := Main.instance
 	var m := Game.m
 	m.economy.earn(50_000_000, "dev", false)
-	ManageBusinessModal.open("puesto", 2)
+	ManageBusinessModal.open(B0, 2)
 	await get_tree().create_timer(0.4).timeout
 	var buy := _find_button(main.modal_host, "COMPRAR")
 	if buy:
@@ -343,7 +352,7 @@ func _run_scenes() -> void:
 	m.economy.earn(10_000_000_000, "dev")
 	for b in m.data.businesses:
 		if not m.biz[b["id"]]["owned"]:
-			m._own_business(b["id"], "barrio", 1.0)
+			m._own_business(b["id"], 1.0)
 		m.biz[b["id"]]["closed"] = false
 	m.businesses_changed.emit()
 	var scene: BusinessScene = main.find_children("*", "BusinessScene", true, false)[0]
@@ -388,7 +397,7 @@ func _drag_check() -> void:
 		print("ARRASTRE_SCROLL FALLÓ (sin botón o scroll)")
 		return
 	var scroll: DragScroll = sc[-1]
-	var team := m.employees_of("puesto").size()
+	var team := m.employees_of(B0).size()
 	var p := hire.get_global_rect().get_center()
 	var press := InputEventMouseButton.new()
 	press.button_index = MOUSE_BUTTON_LEFT
@@ -412,8 +421,8 @@ func _drag_check() -> void:
 	rel.global_position = p
 	get_viewport().push_input(rel)
 	await get_tree().process_frame
-	var ok := scroll.scroll_vertical > 0 and m.employees_of("puesto").size() == team
-	print("ARRASTRE_SCROLL ", "OK" if ok else "FALLÓ (scroll=%d equipo %d->%d)" % [scroll.scroll_vertical, team, m.employees_of("puesto").size()])
+	var ok := scroll.scroll_vertical > 0 and m.employees_of(B0).size() == team
+	print("ARRASTRE_SCROLL ", "OK" if ok else "FALLÓ (scroll=%d equipo %d->%d)" % [scroll.scroll_vertical, team, m.employees_of(B0).size()])
 	scroll.scroll_vertical = 0
 
 

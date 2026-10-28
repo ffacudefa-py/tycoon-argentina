@@ -1,273 +1,1034 @@
 {
- "_doc": "Zonas del mapa y empresas rivales. demand: bonificación de ingresos para negocios con esa etiqueta (se toma la mayor). competition: penalización base de la zona. Los rivales suman competencia sobre negocios con etiquetas de su sector en sus zonas (power * competition_per_power, tope max_competition).",
- "zones": [
+ "_doc": "10.0 Sigma Deza: la Argentina en 6 regiones y 24 provincias (zonas). Cada provincia tiene un negocio y un rival local. Tu cuota de mercado tiende a ganancia_neta/s ÷ (market_size × (0,5 + 0,1 × poder del rival)); al llegar al 100 % la provincia queda conquistada: +province_bonus a los negocios de su región, y con la región completa +region_bonus a todo. Generado por tools/v10/build_data.py.",
+ "regions": [
   {
-   "id": "barrio",
-   "name": "Barrio Villa Esperanza",
-   "description": "Casas bajas, almacenes de toda la vida y vecinos que se conocen todos.",
-   "cost": 0,
-   "stage": 1,
-   "demand": {
-    "minorista": 0.1,
-    "calle": 0.1
-   },
-   "competition": 0.03,
-   "recommended": [
-    "puesto",
-    "kiosco",
-    "almacen"
-   ],
-   "map": {
-    "x": 28,
-    "y": 300,
-    "w": 140,
-    "h": 116
-   }
+   "id": "noa",
+   "name": "NOA",
+   "long_name": "Noroeste Argentino",
+   "order": 1,
+   "star_product": "Limón",
+   "star_province": "tucuman",
+   "bonus": 0.25
+  },
+  {
+   "id": "nea",
+   "name": "NEA",
+   "long_name": "Noreste Argentino",
+   "order": 2,
+   "star_product": "Yerba mate",
+   "star_province": "misiones",
+   "bonus": 0.25
+  },
+  {
+   "id": "cuyo",
+   "name": "Cuyo",
+   "long_name": "Región de Cuyo",
+   "order": 3,
+   "star_product": "Vino Malbec",
+   "star_province": "mendoza",
+   "bonus": 0.25
+  },
+  {
+   "id": "patagonia",
+   "name": "Patagonia",
+   "long_name": "Patagonia",
+   "order": 4,
+   "star_product": "Cordero patagónico",
+   "star_province": "santa_cruz",
+   "bonus": 0.25
+  },
+  {
+   "id": "pampeana",
+   "name": "Pampeana",
+   "long_name": "Región Pampeana",
+   "order": 5,
+   "star_product": "Carne vacuna",
+   "star_province": "buenos_aires",
+   "bonus": 0.25
   },
   {
    "id": "centro",
-   "name": "Microcentro del Sol",
-   "description": "Oficinistas apurados que almuerzan parados. Mucha demanda, mucha competencia.",
-   "cost": 60000,
-   "stage": 2,
-   "demand": {
-    "comida": 0.25,
-    "calle": 0.15
-   },
-   "competition": 0.1,
-   "recommended": [
-    "comida",
-    "kiosco",
-    "cafeteria"
-   ],
-   "map": {
-    "x": 174,
-    "y": 276,
-    "w": 118,
-    "h": 100
-   }
-  },
-  {
-   "id": "universidad",
-   "name": "Ciudad Universitaria del Sauce",
-   "description": "Estudiantes con poca plata y mucha hambre. Fotocopias y café a toda hora.",
-   "cost": 1500000,
-   "stage": 3,
-   "demand": {
-    "estudiantes": 0.35,
-    "escolar": 0.25,
-    "bebida": 0.1
-   },
-   "competition": 0.06,
-   "recommended": [
-    "cafeteria",
-    "kiosco",
-    "gimnasio"
-   ],
-   "map": {
-    "x": 28,
-    "y": 158,
-    "w": 130,
-    "h": 104
-   }
-  },
-  {
-   "id": "costanera",
-   "name": "Costanera Linda",
-   "description": "Paseo turístico junto al río. Los fines de semana largos explota.",
-   "cost": 40000000,
-   "stage": 3,
-   "demand": {
-    "turismo": 0.35,
-    "comida": 0.15,
-    "bebida": 0.2
-   },
-   "competition": 0.12,
-   "recommended": [
-    "restaurante",
-    "cafeteria",
-    "comida"
-   ],
-   "map": {
-    "x": 252,
-    "y": 90,
-    "w": 90,
-    "h": 150
-   }
-  },
-  {
-   "id": "industrial",
-   "name": "Parque Fabril Sur",
-   "description": "Galpones, camiones y talleres. Acá se arregla y se mueve todo.",
-   "cost": 1500000000,
-   "stage": 4,
-   "demand": {
-    "autos": 0.35,
-    "logistica": 0.25,
-    "servicio": 0.1
-   },
-   "competition": 0.08,
-   "recommended": [
-    "lavadero",
-    "taller",
-    "distribuidora"
-   ],
-   "map": {
-    "x": 28,
-    "y": 430,
-    "w": 160,
-    "h": 92
-   }
-  },
-  {
-   "id": "puerto",
-   "name": "Dársena Vieja",
-   "description": "Grúas, contenedores y depósitos. El corazón de la logística.",
-   "cost": 60000000000,
-   "stage": 5,
-   "demand": {
-    "logistica": 0.4,
-    "minorista": 0.1
-   },
-   "competition": 0.1,
-   "recommended": [
-    "distribuidora",
-    "mensajeria",
-    "supermercado"
-   ],
-   "map": {
-    "x": 200,
-    "y": 392,
-    "w": 142,
-    "h": 130
-   }
-  },
-  {
-   "id": "financiero",
-   "name": "Distrito Torres del Plata",
-   "description": "Torres de vidrio y gente que habla de 'sinergias'. Pagan bien por todo.",
-   "cost": 4000000000000,
-   "stage": 6,
-   "demand": {
-    "servicio": 0.3,
-    "salud": 0.3,
-    "comida": 0.1,
-    "estudiantes": 0.1
-   },
-   "competition": 0.15,
-   "recommended": [
-    "gimnasio",
-    "restaurante",
-    "mensajeria"
-   ],
-   "map": {
-    "x": 120,
-    "y": 28,
-    "w": 124,
-    "h": 116
-   }
+   "name": "Centro",
+   "long_name": "Región Centro",
+   "order": 6,
+   "star_product": "Maquinaria agrícola",
+   "star_province": "cordoba",
+   "bonus": 0.25
   }
  ],
+ "zones": [
+  {
+   "id": "santiago_del_estero",
+   "name": "Santiago del Estero",
+   "region": "noa",
+   "order": 1,
+   "description": "Monte, quebracho y chacarera. Calor fuerte y gente que trabaja el campo desde siempre.",
+   "business": "algodonal",
+   "star_product": "Algodón",
+   "secondary_products": [
+    "Alfalfa",
+    "Carne caprina",
+    "Miel"
+   ],
+   "cost": 0,
+   "stage": 1,
+   "demand": {
+    "agro": 0.1
+   },
+   "competition": 0.035,
+   "market_size": 230,
+   "rival": "rival_santiago_del_estero",
+   "conquest_minutes": 11.0,
+   "street": "barrio"
+  },
+  {
+   "id": "jujuy",
+   "name": "Jujuy",
+   "region": "noa",
+   "order": 2,
+   "description": "Cerros de siete colores, salinas y quebradas. Turismo y agricultura de altura.",
+   "business": "papas_andinas",
+   "star_product": "Papas andinas",
+   "secondary_products": [
+    "Sal",
+    "Quinoa",
+    "Tejidos artesanales"
+   ],
+   "cost": 0,
+   "stage": 1,
+   "demand": {
+    "agro": 0.1
+   },
+   "competition": 0.035,
+   "market_size": 755,
+   "rival": "rival_jujuy",
+   "conquest_minutes": 13.8,
+   "street": "barrio"
+  },
+  {
+   "id": "catamarca",
+   "name": "Catamarca",
+   "region": "noa",
+   "order": 3,
+   "description": "Olivares, nogales y valles entre cerros. La tierra del poncho y del aceite.",
+   "business": "almazara",
+   "star_product": "Aceite de oliva",
+   "secondary_products": [
+    "Aceitunas",
+    "Nueces",
+    "Uvas"
+   ],
+   "cost": 0,
+   "stage": 1,
+   "demand": {
+    "agro": 0.1
+   },
+   "competition": 0.035,
+   "market_size": 2770,
+   "rival": "rival_catamarca",
+   "conquest_minutes": 17.2,
+   "street": "barrio"
+  },
+  {
+   "id": "la_rioja",
+   "name": "La Rioja",
+   "region": "noa",
+   "order": 4,
+   "description": "Valles áridos, Talampaya y viñedos de altura. Sol todo el año.",
+   "business": "olivar",
+   "star_product": "Aceitunas",
+   "secondary_products": [
+    "Aceite de oliva",
+    "Vinos",
+    "Nueces"
+   ],
+   "cost": 0,
+   "stage": 1,
+   "demand": {
+    "agro": 0.1
+   },
+   "competition": 0.035,
+   "market_size": 9210,
+   "rival": "rival_la_rioja",
+   "conquest_minutes": 21.5,
+   "street": "barrio"
+  },
+  {
+   "id": "salta",
+   "name": "Salta",
+   "region": "noa",
+   "order": 5,
+   "description": "La linda: viñedos en los Valles Calchaquíes, empanadas y peñas folclóricas.",
+   "business": "bodega_torrontes",
+   "star_product": "Vino torrontés",
+   "secondary_products": [
+    "Tabaco",
+    "Pimientos",
+    "Quesos de cabra"
+   ],
+   "cost": 0,
+   "stage": 1,
+   "demand": {
+    "bebida": 0.1
+   },
+   "competition": 0.035,
+   "market_size": 33000,
+   "rival": "rival_salta",
+   "conquest_minutes": 26.9,
+   "street": "barrio"
+  },
+  {
+   "id": "tucuman",
+   "name": "Tucumán",
+   "region": "noa",
+   "order": 6,
+   "description": "El jardín de la República: ingenios azucareros, limoneros y la casa de la independencia.",
+   "business": "citricola",
+   "star_product": "Limón",
+   "secondary_products": [
+    "Empanadas tucumanas",
+    "Azúcar",
+    "Arándanos"
+   ],
+   "cost": 0,
+   "stage": 1,
+   "demand": {
+    "agro": 0.1
+   },
+   "competition": 0.035,
+   "market_size": 111000,
+   "rival": "rival_tucuman",
+   "conquest_minutes": 33.6,
+   "street": "barrio"
+  },
+  {
+   "id": "formosa",
+   "name": "Formosa",
+   "region": "nea",
+   "order": 7,
+   "description": "Clima tropical, esteros y el río Pilcomayo. Naturaleza a pleno.",
+   "business": "bananal",
+   "star_product": "Banana",
+   "secondary_products": [
+    "Algodón",
+    "Pomelo",
+    "Miel"
+   ],
+   "cost": 0,
+   "stage": 1,
+   "demand": {
+    "agro": 0.1
+   },
+   "competition": 0.04,
+   "market_size": 384000,
+   "rival": "rival_formosa",
+   "conquest_minutes": 42.0,
+   "street": "costanera"
+  },
+  {
+   "id": "chaco",
+   "name": "Chaco",
+   "region": "nea",
+   "order": 8,
+   "description": "El Impenetrable, quebrachales y la capital de las esculturas.",
+   "business": "desmotadora",
+   "star_product": "Algodón",
+   "secondary_products": [
+    "Madera",
+    "Miel",
+    "Soja"
+   ],
+   "cost": 0,
+   "stage": 1,
+   "demand": {
+    "fabrica": 0.1
+   },
+   "competition": 0.04,
+   "market_size": 1360000,
+   "rival": "rival_chaco",
+   "conquest_minutes": 52.5,
+   "street": "costanera"
+  },
+  {
+   "id": "corrientes",
+   "name": "Corrientes",
+   "region": "nea",
+   "order": 9,
+   "description": "Chamamé, carpinchos y los Esteros del Iberá. Agua por todos lados.",
+   "business": "arrocera",
+   "star_product": "Arroz",
+   "secondary_products": [
+    "Naranjas",
+    "Yerba mate",
+    "Madera"
+   ],
+   "cost": 0,
+   "stage": 1,
+   "demand": {
+    "agro": 0.1
+   },
+   "competition": 0.04,
+   "market_size": 4810000,
+   "rival": "rival_corrientes",
+   "conquest_minutes": 65.6,
+   "street": "costanera"
+  },
+  {
+   "id": "entre_rios",
+   "name": "Entre Ríos",
+   "region": "nea",
+   "order": 10,
+   "description": "Entre dos ríos: termas, carnavales y palmares.",
+   "business": "molino_arrocero",
+   "star_product": "Arroz",
+   "secondary_products": [
+    "Mandarinas",
+    "Naranjas",
+    "Miel"
+   ],
+   "cost": 0,
+   "stage": 1,
+   "demand": {
+    "fabrica": 0.1
+   },
+   "competition": 0.04,
+   "market_size": 17000000,
+   "rival": "rival_entre_rios",
+   "conquest_minutes": 82.0,
+   "street": "costanera"
+  },
+  {
+   "id": "misiones",
+   "name": "Misiones",
+   "region": "nea",
+   "order": 11,
+   "description": "Tierra colorada, selva y las Cataratas del Iguazú.",
+   "business": "yerbatal",
+   "star_product": "Yerba mate",
+   "secondary_products": [
+    "Té",
+    "Madera",
+    "Mandioca"
+   ],
+   "cost": 0,
+   "stage": 1,
+   "demand": {
+    "agro": 0.1
+   },
+   "competition": 0.04,
+   "market_size": 57200000,
+   "rival": "rival_misiones",
+   "conquest_minutes": 102.4,
+   "street": "costanera"
+  },
+  {
+   "id": "san_luis",
+   "name": "San Luis",
+   "region": "cuyo",
+   "order": 12,
+   "description": "Sierras, diques y llanuras ganaderas. Rutas impecables.",
+   "business": "frigorifico",
+   "star_product": "Productos cárnicos",
+   "secondary_products": [
+    "Quesos",
+    "Miel",
+    "Productos lácteos"
+   ],
+   "cost": 0,
+   "stage": 1,
+   "demand": {
+    "fabrica": 0.1
+   },
+   "competition": 0.045,
+   "market_size": 193000000,
+   "rival": "rival_san_luis",
+   "conquest_minutes": 128.1,
+   "street": "universidad"
+  },
+  {
+   "id": "san_juan",
+   "name": "San Juan",
+   "region": "cuyo",
+   "order": 13,
+   "description": "Sol, viento zonda y el Valle de la Luna.",
+   "business": "pasas",
+   "star_product": "Pasas de uva",
+   "secondary_products": [
+    "Aceitunas",
+    "Aceite de oliva",
+    "Vinos"
+   ],
+   "cost": 0,
+   "stage": 1,
+   "demand": {
+    "agro": 0.1
+   },
+   "competition": 0.045,
+   "market_size": 671000000,
+   "rival": "rival_san_juan",
+   "conquest_minutes": 160.1,
+   "street": "universidad"
+  },
+  {
+   "id": "mendoza",
+   "name": "Mendoza",
+   "region": "cuyo",
+   "order": 14,
+   "description": "Cordillera, acequias y la capital mundial del Malbec.",
+   "business": "bodega_malbec",
+   "star_product": "Vino Malbec",
+   "secondary_products": [
+    "Aceite de oliva",
+    "Ajo",
+    "Frutas secas"
+   ],
+   "cost": 0,
+   "stage": 1,
+   "demand": {
+    "bebida": 0.1
+   },
+   "competition": 0.045,
+   "market_size": 2390000000,
+   "rival": "rival_mendoza",
+   "conquest_minutes": 200.1,
+   "street": "universidad"
+  },
+  {
+   "id": "santa_cruz",
+   "name": "Santa Cruz",
+   "region": "patagonia",
+   "order": 15,
+   "description": "Glaciares, estepa infinita y el viento más famoso del país.",
+   "business": "estancia_ovina",
+   "star_product": "Cordero patagónico",
+   "secondary_products": [
+    "Lana",
+    "Pesca",
+    "Oro y plata"
+   ],
+   "cost": 0,
+   "stage": 1,
+   "demand": {
+    "ganaderia": 0.1
+   },
+   "competition": 0.05,
+   "market_size": 8490000000,
+   "rival": "rival_santa_cruz",
+   "conquest_minutes": 250.1,
+   "street": "puerto"
+  },
+  {
+   "id": "chubut",
+   "name": "Chubut",
+   "region": "patagonia",
+   "order": 16,
+   "description": "Ballenas en Península Valdés, té galés y meseta patagónica.",
+   "business": "lanera",
+   "star_product": "Lana de oveja",
+   "secondary_products": [
+    "Aluminio",
+    "Pesca",
+    "Petróleo"
+   ],
+   "cost": 0,
+   "stage": 1,
+   "demand": {
+    "fabrica": 0.1
+   },
+   "competition": 0.05,
+   "market_size": 30400000000,
+   "rival": "rival_chubut",
+   "conquest_minutes": 312.6,
+   "street": "puerto"
+  },
+  {
+   "id": "rio_negro",
+   "name": "Río Negro",
+   "region": "patagonia",
+   "order": 17,
+   "description": "Alto Valle, Bariloche y lagos de postal.",
+   "business": "chacra_peras",
+   "star_product": "Peras",
+   "secondary_products": [
+    "Manzanas",
+    "Cerezas",
+    "Lúpulo"
+   ],
+   "cost": 0,
+   "stage": 1,
+   "demand": {
+    "agro": 0.1
+   },
+   "competition": 0.05,
+   "market_size": 102000000000,
+   "rival": "rival_rio_negro",
+   "conquest_minutes": 390.8,
+   "street": "puerto"
+  },
+  {
+   "id": "neuquen",
+   "name": "Neuquén",
+   "region": "patagonia",
+   "order": 18,
+   "description": "Vaca Muerta, volcanes y lagos cordilleranos.",
+   "business": "manzanas",
+   "star_product": "Manzanas",
+   "secondary_products": [
+    "Peras",
+    "Vinos",
+    "Petróleo y gas"
+   ],
+   "cost": 0,
+   "stage": 1,
+   "demand": {
+    "agro": 0.1
+   },
+   "competition": 0.05,
+   "market_size": 316000000000,
+   "rival": "rival_neuquen",
+   "conquest_minutes": 488.5,
+   "street": "puerto"
+  },
+  {
+   "id": "tierra_del_fuego",
+   "name": "Tierra del Fuego",
+   "region": "patagonia",
+   "order": 19,
+   "description": "El fin del mundo: Ushuaia, el canal Beagle y la Ruta 3 que termina acá.",
+   "business": "electronica",
+   "star_product": "Productos electrónicos ensamblados",
+   "secondary_products": [
+    "Televisores",
+    "Celulares",
+    "Equipos electrónicos"
+   ],
+   "cost": 0,
+   "stage": 1,
+   "demand": {
+    "fabrica": 0.1
+   },
+   "competition": 0.05,
+   "market_size": 1110000000000,
+   "rival": "rival_tierra_del_fuego",
+   "conquest_minutes": 610.6,
+   "street": "puerto"
+  },
+  {
+   "id": "la_pampa",
+   "name": "La Pampa",
+   "region": "pampeana",
+   "order": 20,
+   "description": "Caldenes, llanura y el corazón ganadero del país.",
+   "business": "estancia_ganadera",
+   "star_product": "Carne vacuna",
+   "secondary_products": [
+    "Trigo",
+    "Girasol",
+    "Miel"
+   ],
+   "cost": 0,
+   "stage": 1,
+   "demand": {
+    "ganaderia": 0.1
+   },
+   "competition": 0.055,
+   "market_size": 4060000000000,
+   "rival": "rival_la_pampa",
+   "conquest_minutes": 763.3,
+   "street": "industrial"
+  },
+  {
+   "id": "cordoba",
+   "name": "Córdoba",
+   "region": "centro",
+   "order": 21,
+   "description": "Sierras, cuarteto y fernet. La docta y la tierra del salame casero.",
+   "business": "salames",
+   "star_product": "Salame de Colonia Caroya",
+   "secondary_products": [
+    "Maní",
+    "Lácteos",
+    "Maquinaria agrícola"
+   ],
+   "cost": 0,
+   "stage": 1,
+   "demand": {
+    "fabrica": 0.1
+   },
+   "competition": 0.06,
+   "market_size": 13600000000000,
+   "rival": "rival_cordoba",
+   "conquest_minutes": 954.1,
+   "street": "centro"
+  },
+  {
+   "id": "santa_fe",
+   "name": "Santa Fe",
+   "region": "centro",
+   "order": 22,
+   "description": "La pampa gringa, el río Paraná y la cuna de la bandera.",
+   "business": "usina_lactea",
+   "star_product": "Productos lácteos",
+   "secondary_products": [
+    "Soja",
+    "Maquinaria agrícola",
+    "Miel"
+   ],
+   "cost": 0,
+   "stage": 1,
+   "demand": {
+    "fabrica": 0.1
+   },
+   "competition": 0.06,
+   "market_size": 46700000000000,
+   "rival": "rival_santa_fe",
+   "conquest_minutes": 1192.6,
+   "street": "centro"
+  },
+  {
+   "id": "buenos_aires",
+   "name": "Buenos Aires",
+   "region": "centro",
+   "order": 23,
+   "description": "La provincia más grande en gente y producción: campo, costa y conurbano.",
+   "business": "molino_harinero",
+   "star_product": "Trigo y harina",
+   "secondary_products": [
+    "Carne vacuna",
+    "Girasol",
+    "Lácteos"
+   ],
+   "cost": 0,
+   "stage": 1,
+   "demand": {
+    "fabrica": 0.1
+   },
+   "competition": 0.06,
+   "market_size": 177000000000000,
+   "rival": "rival_buenos_aires",
+   "conquest_minutes": 1490.8,
+   "street": "centro"
+  },
+  {
+   "id": "caba",
+   "name": "Ciudad Autónoma de Buenos Aires",
+   "region": "centro",
+   "order": 24,
+   "description": "La Reina del Plata: el Obelisco, el tango y el café de cada esquina.",
+   "business": "panaderia",
+   "star_product": "Medialunas",
+   "secondary_products": [
+    "Alfajores",
+    "Productos de panadería",
+    "Café"
+   ],
+   "cost": 0,
+   "stage": 1,
+   "demand": {
+    "comida": 0.1
+   },
+   "competition": 0.06,
+   "market_size": 559000000000000,
+   "rival": "rival_caba",
+   "conquest_minutes": 1863.5,
+   "street": "centro"
+  }
+ ],
+ "province_bonus": 0.1,
+ "region_bonus": 0.25,
+ "share_speed": 0.0015,
+ "campaign_share": 0.08,
  "relocate_cost_factor": 0.25,
- "competition_per_power": 0.025,
- "max_competition": 0.35,
+ "competition_per_power": 0.015,
+ "max_competition": 0.3,
  "rival_update_seconds": 90,
- "campaign_power_reduction": 3,
+ "campaign_power_reduction": 2,
  "campaign_cooldown_seconds": 300,
  "campaign_income_seconds": 60,
  "campaign_min_cost": 300,
  "rivals": [
   {
-   "id": "ramon",
-   "name": "Distribuciones Don Ramón",
-   "sector": "Comercio minorista",
+   "id": "rival_santiago_del_estero",
+   "name": "Algodonera Los Quebrachos",
+   "sector": "Algodón",
    "tags": [
-    "minorista"
+    "agro",
+    "campo"
    ],
    "zones": [
-    "barrio",
-    "centro"
+    "santiago_del_estero"
    ],
    "behavior": "Conservador",
-   "start_power": 2,
+   "start_power": 3,
+   "color": "amarillo"
+  },
+  {
+   "id": "rival_jujuy",
+   "name": "Cooperativa Cerro Siete",
+   "sector": "Papas andinas",
+   "tags": [
+    "agro",
+    "campo"
+   ],
+   "zones": [
+    "jujuy"
+   ],
+   "behavior": "Agresivo",
+   "start_power": 4,
+   "color": "violeta"
+  },
+  {
+   "id": "rival_catamarca",
+   "name": "Olivares del Ambato",
+   "sector": "Aceite de oliva",
+   "tags": [
+    "agro",
+    "fabrica"
+   ],
+   "zones": [
+    "catamarca"
+   ],
+   "behavior": "Expansivo",
+   "start_power": 3,
    "color": "verde"
   },
   {
-   "id": "fogon",
-   "name": "Parrillas El Fogón Feliz",
-   "sector": "Comida rápida",
+   "id": "rival_la_rioja",
+   "name": "Aceitunera Famatina",
+   "sector": "Aceitunas",
    "tags": [
-    "comida"
+    "agro",
+    "campo"
    ],
    "zones": [
-    "centro",
-    "costanera"
+    "la_rioja"
+   ],
+   "behavior": "Conservador",
+   "start_power": 4,
+   "color": "verde"
+  },
+  {
+   "id": "rival_salta",
+   "name": "Bodegas Valle Alto",
+   "sector": "Vino torrontés",
+   "tags": [
+    "bebida",
+    "vino",
+    "turismo"
+   ],
+   "zones": [
+    "salta"
    ],
    "behavior": "Agresivo",
    "start_power": 3,
+   "color": "bordo"
+  },
+  {
+   "id": "rival_tucuman",
+   "name": "Citrus del Aconquija",
+   "sector": "Limón",
+   "tags": [
+    "agro",
+    "fruta",
+    "fabrica"
+   ],
+   "zones": [
+    "tucuman"
+   ],
+   "behavior": "Expansivo",
+   "start_power": 4,
+   "color": "amarillo"
+  },
+  {
+   "id": "rival_formosa",
+   "name": "Bananera del Pilcomayo",
+   "sector": "Banana",
+   "tags": [
+    "agro",
+    "fruta"
+   ],
+   "zones": [
+    "formosa"
+   ],
+   "behavior": "Conservador",
+   "start_power": 4,
+   "color": "amarillo"
+  },
+  {
+   "id": "rival_chaco",
+   "name": "Hilados El Impenetrable",
+   "sector": "Algodón",
+   "tags": [
+    "fabrica",
+    "agro"
+   ],
+   "zones": [
+    "chaco"
+   ],
+   "behavior": "Agresivo",
+   "start_power": 5,
+   "color": "celeste"
+  },
+  {
+   "id": "rival_corrientes",
+   "name": "Arrozales del Iberá",
+   "sector": "Arroz",
+   "tags": [
+    "agro",
+    "campo"
+   ],
+   "zones": [
+    "corrientes"
+   ],
+   "behavior": "Expansivo",
+   "start_power": 4,
+   "color": "verde"
+  },
+  {
+   "id": "rival_entre_rios",
+   "name": "Molinos del Litoral",
+   "sector": "Arroz",
+   "tags": [
+    "fabrica",
+    "agro"
+   ],
+   "zones": [
+    "entre_rios"
+   ],
+   "behavior": "Conservador",
+   "start_power": 5,
+   "color": "celeste"
+  },
+  {
+   "id": "rival_misiones",
+   "name": "Yerbatera Tierra Colorada",
+   "sector": "Yerba mate",
+   "tags": [
+    "agro",
+    "fabrica",
+    "infusion"
+   ],
+   "zones": [
+    "misiones"
+   ],
+   "behavior": "Agresivo",
+   "start_power": 4,
+   "color": "verde"
+  },
+  {
+   "id": "rival_san_luis",
+   "name": "Carnes del Morro",
+   "sector": "Productos cárnicos",
+   "tags": [
+    "fabrica",
+    "ganaderia"
+   ],
+   "zones": [
+    "san_luis"
+   ],
+   "behavior": "Expansivo",
+   "start_power": 5,
    "color": "rojo"
   },
   {
-   "id": "bruma",
-   "name": "Café Bruma S.A.",
-   "sector": "Cafeterías",
+   "id": "rival_san_juan",
+   "name": "Pasas del Zonda",
+   "sector": "Pasas de uva",
    "tags": [
-    "bebida",
-    "estudiantes"
+    "agro",
+    "fruta",
+    "fabrica"
    ],
    "zones": [
-    "universidad",
-    "costanera"
+    "san_juan"
+   ],
+   "behavior": "Conservador",
+   "start_power": 4,
+   "color": "violeta"
+  },
+  {
+   "id": "rival_mendoza",
+   "name": "Bodegas Cordón del Plata",
+   "sector": "Vino Malbec",
+   "tags": [
+    "bebida",
+    "vino",
+    "turismo"
+   ],
+   "zones": [
+    "mendoza"
+   ],
+   "behavior": "Agresivo",
+   "start_power": 5,
+   "color": "bordo"
+  },
+  {
+   "id": "rival_santa_cruz",
+   "name": "Estancia La Escondida",
+   "sector": "Cordero patagónico",
+   "tags": [
+    "ganaderia",
+    "campo"
+   ],
+   "zones": [
+    "santa_cruz"
    ],
    "behavior": "Expansivo",
-   "start_power": 2,
+   "start_power": 5,
+   "color": "celeste"
+  },
+  {
+   "id": "rival_chubut",
+   "name": "Laneras del Chubut",
+   "sector": "Lana de oveja",
+   "tags": [
+    "fabrica",
+    "ganaderia"
+   ],
+   "zones": [
+    "chubut"
+   ],
+   "behavior": "Conservador",
+   "start_power": 6,
+   "color": "celeste"
+  },
+  {
+   "id": "rival_rio_negro",
+   "name": "Frutícola Alto Valle",
+   "sector": "Peras",
+   "tags": [
+    "agro",
+    "fruta"
+   ],
+   "zones": [
+    "rio_negro"
+   ],
+   "behavior": "Agresivo",
+   "start_power": 5,
+   "color": "verde"
+  },
+  {
+   "id": "rival_neuquen",
+   "name": "Manzanares del Limay",
+   "sector": "Manzanas",
+   "tags": [
+    "agro",
+    "fruta",
+    "fabrica"
+   ],
+   "zones": [
+    "neuquen"
+   ],
+   "behavior": "Expansivo",
+   "start_power": 6,
+   "color": "rojo"
+  },
+  {
+   "id": "rival_tierra_del_fuego",
+   "name": "Fueguina Electrónica",
+   "sector": "Productos electrónicos ensamblados",
+   "tags": [
+    "fabrica",
+    "industria"
+   ],
+   "zones": [
+    "tierra_del_fuego"
+   ],
+   "behavior": "Conservador",
+   "start_power": 5,
+   "color": "gris"
+  },
+  {
+   "id": "rival_la_pampa",
+   "name": "Hacienda Caldenal",
+   "sector": "Carne vacuna",
+   "tags": [
+    "ganaderia",
+    "campo"
+   ],
+   "zones": [
+    "la_pampa"
+   ],
+   "behavior": "Agresivo",
+   "start_power": 6,
    "color": "marron"
   },
   {
-   "id": "brillo",
-   "name": "Lavaclean Hermanos",
-   "sector": "Autos y servicios",
+   "id": "rival_cordoba",
+   "name": "Chacinados Sierra Chica",
+   "sector": "Salame de Colonia Caroya",
    "tags": [
-    "autos"
+    "fabrica",
+    "comida"
    ],
    "zones": [
-    "industrial",
-    "barrio"
+    "cordoba"
    ],
-   "behavior": "Conservador",
-   "start_power": 1,
-   "color": "azul"
+   "behavior": "Expansivo",
+   "start_power": 6,
+   "color": "rojo"
   },
   {
-   "id": "veloz",
-   "name": "Grupo Veloz Logística",
-   "sector": "Logística",
+   "id": "rival_santa_fe",
+   "name": "Lácteos Cuenca Santafesina",
+   "sector": "Productos lácteos",
    "tags": [
-    "logistica"
+    "fabrica",
+    "lacteo"
    ],
    "zones": [
-    "puerto",
-    "industrial"
+    "santa_fe"
+   ],
+   "behavior": "Conservador",
+   "start_power": 7,
+   "color": "celeste"
+  },
+  {
+   "id": "rival_buenos_aires",
+   "name": "Molinos de la Pampa Húmeda",
+   "sector": "Trigo y harina",
+   "tags": [
+    "fabrica",
+    "agro"
+   ],
+   "zones": [
+    "buenos_aires"
    ],
    "behavior": "Agresivo",
-   "start_power": 3,
+   "start_power": 6,
    "color": "amarillo"
+  },
+  {
+   "id": "rival_caba",
+   "name": "Confitería del Obelisco",
+   "sector": "Medialunas",
+   "tags": [
+    "comida",
+    "turismo",
+    "panaderia"
+   ],
+   "zones": [
+    "caba"
+   ],
+   "behavior": "Expansivo",
+   "start_power": 7,
+   "color": "bordo"
   }
  ],
  "rival_lines": {
   "grow": [
-   "{r} abrió otro local en {z}.",
-   "{r} lanzó una promo agresiva en {z}.",
-   "{r} contrató más personal en {z}."
+   "{r} bajó los precios en {z}.",
+   "{r} consiguió un contrato grande en {z}.",
+   "{r} amplió su planta en {z}."
   ],
   "shrink": [
-   "{r} cerró un local en {z}.",
-   "{r} tiene problemas con sus proveedores.",
-   "{r} subió los precios y perdió clientes."
+   "{r} tuvo una mala cosecha en {z}.",
+   "{r} perdió un cliente importante en {z}.",
+   "{r} tiene problemas con sus proveedores."
   ],
   "campaign": [
    "Tu campaña le sacó clientes a {r}.",
-   "Volanteada épica: {r} pierde terreno."
+   "Salió tu publicidad en la radio: {r} pierde terreno."
   ]
  }
 }

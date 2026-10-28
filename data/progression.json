@@ -68,48 +68,43 @@
  "stages": [
   {
    "id": 1,
-   "name": "Emprendedor callejero",
-   "earnings": 0
+   "name": "Productor del NOA",
+   "region": "noa"
   },
   {
    "id": 2,
-   "name": "Comerciante de barrio",
-   "earnings": 5000
+   "name": "Pionero del NEA",
+   "region": "nea"
   },
   {
    "id": 3,
-   "name": "Empresario local",
-   "earnings": 400000
+   "name": "Señor de Cuyo",
+   "region": "cuyo"
   },
   {
    "id": 4,
-   "name": "Empresario regional",
-   "earnings": 40000000
+   "name": "Barón patagónico",
+   "region": "patagonia"
   },
   {
    "id": 5,
-   "name": "Dueño de una cadena comercial",
-   "earnings": 4000000000
+   "name": "Estanciero pampeano",
+   "region": "pampeana"
   },
   {
    "id": 6,
-   "name": "Inversor nacional",
-   "earnings": 600000000000
+   "name": "Gran empresario del Centro",
+   "region": "centro"
   },
   {
    "id": 7,
-   "name": "Propietario de un conglomerado",
-   "earnings": 100000000000000
-  },
-  {
-   "id": 8,
-   "name": "Magnate empresarial",
-   "earnings": 20000000000000000
+   "name": "Dueño de la Argentina",
+   "region": ""
   }
  ],
  "prestige": {
   "_doc": "Puntos = floor(2 * sqrt(ganancias de la partida / divisor)) menos los ya obtenidos en esa partida. Cada punto ganado (gastado o no) da +bonus_per_point a todos los ingresos.",
-  "min_stage": 5,
+  "min_stage": 4,
   "divisor": 4000000000,
   "bonus_per_point": 0.02,
   "perks": [
@@ -177,17 +172,17 @@
     "id": "franquicia",
     "name": "Franquicia express",
     "icon": "edificio",
-    "description": "Empezás cada grupo nuevo con el kiosco (nivel 1) y, en el nivel 2, también con el puesto de comida.",
+    "description": "Empezás cada grupo nuevo con chacra de papas andinas abierta (nivel 1) y, en el nivel 2, también con almazara.",
     "max_level": 2,
     "cost": 5,
     "effects": {
      "start_businesses": [
       [
-       "kiosco"
+       "papas_andinas"
       ],
       [
-       "kiosco",
-       "comida"
+       "papas_andinas",
+       "almazara"
       ]
      ]
     }
@@ -298,13 +293,13 @@
    "id": "alfajor",
    "name": "Alfajor",
    "unlocked": false,
-   "hint": "Logro: Mil alfajores"
+   "hint": "Logro: Rey del algodón"
   },
   {
    "id": "kiosquero",
    "name": "Kiosquero",
    "unlocked": false,
-   "hint": "Logro: Rey del kiosco"
+   "hint": "Logro: Papa de oro"
   },
   {
    "id": "galera",
@@ -318,5 +313,6 @@
    "unlocked": false,
    "hint": "Logro: Fundador"
   }
- ]
+ ],
+ "_stages_doc": "10.0: la etapa es 1 + regiones conquistadas por completo."
 }

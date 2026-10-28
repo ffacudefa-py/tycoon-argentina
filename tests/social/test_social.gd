@@ -78,8 +78,8 @@ func test_saldo_negativo() -> void:
 func test_ganancias_al_80() -> void:
 	var m := make_model()
 	eq(m.income_rate(), 0.8, "ritmo 0,8")
-	var d := m.derive("puesto")
-	var def: Dictionary = m.data.business_by_id["puesto"]
+	var d := m.derive(B0)
+	var def: Dictionary = m.data.business_by_id[B0]
 	var p0: Dictionary = def["products"][0]
 	near(d["products"][0]["price"], float(p0["price"]) * 0.8 * float(d["zone_mult"]), 0.0001, "precio al 80 %")
 	near(d["products"][0]["cost"], float(p0["cost"]) * 0.8, 0.0001, "mercadería al 80 % (el margen se mantiene)")
@@ -88,7 +88,7 @@ func test_ganancias_al_80() -> void:
 
 
 func test_migracion_v3_sueldos() -> void:
-	var p := {"employees": {"1": {"salary": 10.0}}, "businesses": {"puesto": {"candidates": [{"salary": 5.0}]}}}
-	var out := Migrations.migrate(p, 2)
+	var p := {"employees": {"1": {"salary": 10.0}}, "businesses": {B0: {"candidates": [{"salary": 5.0}]}}}
+	var out := Migrations._v2_to_v3(p)
 	near(float(out["employees"]["1"]["salary"]), 8.0, 0.001, "sueldo de empleado al 80 %")
-	near(float(out["businesses"]["puesto"]["candidates"][0]["salary"]), 4.0, 0.001, "sueldo de candidato al 80 %")
+	near(float(out["businesses"][B0]["candidates"][0]["salary"]), 4.0, 0.001, "sueldo de candidato al 80 %")

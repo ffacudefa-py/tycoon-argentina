@@ -19,7 +19,7 @@ static func open() -> void:
 		["Empleados", str(m.employees.size())],
 		["Negocio más rentable", m.data.business_by_id[best]["name"] if best != "" else "-"],
 		["Mejoras compradas", str(m.total_upgrades())],
-		["Zonas", "%d/%d" % [m.zones.size(), m.data.zones.size()]],
+		["Provincias conquistadas", "%d/%d" % [ConquestSystem.conquered_count(m), m.data.zones.size()]],
 		["Ventas realizadas", Fmt.integer(m.counter("sales_total"))],
 		["Reposiciones", Fmt.integer(m.counter("restock_count"))],
 		["Tiempo de juego", Fmt.duration(float(m.stats.get("play_time", 0.0)))],

@@ -30,6 +30,36 @@ func near(a: float, b: float, tol: float, msg := "") -> void:
 
 var _shared_data: GameData
 
+## 10.0: primeros negocios y provincias, tomados de los datos (orden de conquista).
+var B0: String:
+	get: return data().businesses[0]["id"]
+var B1: String:
+	get: return data().businesses[1]["id"]
+var B2: String:
+	get: return data().businesses[2]["id"]
+var B3: String:
+	get: return data().businesses[3]["id"]
+var Z0: String:
+	get: return data().zones[0]["id"]
+var Z1: String:
+	get: return data().zones[1]["id"]
+var Z2: String:
+	get: return data().zones[2]["id"]
+
+
+## Conquista la provincia del negocio bid (para habilitar el siguiente).
+func conquer(m: GameModel, bid: String) -> void:
+	if not m.biz[bid]["owned"]:
+		m._own_business(bid, 1.0)
+	ConquestSystem.conquer(m, m.data.zone_for_business(bid))
+
+
+## Abre y conquista las primeras n provincias (NOA = 6, +NEA = 11, +Cuyo = 14).
+func conquer_first(m: GameModel, n: int) -> void:
+	for i in n:
+		conquer(m, m.data.businesses[i]["id"])
+	m.update_progress()
+
 
 func data() -> GameData:
 	if _shared_data == null:
@@ -47,9 +77,9 @@ func make_model(seed_value := 1, open_shop := true) -> GameModel:
 	m.rng.seed = seed_value
 	m.tz_bias_minutes = -180
 	if open_shop:
-		m.open_business("puesto")
-		for p in m.derive("puesto")["products"]:
-			m.biz["puesto"]["stock"][p["id"]] = float(p["cap"]) * 0.5
+		m.open_business(B0)
+		for p in m.derive(B0)["products"]:
+			m.biz[B0]["stock"][p["id"]] = float(p["cap"]) * 0.5
 	return m
 
 

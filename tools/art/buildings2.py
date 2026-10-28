@@ -671,8 +671,8 @@ GENERIC = {
 }
 
 
-def generic(bid):
-    mat, label, s_ramp, a_ramp, kind, extra, shutter = GENERIC[bid]
+def generic(bid, spec=None):
+    mat, label, s_ramp, a_ramp, kind, extra, shutter = spec or GENERIC[bid]
 
     def fn(t, f):
         cv = Canvas(W, H)
@@ -766,7 +766,10 @@ def generate(out, data_dir):
     data = json.load(open(os.path.join(data_dir, "businesses.json"), encoding="utf-8"))
     total_fixed = 0
     for b in data["businesses"]:
-        fn = ARCH.get(b["id"]) or generic(b["id"])
+        # 10.0: los negocios provinciales sin arte propio usan una fachada
+        # provisoria descrita en businesses.json (art.placeholder).
+        spec = GENERIC.get(b["id"]) or tuple(b["art"].get("placeholder", ()))
+        fn = ARCH.get(b["id"]) or generic(b["id"], spec)
         for t in range(5):
             frames = [fn(t, f) for f in (0, 1)]
             for fr in frames:

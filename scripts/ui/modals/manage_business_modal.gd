@@ -1,7 +1,7 @@
 class_name ManageBusinessModal
 extends VBoxContainer
 ## "Administrar": todo lo del negocio agrupado en 4 categorías.
-##   NEGOCIO      mercadería por producto, reponer, zona
+##   NEGOCIO      mercadería por producto, reponer, conquista de la provincia
 ##   EMPLEADOS    equipo actual y candidatos
 ##   MEJORAS      la próxima disponible primero; bloqueadas abajo con motivo
 ##   ESTADÍSTICAS números del negocio
@@ -138,21 +138,25 @@ func _build_business() -> void:
 	_content.add_child(b)
 
 	_content.add_child(U.separator())
-	_content.add_child(_section("Zona"))
-	_content.add_child(U.para("%s · clientes +%d %% · competencia -%d %%" % [m.data.zone_by_id[s["zone"]]["name"], int(round(float(d["zone_demand"]) * 100)), int(round(float(d["competition"]) * 100))], U.SIZE_SMALL, U.TEXT))
-	if m.zones.size() > 1:
-		var cost := m.relocate_cost(bid)
-		for zid in m.zones:
-			if zid == s["zone"]:
-				continue
-			var z: String = zid
-			var mb := UiColors.buy_button("Mudar a " + m.data.zone_by_id[zid]["name"], cost, func() -> void:
-				Main.instance.confirm("¿Mudar el negocio?", "Cuesta %s. La demanda y la competencia cambian según la zona." % Fmt.cost(cost), "Mudar",
-					func() -> void: Main.instance.result(m.relocate(bid, z)), false))
-			_refreshers.append(func() -> void: UiColors.refresh(mb))
-			_content.add_child(mb)
-	else:
-		_content.add_child(U.para("Desbloqueá zonas en el MAPA para poder mudarte.", U.SIZE_SMALL, U.TEXT_SOFT))
+	var zid: String = s["zone"]
+	_content.add_child(_section("Conquista de " + m.data.zone_by_id[zid]["name"]))
+	var row := U.hbox(6)
+	var bar := U.progress("amarillo", 8)
+	bar.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	row.add_child(bar)
+	var pct := U.label("", U.SIZE_SMALL, U.TEXT, true)
+	row.add_child(pct)
+	_content.add_child(row)
+	var upd_c := func() -> void:
+		bar.value = ConquestSystem.share(m, zid)
+		pct.text = "¡Tuya!" if ConquestSystem.is_conquered(m, zid) else "%d %%" % int(floorf(ConquestSystem.share(m, zid) * 100.0))
+	upd_c.call()
+	_refreshers.append(upd_c)
+	var mb := U.button("VER EN EL MAPA", "crema", "mapa", 36, U.SIZE_SMALL)
+	U.on_press(mb, func() -> void:
+		_window.close()
+		ZoneModal.open(zid))
+	_content.add_child(mb)
 
 
 # ---------------------------------------------------------------- EMPLEADOS

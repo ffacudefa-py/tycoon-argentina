@@ -12,8 +12,11 @@ var upgrade_by_id := {}
 var roles: Array = []
 var role_by_id := {}
 var employees_cfg := {}
-var zones: Array = []
+var zones: Array = []               ## 10.0: las 24 provincias, en orden de conquista
 var zone_by_id := {}
+var regions: Array = []             ## 6 regiones, en orden de conquista
+var region_by_id := {}
+var zone_of_business := {}          ## id de negocio -> provincia
 var world := {}
 var rivals: Array = []
 var rival_by_id := {}
@@ -75,6 +78,10 @@ func load_from(dir: String) -> void:
 	zones = wld["zones"]
 	for z in zones:
 		zone_by_id[z["id"]] = z
+		zone_of_business[z.get("business", "")] = z["id"]
+	regions = wld.get("regions", [])
+	for r in regions:
+		region_by_id[r["id"]] = r
 	rivals = wld["rivals"]
 	for r in rivals:
 		rival_by_id[r["id"]] = r
@@ -138,8 +145,11 @@ func _validate() -> void:
 	for m in missions_main + challenges + achievements:
 		if not m.has("metric") or not m.has("target"):
 			errors.append("misión/logro %s incompleto" % m.get("id", "?"))
-	if businesses.is_empty() or businesses[0]["id"] != "puesto":
-		errors.append("el primer negocio debe ser 'puesto'")
+	if businesses.is_empty():
+		errors.append("no hay negocios")
+	for b in businesses:
+		if not zone_of_business.has(b["id"]):
+			errors.append("negocio %s sin provincia" % b["id"])
 
 
 func _read(path: String) -> Variant:
@@ -155,10 +165,28 @@ func _read(path: String) -> Variant:
 	return json.data
 
 
+## Primer negocio (el de la primera provincia): arranca abierto en toda partida.
+func first_business() -> String:
+	return businesses[0]["id"]
+
+
+func zone_for_business(bid: String) -> String:
+	return zone_of_business.get(bid, zones[0]["id"])
+
+
+## Provincias de una región, en orden de conquista.
+func zones_in_region(rid: String) -> Array:
+	var out := []
+	for z in zones:
+		if z["region"] == rid:
+			out.append(z)
+	return out
+
+
 func stage_for(earnings: float) -> int:
 	var s := 1
 	for st in stages:
-		if earnings >= float(st["earnings"]):
+		if earnings >= float(st.get("earnings", INF)):
 			s = int(st["id"])
 	return s
 

@@ -176,8 +176,8 @@ static func validate_payload(payload: Dictionary, data: GameData) -> String:
 	if money < 0:
 		return "dinero inválido"
 	var b: Dictionary = payload["businesses"]
-	if not b.get("puesto") is Dictionary:
-		return "falta el puesto inicial"
+	if not payload.get("fresh_start", false) and not b.get(data.first_business()) is Dictionary:
+		return "falta el negocio inicial"
 	for id in b:
 		if not b[id] is Dictionary:
 			return "negocio %s dañado" % id

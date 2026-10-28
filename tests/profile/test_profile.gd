@@ -134,13 +134,7 @@ func test_nombre_de_empresa_largo() -> void:
 
 
 func test_niveles_sin_interior() -> void:
-	# Mismo dato que usa BusinessScene.has_interior (data/interiors.json).
+	# 10.0: BusinessScene.has_interior da false para los negocios que no están
+	# en data/interiors.json (sin interior dibujado: sólo fachada).
 	var d: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/interiors.json"))["businesses"]
-	var has := func(id: String, t: int) -> bool: return bool(d[id][t]["has_interior"])
-	check(not has.call("puesto", 0), "mesita: sólo calle")
-	check(not has.call("comida", 2), "carrito: sólo calle")
-	check(not has.call("lavadero", 2), "lavadero abierto: sólo calle")
-	check(has.call("puesto", 3), "puesto con local")
-	check(has.call("lavadero", 3), "lavadero con galpón")
-	for t in 5:
-		check(has.call("kiosco", t), "el kiosco siempre tiene interior")
+	check(not d.has(B0), "el primer negocio todavía no tiene interior dibujado")
