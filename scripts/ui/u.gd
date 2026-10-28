@@ -5,13 +5,14 @@ extends RefCounted
 ## UI compartido en vez de estilos sueltos por pantalla).
 
 const PA := "res://assets/pixel_art/"
-const TEXT := Color("2b2746")
-const TEXT_SOFT := Color("5d5b7a")
-const TEXT_LIGHT := Color("f2f0e6")
-const GOLD := Color("ffd85c")
-const GREEN := Color("2f7d4a")
-const RED := Color("a8323a")
-const BG := Color("1b1830")
+## Paleta 11 (docs/style-guide.md §1): texto marrón sobre crema, fondo de madera cálida.
+const TEXT := Color("3d1b0b")
+const TEXT_SOFT := Color("8e5a3c")
+const TEXT_LIGHT := Color("fff6e6")
+const GOLD := Color("f2d173")
+const GREEN := Color("2e7d4f")
+const RED := Color("c0394a")
+const BG := Color("5c3520")
 
 ## Tamaños pensados para VT323 (alta y angosta): mismo ancho de línea que
 ## la fuente anterior, letras más altas.
@@ -25,9 +26,29 @@ static var font_regular: Font
 static var font_bold: Font
 
 
+## Arte 11 (docs/style-guide.md): primero se busca en las carpetas nuevas
+## (personajes / escenarios / íconos); si no está, el arte anterior.
+const ART11 := {
+	"characters/": "res://assets/personajes/",
+	"businesses/": "res://assets/escenarios/businesses/", "locations/": "res://assets/escenarios/locations/",
+	"interiors/": "res://assets/escenarios/interiors/", "backgrounds/": "res://assets/escenarios/backgrounds/",
+	"map/": "res://assets/escenarios/map/", "effects/": "res://assets/escenarios/effects/",
+	"icons/": "res://assets/iconos/icons/", "icons32/": "res://assets/iconos/icons32/",
+	"particles/": "res://assets/iconos/particles/", "avatars/": "res://assets/iconos/avatars/",
+	"ui/": "res://assets/iconos/ui/", "logo/": "res://assets/iconos/logo/",
+}
+
+
 static func tex(path: String) -> Texture2D:
 	if not _tex_cache.has(path):
 		var full := path if path.begins_with("res://") else PA + path
+		if not path.begins_with("res://"):
+			for pre in ART11:
+				if path.begins_with(pre):
+					var alt: String = ART11[pre] + path.substr(pre.length())
+					if ResourceLoader.exists(alt):
+						full = alt
+					break
 		_tex_cache[path] = load(full) if ResourceLoader.exists(full) else null
 	return _tex_cache[path]
 

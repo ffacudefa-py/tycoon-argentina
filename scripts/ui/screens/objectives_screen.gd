@@ -170,7 +170,7 @@ func _build_list() -> void:
 			for mis in m.data.missions_main:
 				if m.missions["claimed"].has(mis["id"]):
 					done += 1
-			_list.add_child(U.label("Reclamadas: %d/%d" % [done, m.data.missions_main.size()], U.SIZE_SMALL, Color("c2c0d6")))
+			_list.add_child(U.label("Reclamadas: %d/%d" % [done, m.data.missions_main.size()], U.SIZE_SMALL, Color("f0dcc0")))
 		1:
 			var items := m.data.challenges.duplicate()
 			items.sort_custom(func(a, b): return _order(a) < _order(b))
@@ -178,7 +178,7 @@ func _build_list() -> void:
 				_list.add_child(_mission_card(c, "challenge"))
 		2:
 			ProgressionSystem.ensure_daily(m)
-			_list.add_child(U.para("Se renuevan cada día. Premio: %s cada una." % ProgressionSystem.describe(m, m.data.daily_cfg["reward"]), U.SIZE_SMALL, Color("c2c0d6")))
+			_list.add_child(U.para("Se renuevan cada día. Premio: %s cada una." % ProgressionSystem.describe(m, m.data.daily_cfg["reward"]), U.SIZE_SMALL, Color("f0dcc0")))
 			for dm in m.daily_missions["list"]:
 				_list.add_child(_mission_card(dm, "daily"))
 	_refresh()
@@ -269,7 +269,7 @@ func _upcoming_card(mis: Dictionary) -> Control:
 	row.add_child(U.icon("candado"))
 	var v := U.vbox(0)
 	v.add_child(U.label("Próxima: " + mis["title"], U.SIZE_SMALL, U.TEXT_LIGHT, true))
-	v.add_child(U.para(mis["description"], U.SIZE_SMALL, Color("c2c0d6")))
+	v.add_child(U.para(mis["description"], U.SIZE_SMALL, Color("f0dcc0")))
 	v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(v)
 	card.add_child(row)

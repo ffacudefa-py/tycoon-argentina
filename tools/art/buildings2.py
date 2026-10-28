@@ -765,6 +765,7 @@ def generate(out, data_dir):
     os.makedirs(d, exist_ok=True)
     data = json.load(open(os.path.join(data_dir, "businesses.json"), encoding="utf-8"))
     total_fixed = 0
+    noext = {}    # zonas sin volumen 3/4 por cuadro (banderas), las lee restyle11
     for b in data["businesses"]:
         # 10.0: los negocios provinciales sin arte propio usan una fachada
         # provisoria descrita en businesses.json (art.placeholder).
@@ -776,5 +777,10 @@ def generate(out, data_dir):
             for fr in frames:
                 total_fixed += fr.clean_orphans()
             sheet(frames).save(f"{d}/{b['id']}_{t}.png")
+            rects = [getattr(fr, "noext", []) for fr in frames]
+            if any(rects):
+                noext[f"{b['id']}_{t}.png"] = rects
         badge(b["id"], b["art"]["main"]).save(f"{d}/{b['id']}_badge.png")
+    with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "noext_businesses.json"), "w") as fh:
+        json.dump(noext, fh, indent=0)
     return total_fixed

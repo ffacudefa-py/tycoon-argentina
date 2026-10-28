@@ -47,7 +47,7 @@ static func refresh(b: Button) -> void:
 		b.text = blocked
 		b.icon = U.icon_tex("candado")
 		b.disabled = true
-		b.add_theme_color_override("font_disabled_color", Color("f0eee6"))
+		b.add_theme_color_override("font_disabled_color", Color("fff6e6"))
 	elif not m.economy.can_afford(cost):
 		b.text = "Faltan " + Fmt.cost(cost - m.economy.money)
 		b.icon = U.icon_tex("candado")
@@ -76,6 +76,6 @@ static func requirement_row(req: Dictionary, dark := false) -> Control:
 		var txt := ("%s/%s" % [Fmt.money(req["current"]), Fmt.money(req["target"])]) if req["money"] else ("%d/%d" % [int(req["current"]), int(req["target"])])
 		if req.get("percent", false):
 			txt = "%d %%" % int(req["current"])
-		row.add_child(U.label(txt, U.SIZE_SMALL, Color("f0eee6") if dark else U.TEXT, true))
+		row.add_child(U.label(txt, U.SIZE_SMALL, Color("fff6e6") if dark else U.TEXT, true))
 		v.add_child(row)
 	return v

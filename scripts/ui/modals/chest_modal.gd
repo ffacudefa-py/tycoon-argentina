@@ -16,7 +16,7 @@ static func open() -> void:
 	body.add_child(prize)
 	var left := U.label("", U.SIZE_SMALL, U.TEXT_SOFT, false, HORIZONTAL_ALIGNMENT_CENTER)
 	body.add_child(left)
-	body.add_child(U.para("Los cofres se ganan conquistando provincias, completando regiones, con logros, hitos de nivel (25, 50 y 100) y desafíos de eventos.", U.SIZE_SMALL, U.TEXT_SOFT))
+	body.add_child(U.para("Se ganan con conquistas de provincias y regiones, logros, niveles 25/50/100 y desafíos de eventos.", U.SIZE_SMALL, U.TEXT_SOFT))
 	var b := U.button("ABRIR", "amarillo", "regalo", 44)
 	var refresh := func() -> void:
 		var n := int(m.engage.get("chests", 0))

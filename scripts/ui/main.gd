@@ -18,6 +18,8 @@ const SECTIONS := ["Imperio", "Negocios", "Mapa", "Objetivos", "Perfil"]
 
 var m: GameModel
 var selected_business := ""
+## Mapa → fachada: a qué negocio se hizo zoom (para el zoom inverso al volver al mapa).
+var zoom_return := {}
 var section := 0
 var targets := {}            ## controles que el tutorial puede señalar
 
@@ -150,6 +152,8 @@ func _apply_safe_area() -> void:
 
 
 func go_to(index: int) -> void:
+	if index != 0 and index != 2:
+		zoom_return = {}
 	section = index
 	for i in screens.size():
 		screens[i].visible = i == index

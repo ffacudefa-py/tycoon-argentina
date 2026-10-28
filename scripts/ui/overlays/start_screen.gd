@@ -39,7 +39,7 @@ func _ready() -> void:
 	_root.mouse_filter = Control.MOUSE_FILTER_STOP
 	add_child(_root)
 	_sky = ColorRect.new()
-	_sky.color = Color("2e2b48")
+	_sky.color = Color("5a2e1e")
 	_sky.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_root.add_child(_sky)
 	_bg = TextureRect.new()
@@ -83,9 +83,9 @@ func _ready() -> void:
 	# La versión va dentro de la tarjeta: sobre el fondo tapaba los edificios.
 	inner.add_child(U.label("v%s" % ProjectSettings.get_setting("application/config/version"), U.SIZE_SMALL, U.TEXT_SOFT, false, HORIZONTAL_ALIGNMENT_RIGHT))
 	col.add_child(card)
-	_status = U.label("", U.SIZE_SMALL, Color("f0eee6"), false, HORIZONTAL_ALIGNMENT_CENTER)
+	_status = U.label("", U.SIZE_SMALL, Color("fff6e6"), false, HORIZONTAL_ALIGNMENT_CENTER)
 	_status.add_theme_constant_override("outline_size", 4)
-	_status.add_theme_color_override("font_outline_color", Color("1b1a2e"))
+	_status.add_theme_color_override("font_outline_color", Color("3d1b0b"))
 	col.add_child(_status)
 
 	_root.resized.connect(_layout)
@@ -100,9 +100,9 @@ func _ready() -> void:
 func _title(text: String, size: int, color: Color) -> Label:
 	var l := U.label(text, size, color, true, HORIZONTAL_ALIGNMENT_CENTER)
 	l.add_theme_constant_override("outline_size", 8)
-	l.add_theme_color_override("font_outline_color", Color("1b1a2e"))
+	l.add_theme_color_override("font_outline_color", Color("3d1b0b"))
 	l.add_theme_constant_override("shadow_offset_y", 3)
-	l.add_theme_color_override("font_shadow_color", Color("1b1a2e"))
+	l.add_theme_color_override("font_shadow_color", Color("3d1b0b"))
 	return l
 
 

@@ -11,9 +11,10 @@ techos (teja, paja, chapa, dientes de sierra), ventanas con postigos, rejas,
 arcos y vidrieras, y utilería propia de cada rubro. Luz arriba a la izquierda.
 """
 import math
-from px2 import Canvas, RAMP
+from px2 import Canvas, RAMP, rgba
 from buildings2 import W, H, G, sign, smoke, text, text_width, awning, lamp
-from buildings3 import tree, crop, vines, sheep, cow, llama, windmill, water, soil, fence
+from buildings3 import tree, crop, vines, sheep, cow, llama, windmill, fence
+from buildings3 import soil as _soil, water as _water
 
 # ------------------------------------------------------------ texturas
 
@@ -37,9 +38,36 @@ WALLS = {
 }
 
 
+class _Clip:
+    """Vista de un lienzo recortada a un rectángulo: la textura de una pared
+    nunca se sale de la pared (si no, la cara 3/4 queda dentada)."""
+
+    def __init__(self, cv, x, y, w, h):
+        self.cv, self.box = cv, (x, y, x + w, y + h)
+
+    def put(self, x, y, c):
+        x0, y0, x1, y1 = self.box
+        if x0 <= x < x1 and y0 <= y < y1:
+            self.cv.put(x, y, c)
+
+    def rect(self, x, y, w, h, c):
+        x0, y0, x1, y1 = self.box
+        nx, ny = max(x, x0), max(y, y0)
+        nw, nh = min(x + w, x1) - nx, min(y + h, y1) - ny
+        if nw > 0 and nh > 0:
+            self.cv.rect(nx, ny, nw, nh, c)
+
+    def hline(self, x, y, w, c):
+        self.rect(x, y, w, 1, c)
+
+    def vline(self, x, y, h, c):
+        self.rect(x, y, 1, h, c)
+
+
 def wall(cv, x, y, w, h, kind):
     b, s, l, d = WALLS[kind]
     cv.rect(x, y, w, h, b)
+    cv = _Clip(cv, x, y, w, h)
     if kind == "ladrillo":
         for j, yy in enumerate(range(y + 2, y + h, 4)):
             cv.hline(x, yy, w, s)
@@ -139,12 +167,15 @@ def roof(cv, x, y, w, kind, depth=10):
             cv.put(xx, y - hh, "l")
         return y - depth
     if kind == "dientes":
-        for xx in range(x, x + w, 18):
+        n = max(1, round(w / 18))                # dientes iguales que cubren justo la pared
+        tw = w // n
+        for i in range(n):
+            xx = x + i * tw + (w - n * tw) // 2
             for k in range(9):
-                cv.hline(xx + k, y - 9 + k, 18 - k * 2 if 18 - k * 2 > 0 else 0, "d")
+                cv.hline(xx + k, y - 9 + k, max(0, tw - k * 2), "d")
                 cv.put(xx + k, y - 9 + k, "l")
-            cv.vline(xx + 17, y - 9, 9, "C4")
-            cv.vline(xx + 16, y - 9, 9, "C3")
+            cv.vline(xx + tw - 1, y - 9, 9, "C4")
+            cv.vline(xx + tw - 2, y - 9, 9, "C3")
         return y - 9
     # plano con parapeto
     cv.rect(x - 2, y - 4, w + 4, 4, "l")
@@ -260,15 +291,22 @@ def chimney(cv, x, y, h, f, brick=True):
 
 
 def flag(cv, x, y, f, colors=("C3", "W", "C3")):
-    cv.vline(x, y, 34, "l")
-    cv.put(x, y - 1, "Y2")
+    """Mástil apoyado en el piso; la tela flamea hacia afuera del edificio
+    (a la izquierda si la bandera está del lado izquierdo de la escena)."""
+    left = x < W // 2
+    px_ = x + 17 if left else x                  # el mástil va del lado del edificio
+    if hasattr(cv, "noext"):
+        cv.noext.append((min(x, px_ - 17) - 2, y - 3, max(x + 17, px_ + 17) + 2, G - 4))
+    cv.vline(px_, y, G - y + 1, "M1")
+    cv.put(px_, y - 1, "Y2")
     for j, c in enumerate(colors):
         for i in range(16):
             dy = 1 if ((i + f * 3) // 4) % 2 else 0
-            cv.put(x + 1 + i, y + 1 + j * 3 + dy, c)
-            cv.put(x + 1 + i, y + 2 + j * 3 + dy, c)
+            cx = px_ - 1 - i if left else px_ + 1 + i
+            cv.put(cx, y + 1 + j * 3 + dy, c)
+            cv.put(cx, y + 2 + j * 3 + dy, c)
     if colors == ("C3", "W", "C3"):
-        cv.put(x + 8, y + 5, "Y2")
+        cv.put(px_ - 8 if left else px_ + 8, y + 5, "Y2")
 
 
 def lights(cv, x1, x2, y, f, sag=5):
@@ -544,13 +582,106 @@ def fileteado(cv, x, y, w, label, f):
     text(cv, label, x + (w - tw) // 2, y + 4, "Y4" if f else "Y3", "R1")
 
 
+PAD = 80          # margen de dibujo fuera del lienzo (para medir y encuadrar)
+SIDE = 9          # aire a la derecha para la cara lateral 3/4 (restyle11.extrude)
+
+
+class Wide(Canvas):
+    """Lienzo con margen: se dibuja con las coordenadas de siempre, pero lo que
+    se sale del cuadro no se pierde. fit() después encuadra la escena entera
+    para que ningún edificio, cartel o silo quede cortado por el borde."""
+
+    def __init__(self, w, h):
+        super().__init__(w + 2 * PAD, h + PAD)
+        self.noext = []      # zonas sin cara 3/4 (banderas): restyle11 las respeta
+
+    def put(self, x, y, c):
+        super().put(x + PAD, y + PAD, c)
+
+    def get(self, x, y):
+        return super().get(x + PAD, y + PAD)
+
+    def rect(self, x, y, w, h, c):
+        if x <= 0 and x + w >= W and y >= G - 8:      # piso de lado a lado: sigue fuera del cuadro
+            x, w = -PAD, W + 2 * PAD
+        Canvas.rect(self, x + PAD, y + PAD, w, h, c)
+
+    def paste(self, other, x, y, flip=False):
+        Canvas.paste(self, other, x + PAD, y + PAD, flip)
+
+    def outline(self, c="o"):
+        pts = []
+        for y in range(self.h):
+            for x in range(self.w):
+                if self.px[x, y][3] == 0 and any(Canvas.get(self, x + dx, y + dy)[3] for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1))):
+                    pts.append((x, y))
+        for x, y in pts:
+            Canvas.put(self, x, y, c)
+
+
+def soil(cv, x, w, c1="M2", c2="M3", h=5):
+    if x <= 0 and x + w >= W:
+        x, w = -PAD, W + 2 * PAD
+    _soil(cv, x, w, c1, c2, h)
+
+
+def water(cv, x, w, f=0):
+    if x <= 0 and x + w >= W:
+        x, w = -PAD, W + 2 * PAD
+    _water(cv, x, w, f)
+
+
+REPORT = []
+
+
+def _cols(cv):
+    """Columnas con contenido sobre el piso (sin puntitos sueltos ni contorno)."""
+    o = rgba("o")
+
+    def fill(x, y):
+        p = cv.px[x, y]
+        return p[3] and p != o
+
+    return {x - PAD for y in range(PAD, PAD + G - 10) for x in range(1, cv.w - 1)
+            if fill(x, y) and (fill(x + 1, y) or fill(x - 1, y) or fill(x, y + 1) or fill(x, y - 1))}
+
+
+def fit(frames, name=""):
+    """Encuadra: corre la escena en x (igual en todos los cuadros, para que la
+    animación no tiemble) para que todo lo que está sobre el piso entre en
+    [1, W - SIDE] y deje lugar a la cara lateral 3/4. Devuelve Canvas W x H.
+    Si no entra ni al ras, lo anota en REPORT (hay que acomodar el dibujo)."""
+    xs = set().union(*[_cols(cv) for cv in frames])
+    dx = 0
+    if xs:
+        x0, x1 = min(xs), max(xs)
+        for side in (SIDE, 1):
+            if x1 - x0 <= W - side - 1:
+                if x1 > W - side:
+                    dx = (W - side) - x1
+                if x0 + dx < 1:
+                    dx = 1 - x0
+                break
+        else:
+            REPORT.append((name, x0, x1))
+    outs = []
+    for cv in frames:
+        out = Canvas(W, H)
+        for y in range(H):
+            for x in range(W):
+                out.px[x, y] = cv.px[x - dx + PAD, y + PAD]
+        out.noext = [(a + dx, b, c + dx, d) for a, b, c, d in getattr(cv, "noext", [])]
+        outs.append(out)
+    return outs
+
+
 def done(cv):
     cv.outline()
     return cv
 
 
 def C():
-    return Canvas(W, H)
+    return Wide(W, H)
 
 
 # =================================================================== NOA
@@ -562,13 +693,13 @@ def algodonal(t, f):
         crop(cv, 4, 90, "algodon", 2, f)
         stall(cv, 112, 46, "amarillo", f, lambda c, x, y: bales(c, x + 2, 2), "ALGODÓN")
     elif t == 1:
-        crop(cv, 2, 70, "algodon", 3, f)
-        wall(cv, 86, G - 38, 62, 39, "adobe")
-        roof(cv, 86, G - 38, 62, "paja", 9)
-        door(cv, 96, 14, 26)
-        window(cv, 120, G - 30, 14, 12, "postigos", color="C2")
-        post_sign(cv, 150, "ALGODÓN", "Y2", "M1")
-        bales(cv, 150, 1)
+        crop(cv, 2, 56, "algodon", 3, f)
+        wall(cv, 64, G - 38, 62, 39, "adobe")
+        roof(cv, 64, G - 38, 62, "paja", 9)
+        door(cv, 74, 14, 26)
+        window(cv, 98, G - 30, 14, 12, "postigos", color="C2")
+        post_sign(cv, 136, "ALGODÓN", "Y2", "M1")
+        bales(cv, 138, 1)
     elif t == 2:
         crop(cv, 2, 56, "algodon", 3, f)
         wall(cv, 62, G - 48, 80, 49, "madera")
@@ -586,7 +717,7 @@ def algodonal(t, f):
         chimney(cv, 80, G - 56, 18, f)
         sign(cv, 50, G - 84, "DESMOTADORA", "noche")
         bales(cv, 100, 4, stack=3)
-        crop(cv, 158, 34, "algodon", 2, f)
+        crop(cv, 152, 30, "algodon", 2, f)
     else:
         wall(cv, 18, G - 70, 120, 71, "hormigon")
         roof(cv, 18, G - 70, 120, "dientes")
@@ -691,8 +822,7 @@ def almazara(t, f):
         neon_sign(cv, 70, G - 94, "OLIVA CATAMARCA", f, ("G3", "Y3"))
         tank(cv, 128, 74, 22, "G2")
         tank(cv, 152, 66, 22, "Y2")
-        for i in range(2):
-            tree(cv, 6 + i * 172, "olivo", f, 1.0)
+        tree(cv, 10, "olivo", f, 1.0)
     return done(cv)
 
 
@@ -794,22 +924,22 @@ def citricola(t, f):
         stall(cv, 110, 54, "amarillo", f, lambda c, x, y: fruit_pile(c, x + 2, 46, "Y3", "Y2"), "LIMONES")
     elif t == 1:
         for i in range(3):
-            tree(cv, 10 + i * 18, "limon", f, 1.0)
-        wall(cv, 70, G - 40, 76, 41, "amarillo")
-        roof(cv, 70, G - 40, 76, "teja", 9)
-        window(cv, 80, G - 32, 30, 18, "vitrina")
-        door(cv, 118, 16, 28, "vidrio")
-        crates(cv, 150, 3, ("Y3", "Y2", "G3"), 2)
-        sign(cv, 108, G - 62, "JUGOS", "verde")
+            tree(cv, 10 + i * 17, "limon", f, 1.0)
+        wall(cv, 64, G - 40, 76, 41, "amarillo")
+        roof(cv, 64, G - 40, 76, "teja", 9)
+        window(cv, 74, G - 32, 30, 18, "vitrina")
+        door(cv, 112, 16, 28, "vidrio")
+        crates(cv, 144, 3, ("Y3", "Y2", "G3"), 2)
+        sign(cv, 102, G - 62, "JUGOS", "verde")
     elif t == 2:
         for i in range(2):
-            tree(cv, 8 + i * 18, "limon", f, 1.1)
-        wall(cv, 46, G - 50, 100, 51, "verde")
-        roof(cv, 46, G - 50, 100, "curvo", 13)
-        door(cv, 70, 34, 32, "porton")
-        crates(cv, 112, 3, ("Y3", "Y2", "G3"), 3)
-        pickup(cv, 148, "Y2", f, lambda c, x, y: [c.rect(x + 2 + i * 6, y - 4, 5, 4, "Y3") for i in range(3)])
-        sign(cv, 96, G - 80, "CITRUS TUCUMÁN", "verde")
+            tree(cv, 12 + i * 16, "limon", f, 1.1)
+        wall(cv, 46, G - 50, 94, 51, "verde")
+        roof(cv, 46, G - 50, 94, "curvo", 13)
+        door(cv, 68, 34, 32, "porton")
+        crates(cv, 108, 3, ("Y3", "Y2", "G3"), 3)
+        pickup(cv, 142, "Y2", f, lambda c, x, y: [c.rect(x + 2 + i * 6, y - 4, 5, 4, "Y3") for i in range(3)])
+        sign(cv, 93, G - 80, "CITRUS TUCUMÁN", "verde")
     elif t == 3:
         wall(cv, 4, G - 58, 100, 59, "hormigon")
         roof(cv, 4, G - 58, 100, "dientes")
@@ -853,24 +983,24 @@ def bananal(t, f):
         crates(cv, 148, 2, ("Y3", "Y2"), 2)
     elif t == 2:
         for i in range(3):
-            tree(cv, 8 + i * 15, "banana", f, 1.2)
-        wall(cv, 58, G - 46, 92, 47, "madera")
-        roof(cv, 58, G - 46, 92, "chapa", 9)
+            tree(cv, 12 + i * 15, "banana", f, 1.2)
+        wall(cv, 60, G - 46, 86, 47, "madera")
+        roof(cv, 60, G - 46, 86, "chapa", 9)
         door(cv, 76, 30, 30, "porton")
         for i in range(3):
             cv.vline(122 + i * 8, G - 40, 6, "M1")
             cv.rect(119 + i * 8, G - 34, 7, 12, "G2")
             cv.rect(120 + i * 8, G - 28, 5, 6, "Y3")
-        pickup(cv, 150, "G2", f)
-        sign(cv, 104, G - 72, "BANANAS FORMOSA", "verde")
+        pickup(cv, 145, "G2", f)
+        sign(cv, 103, G - 72, "BANANAS FORMOSA", "verde")
     elif t == 3:
         for i in range(2):
-            tree(cv, 8 + i * 15, "banana", f, 1.2)
-        wall(cv, 44, G - 54, 104, 55, "celeste")
-        roof(cv, 44, G - 54, 104, "curvo", 14)
-        door(cv, 72, 40, 34, "persiana")
-        crates(cv, 150, 3, ("Y3", "Y2", "G3"), 3)
-        sign(cv, 96, G - 84, "EMPAQUE DEL RÍO", "celeste")
+            tree(cv, 12 + i * 15, "banana", f, 1.2)
+        wall(cv, 44, G - 54, 98, 55, "celeste")
+        roof(cv, 44, G - 54, 98, "curvo", 14)
+        door(cv, 70, 40, 34, "persiana")
+        crates(cv, 144, 3, ("Y3", "Y2", "G3"), 3)
+        sign(cv, 93, G - 84, "EMPAQUE DEL RÍO", "celeste")
     else:
         wall(cv, 20, G - 66, 120, 67, "verde")
         roof(cv, 20, G - 66, 120, "dientes")
@@ -964,7 +1094,7 @@ def arrocera(t, f):
         roof(cv, 44, G - 56, 96, "curvo", 14)
         door(cv, 74, 34, 36, "persiana")
         for i in range(3):
-            silo(cv, 142 + i * 16, 66 - i * 6, 14)
+            silo(cv, 141 + i * 15, 66 - i * 6, 14)
         sign(cv, 92, G - 84, "ARROCERA ESTEROS", "celeste")
     else:
         wall(cv, 14, G - 66, 110, 67, "celeste")
@@ -1012,19 +1142,19 @@ def molino_arrocero(t, f):
             silo(cv, 114 + i * 18, 76 - i * 6)
         sign(cv, 56, G - 94, "MOLINO ARROCERO", "noche")
     else:
-        wall(cv, 4, G - 76, 116, 77, "ladrillo")
-        roof(cv, 4, G - 76, 116, "teja", 12)
+        wall(cv, 8, G - 76, 110, 77, "ladrillo")
+        roof(cv, 8, G - 76, 110, "teja", 12)
         cv.rect(46, G - 104, 32, 18, "R2")
         roof(cv, 46, G - 104, 32, "teja", 8)
         cv.ellipse(62, G - 96, 5, 5, "W")
         cv.vline(62, G - 99, 4, "o")
         cv.hline(62, G - 96, 3, "o")
-        for xx in range(12, 112, 16):
+        for xx in range(16, 110, 16):
             window(cv, xx, G - 66, 10, 14, "arco", lit=(xx // 16 + f) % 2 == 0)
         door(cv, 46, 32, 34, "arco")
         neon_sign(cv, 62, G - 126, "MOLINOS DEL LITORAL", f)
         for i in range(4):
-            silo(cv, 124 + i * 16, 90 - i * 6, 14)
+            silo(cv, 121 + i * 15, 90 - i * 6, 13)
     return done(cv)
 
 
@@ -1112,15 +1242,15 @@ def frigorifico(t, f):
         tank(cv, 130, 64, 22, "R2")
         sign(cv, 64, G - 82, "CARNES DEL MORRO", "rojo")
     else:
-        wall(cv, 4, G - 72, 120, 73, "hormigon")
-        roof(cv, 4, G - 72, 120, "plano")
-        cv.rect(4, G - 50, 120, 8, "R2")
-        for xx in range(12, 116, 16):
+        wall(cv, 8, G - 72, 108, 73, "hormigon")
+        roof(cv, 8, G - 72, 108, "plano")
+        cv.rect(8, G - 50, 108, 8, "R2")
+        for xx in range(16, 108, 16):
             window(cv, xx, G - 66, 10, 12, "industrial", lit=(xx // 16 + f) % 2 == 0)
         door(cv, 20, 30, 34, "persiana")
-        door(cv, 70, 30, 34, "persiana")
-        neon_sign(cv, 64, G - 94, "FRIGORÍFICO SAN LUIS", f)
-        truck(cv, 122, "R2", "CARNES", f)
+        door(cv, 66, 30, 34, "persiana")
+        neon_sign(cv, 62, G - 94, "FRIGORÍFICO SAN LUIS", f)
+        truck(cv, 114, "R2", "CARNES", f)
     return done(cv)
 
 
@@ -1289,22 +1419,22 @@ def lanera(t, f):
         bales(cv, 142, 3, "E1", "l", 3)
         sign(cv, 78, G - 80, "LAVADERO DE LANA", "celeste")
     elif t == 3:
-        wall(cv, 4, G - 60, 124, 61, "chapa")
-        roof(cv, 4, G - 60, 124, "dientes")
-        for xx in range(12, 120, 14):
+        wall(cv, 8, G - 60, 118, 61, "chapa")
+        roof(cv, 8, G - 60, 118, "dientes")
+        for xx in range(16, 120, 14):
             window(cv, xx, G - 50, 9, 12, "industrial")
-        door(cv, 46, 34, 34, "persiana")
-        chimney(cv, 110, G - 60, 22, f)
-        bales(cv, 134, 4, "W", "g", 3)
-        sign(cv, 66, G - 86, "LANERAS DEL CHUBUT", "noche")
+        door(cv, 48, 34, 34, "persiana")
+        chimney(cv, 108, G - 60, 22, f)
+        bales(cv, 130, 4, "W", "g", 3)
+        sign(cv, 67, G - 86, "LANERAS DEL CHUBUT", "noche")
     else:
-        wall(cv, 4, G - 74, 130, 75, "hormigon")
-        roof(cv, 4, G - 74, 130, "dientes")
-        for xx in range(12, 126, 14):
+        wall(cv, 8, G - 74, 120, 75, "hormigon")
+        roof(cv, 8, G - 74, 120, "dientes")
+        for xx in range(16, 122, 14):
             window(cv, xx, G - 64, 9, 12, "industrial", lit=(xx // 14 + f) % 2 == 0)
         door(cv, 48, 36, 36, "persiana")
-        neon_sign(cv, 69, G - 100, "LANERA DEL SUR", f, ("C4", "W"))
-        truck(cv, 120, "C2", "LANA", f)
+        neon_sign(cv, 68, G - 100, "LANERA DEL SUR", f, ("C4", "W"))
+        truck(cv, 116, "C2", "LANA", f)
     return done(cv)
 
 
@@ -1320,12 +1450,12 @@ def chacra_peras(t, f):
         stall(cv, 120, 52, "verde", f, lambda c, x, y: fruit_pile(c, x + 2, 44, "G3", "G2"), "PERAS")
     elif t == 1:
         for i in range(3):
-            tree(cv, 26 + i * 18, "pera" if i % 2 else "cerezo", f, 1.0)
-        wall(cv, 96, G - 40, 70, 41, "madera")
-        roof(cv, 96, G - 40, 70, "teja", 9)
-        door(cv, 110, 16, 28)
-        window(cv, 138, G - 32, 14, 12, "postigos", color="R2")
-        crates(cv, 168, 1, ("G3", "Y3"), 2)
+            tree(cv, 22 + i * 18, "pera" if i % 2 else "cerezo", f, 1.0)
+        wall(cv, 90, G - 40, 70, 41, "madera")
+        roof(cv, 90, G - 40, 70, "teja", 9)
+        door(cv, 104, 16, 28)
+        window(cv, 132, G - 32, 14, 12, "postigos", color="R2")
+        crates(cv, 162, 1, ("G3", "Y3"), 2)
     elif t == 2:
         for i in range(2):
             tree(cv, 26 + i * 18, "pera", f, 1.1)
@@ -1343,13 +1473,13 @@ def chacra_peras(t, f):
         door(cv, 88, 36, 34, "persiana")
         sign(cv, 106, G - 84, "FRUTÍCOLA ALTO VALLE", "verde")
     else:
-        wall(cv, 20, G - 70, 150, 71, "vidrio")
-        roof(cv, 20, G - 70, 150, "plano")
-        cv.rect(20, G - 26, 150, 26, "G2")
-        cv.hline(20, G - 26, 150, "G3")
-        door(cv, 82, 28, 26, "vidrio")
-        neon_sign(cv, 95, G - 94, "PERAS DE RÍO NEGRO", f, ("G3", "Y3"))
-        tree(cv, 180, "cerezo", f, 0.9)
+        wall(cv, 14, G - 70, 146, 71, "vidrio")
+        roof(cv, 14, G - 70, 146, "plano")
+        cv.rect(14, G - 26, 146, 26, "G2")
+        cv.hline(14, G - 26, 146, "G3")
+        door(cv, 74, 28, 26, "vidrio")
+        neon_sign(cv, 87, G - 94, "PERAS DE RÍO NEGRO", f, ("G3", "Y3"))
+        tree(cv, 172, "cerezo", f, 0.9)
     return done(cv)
 
 
@@ -1369,12 +1499,12 @@ def manzanas(t, f):
         crates(cv, 156, 2, ("R2", "R3"), 2)
     elif t == 2:
         for i in range(2):
-            tree(cv, 8 + i * 18, "manzana", f, 1.1)
-        wall(cv, 48, G - 52, 110, 53, "rojo")
-        roof(cv, 48, G - 52, 110, "curvo", 14)
-        door(cv, 80, 40, 36, "persiana")
-        crates(cv, 160, 2, ("R2", "R3", "G3"), 3)
-        sign(cv, 103, G - 80, "EMPAQUE", "rojo")
+            tree(cv, 12 + i * 16, "manzana", f, 1.1)
+        wall(cv, 48, G - 52, 104, 53, "rojo")
+        roof(cv, 48, G - 52, 104, "curvo", 14)
+        door(cv, 78, 40, 36, "persiana")
+        crates(cv, 155, 2, ("R2", "R3", "G3"), 3)
+        sign(cv, 100, G - 80, "EMPAQUE", "rojo")
     elif t == 3:
         wall(cv, 4, G - 58, 120, 59, "rojo")
         roof(cv, 4, G - 58, 120, "dientes")
@@ -1423,14 +1553,14 @@ def electronica(t, f):
         door(cv, 70, 30, 28, "persiana")
         sign(cv, 85, G - 76, "ARMADORA FUEGUINA", "celeste")
     elif t == 3:
-        wall(cv, 4, G - 60, 140, 61, "chapa")
-        roof(cv, 4, G - 60, 140, "dientes")
-        snow_roof(cv, 4, G - 70, 140)
-        for xx in range(12, 136, 14):
+        wall(cv, 8, G - 60, 134, 61, "chapa")
+        roof(cv, 8, G - 60, 134, "dientes")
+        snow_roof(cv, 8, G - 70, 134)
+        for xx in range(16, 134, 14):
             window(cv, xx, G - 50, 9, 10, "industrial", lit=True)
-        door(cv, 54, 36, 34, "persiana")
-        antenna(cv, 172, f)
-        sign(cv, 74, G - 92, "PLANTA RÍO GRANDE", "celeste")
+        door(cv, 56, 36, 34, "persiana")
+        antenna(cv, 162, f)
+        sign(cv, 75, G - 92, "PLANTA RÍO GRANDE", "celeste")
     else:
         wall(cv, 10, G - 80, 150, 81, "vidrio")
         roof(cv, 10, G - 80, 150, "plano")
@@ -1477,19 +1607,19 @@ def estancia_ganadera(t, f):
         roof(cv, 70, G - 54, 76, "dos_aguas")
         door(cv, 92, 30, 36, "porton")
         silo(cv, 152, 70)
-        silo(cv, 170, 62, 14)
+        silo(cv, 168, 62, 14)
         sign(cv, 108, G - 90, "HACIENDA CALDENAL", "madera")
     else:
-        crop(cv, 2, 40, "trigo", 1, f)
-        wall(cv, 46, G - 64, 120, 65, "colonial")
-        roof(cv, 46, G - 64, 120, "teja", 12)
-        wall(cv, 86, G - 90, 40, 27, "colonial")
-        roof(cv, 86, G - 90, 40, "teja", 8)
-        arches(cv, 52, G - 40, 108, 40, 5)
-        for xx in (60, 92, 124, 148):
+        crop(cv, 2, 30, "trigo", 1, f)
+        wall(cv, 36, G - 64, 120, 65, "colonial")
+        roof(cv, 36, G - 64, 120, "teja", 12)
+        wall(cv, 76, G - 90, 40, 27, "colonial")
+        roof(cv, 76, G - 90, 40, "teja", 8)
+        arches(cv, 42, G - 40, 108, 40, 5)
+        for xx in (50, 82, 114, 138):
             window(cv, xx, G - 58, 10, 12, "postigos", lit=f == 0, color="G2")
-        neon_sign(cv, 106, G - 114, "LA PAMPA GANADERA", f)
-        flag(cv, 176, G - 70, f)
+        neon_sign(cv, 96, G - 114, "LA PAMPA GANADERA", f)
+        flag(cv, 164, G - 70, f)
     return done(cv)
 
 
@@ -1533,14 +1663,14 @@ def salames(t, f):
         crates(cv, 132, 3, ("R1", "M3", "Y2"), 2)
         sign(cv, 64, G - 86, "FÁBRICA DE SALAMES", "bordo")
     else:
-        wall(cv, 10, G - 72, 140, 73, "ladrillo")
-        roof(cv, 10, G - 72, 140, "teja", 12)
-        cv.rect(10, G - 30, 140, 8, "G1")
-        for xx in range(18, 144, 16):
+        wall(cv, 12, G - 72, 128, 73, "ladrillo")
+        roof(cv, 12, G - 72, 128, "teja", 12)
+        cv.rect(12, G - 30, 128, 8, "G1")
+        for xx in range(20, 134, 16):
             window(cv, xx, G - 64, 10, 14, "arco", lit=(xx // 16 + f) % 2 == 0)
-        door(cv, 64, 32, 28, "vidrio")
-        neon_sign(cv, 80, G - 98, "SALAMES CAROYA", f)
-        truck(cv, 120, "R1", "SALAMES", f)
+        door(cv, 60, 32, 28, "vidrio")
+        neon_sign(cv, 76, G - 98, "SALAMES CAROYA", f)
+        truck(cv, 114, "R1", "SALAMES", f)
         flag(cv, 2, G - 74, f, ("G2", "W", "R2"))
     return done(cv)
 
@@ -1562,31 +1692,31 @@ def usina_lactea(t, f):
         sign(cv, 95, G - 76, "TAMBO", "celeste")
     elif t == 2:
         cow(cv, 2, f)
-        wall(cv, 40, G - 50, 100, 51, "celeste")
-        roof(cv, 40, G - 50, 100, "curvo", 12)
-        door(cv, 70, 36, 32, "persiana")
-        tank(cv, 146, 56, 20, "C2")
-        tank(cv, 168, 48, 18, "C3")
-        sign(cv, 90, G - 76, "LÁCTEOS", "celeste")
+        wall(cv, 38, G - 50, 100, 51, "celeste")
+        roof(cv, 38, G - 50, 100, "curvo", 12)
+        door(cv, 68, 36, 32, "persiana")
+        tank(cv, 142, 56, 20, "C2")
+        tank(cv, 164, 48, 18, "C3")
+        sign(cv, 88, G - 76, "LÁCTEOS", "celeste")
     elif t == 3:
-        wall(cv, 4, G - 58, 110, 59, "cal")
-        roof(cv, 4, G - 58, 110, "dientes")
-        for xx in range(12, 106, 14):
+        wall(cv, 8, G - 58, 104, 59, "cal")
+        roof(cv, 8, G - 58, 104, "dientes")
+        for xx in range(16, 104, 14):
             window(cv, xx, G - 48, 9, 10, "industrial")
-        door(cv, 40, 34, 34, "persiana")
+        door(cv, 42, 34, 34, "persiana")
         for i in range(3):
-            tank(cv, 118 + i * 24, 74 - i * 6, 20, "C2")
-        sign(cv, 59, G - 84, "CUENCA SANTAFESINA", "celeste")
+            tank(cv, 116 + i * 23, 74 - i * 6, 20, "C2")
+        sign(cv, 60, G - 84, "CUENCA SANTAFESINA", "celeste")
     else:
-        wall(cv, 4, G - 74, 120, 75, "hormigon")
-        roof(cv, 4, G - 74, 120, "plano")
-        cv.rect(4, G - 32, 120, 8, "C2")
-        for xx in range(12, 116, 16):
+        wall(cv, 6, G - 74, 116, 75, "hormigon")
+        roof(cv, 6, G - 74, 116, "plano")
+        cv.rect(6, G - 32, 116, 8, "C2")
+        for xx in range(14, 114, 16):
             window(cv, xx, G - 66, 10, 14, "industrial", lit=(xx // 16 + f) % 2 == 0)
         door(cv, 46, 32, 26, "vidrio")
         neon_sign(cv, 64, G - 98, "USINA LÁCTEA", f, ("C4", "W"))
         for i in range(2):
-            tank(cv, 130 + i * 30, 86 - i * 8, 26, "C2")
+            tank(cv, 126 + i * 29, 86 - i * 8, 26, "C2")
     return done(cv)
 
 
@@ -1613,22 +1743,22 @@ def molino_harinero(t, f):
         tractor(cv, 152, "R2", f)
         sign(cv, 77, G - 96, "MOLINO", "madera")
     elif t == 3:
-        wall(cv, 4, G - 70, 90, 71, "crema")
-        roof(cv, 4, G - 70, 90, "plano")
-        for xx in range(12, 86, 16):
+        wall(cv, 6, G - 70, 86, 71, "crema")
+        roof(cv, 6, G - 70, 86, "plano")
+        for xx in range(14, 84, 16):
             window(cv, xx, G - 60, 10, 14, "simple")
         door(cv, 34, 30, 34, "persiana")
         for i in range(4):
-            silo(cv, 98 + i * 22, 92 - i * 4, 20)
+            silo(cv, 96 + i * 21, 92 - i * 4, 19)
         sign(cv, 49, G - 92, "HARINERA", "madera")
     else:
-        wall(cv, 4, G - 86, 96, 87, "hormigon")
-        roof(cv, 4, G - 86, 96, "plano")
+        wall(cv, 6, G - 86, 94, 87, "hormigon")
+        roof(cv, 6, G - 86, 94, "plano")
         for xx in range(12, 92, 14):
             window(cv, xx, G - 78, 9, 14, "industrial", lit=(xx // 14 + f) % 2 == 0)
         door(cv, 34, 34, 36, "persiana")
         for i in range(4):
-            silo(cv, 104 + i * 22, 112 - i * 4, 20)
+            silo(cv, 102 + i * 21, 112 - i * 4, 18)
         neon_sign(cv, 96, G - 120, "MOLINOS PAMPA HÚMEDA", f, ("Y3", "W"))
     return done(cv)
 
@@ -1682,30 +1812,39 @@ def panaderia(t, f):
         door(cv, 132, 26, 38, "vidrio")
         awning(cv, 22, G - 52, 148, "bordo", f, 10)
         fileteado(cv, 50, G - 118, 92, "LA PORTEÑA", f)
-        for tx in (2, 176):
+        for tx in (4, 168):
             cv.rect(tx, G - 14, 14, 3, "W")
             cv.rect(tx + 6, G - 11, 2, 12, "x")
         return done(cv)
-    wall(cv, 6, G - 110, 180, 111, "colonial")
-    roof(cv, 6, G - 110, 180, "plano")
-    cv.rect(70, G - 132, 52, 22, "W")
-    cv.ellipse(96, G - 132, 26, 10, "l")
-    cv.ellipse(96, G - 132, 22, 8, "C3")
-    for xx in range(16, 180, 24):
+    wall(cv, 10, G - 110, 170, 111, "colonial")
+    roof(cv, 10, G - 110, 170, "plano")
+    # cúpula porteña: tambor con ventanitas, media esfera de pizarra y linterna
+    cv.rect(77, G - 124, 36, 14, "W")
+    cv.hline(77, G - 124, 36, "l")
+    for wx in range(81, 110, 8):
+        cv.rect(wx, G - 121, 4, 8, "C3")
+    for k in range(16):
+        half = int(round(20 * math.sqrt(max(0.0, 1 - (k / 16.0) ** 2))))
+        yy = G - 125 - k
+        cv.hline(95 - half, yy, half * 2 + 1, "x" if k % 4 == 0 else "d")
+        cv.put(95 - half + 2, yy, "l")
+    cv.rect(93, G - 147, 5, 6, "W")
+    cv.put(95, G - 148, "Y2")
+    for xx in range(20, 170, 24):
         window(cv, xx, G - 100, 12, 20, "arco", lit=(xx // 24 + f) % 2 == 0)
         cv.hline(xx - 3, G - 78, 18, "x")
         for bx in range(xx - 3, xx + 15, 3):
             cv.vline(bx, G - 82, 4, "x")
-    window(cv, 14, G - 46, 66, 32, "vitrina", lit=True)
-    window(cv, 112, G - 46, 66, 32, "vitrina", lit=True)
-    door(cv, 84, 24, 40, "vidrio")
-    awning(cv, 10, G - 54, 172, "bordo", f, 10)
-    fileteado(cv, 30, G - 70, 132, "CONFITERÍA OBELISCO", f)
-    lamp(cv, 2, G - 70)
+    window(cv, 18, G - 46, 62, 32, "vitrina", lit=True)
+    window(cv, 110, G - 46, 62, 32, "vitrina", lit=True)
+    door(cv, 83, 24, 40, "vidrio")
+    awning(cv, 14, G - 54, 162, "bordo", f, 10)
+    fileteado(cv, 29, G - 70, 132, "CONFITERÍA OBELISCO", f)
+    lamp(cv, 3, G - 70)
     return done(cv)
 
 
-ARCH4 = {
+_RAW = {
     "algodonal": algodonal, "papas_andinas": papas_andinas, "almazara": almazara, "olivar": olivar,
     "bodega_torrontes": bodega_torrontes, "citricola": citricola, "bananal": bananal, "desmotadora": desmotadora,
     "arrocera": arrocera, "molino_arrocero": molino_arrocero, "yerbatal": yerbatal, "frigorifico": frigorifico,
@@ -1713,3 +1852,16 @@ ARCH4 = {
     "chacra_peras": chacra_peras, "manzanas": manzanas, "electronica": electronica, "estancia_ganadera": estancia_ganadera,
     "salames": salames, "usina_lactea": usina_lactea, "molino_harinero": molino_harinero, "panaderia": panaderia,
 }
+
+
+def _framed(name, fn):
+    cache = {}
+
+    def run(t, f):
+        if t not in cache:
+            cache[t] = fit([fn(t, 0), fn(t, 1)], "%s_%d" % (name, t))
+        return cache[t][f]
+    return run
+
+
+ARCH4 = {k: _framed(k, v) for k, v in _RAW.items()}

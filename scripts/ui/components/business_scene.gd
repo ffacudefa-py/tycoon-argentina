@@ -27,7 +27,7 @@ const WORKER_Y := 171
 const INT_W := 400
 const CHAR_W := 32
 const CHAR_FEET := 46
-const MAX_WALKERS := [2, 5, 8]
+const MAX_WALKERS := [2, 6, 10]
 
 static var _interiors := {}
 
@@ -51,6 +51,8 @@ var _bus: Sprite2D
 var _bus_t := 12.0
 var _spawn_t := 0.0
 var _anim_t := 0.0
+var _happy_until := 0.0   ## personajes 11: empleados felices tras una venta
+var _party_until := 0.0   ## y festejando tras un hito
 var _last_tier := -1
 var _last_float := 0
 var _closed: Label
@@ -66,8 +68,10 @@ func _ready() -> void:
 	_world = Node2D.new()
 	add_child(_world)
 	_bg = _sprite(_world)
+	_add_ambient(SceneAmbient.Layer.SKY)          # nubes y pájaros (detrás del edificio)
 	_building = _sprite(_world)
 	_int_back = _sprite(_world)
+	_add_ambient(SceneAmbient.Layer.SPARKS)       # destellos en ventanas / motas adentro
 	_fx_layer = Node2D.new()
 	_world.add_child(_fx_layer)
 	_people = Node2D.new()
@@ -75,6 +79,7 @@ func _ready() -> void:
 	_int_front = _sprite(_world)
 	_customers = Node2D.new()
 	_world.add_child(_customers)
+	_add_ambient(SceneAmbient.Layer.ROAD)         # autos (carril de atrás del colectivo)
 	_bus = _sprite(_world)
 	_bus.texture = U.tex("effects/colectivo_anim.png")
 	if _bus.texture:
@@ -86,6 +91,9 @@ func _ready() -> void:
 	var m := Game.m
 	m.business_changed.connect(_on_business_changed)
 	m.sale.connect(_on_sale)
+	m.celebrate.connect(func(kind: String, _info: Dictionary) -> void:
+		if kind in ["tier", "unlock", "conquest", "region", "chest_open", "stage", "hire"]:
+			_party_until = _anim_t + (2.0 if kind in ["conquest", "region", "stage"] else 1.2))
 	m.businesses_changed.connect(refresh)
 	Settings.changed.connect(_on_setting)
 
@@ -96,6 +104,12 @@ func _sprite(parent: Node) -> Sprite2D:
 	s.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	parent.add_child(s)
 	return s
+
+
+func _add_ambient(layer: int) -> void:
+	var a := SceneAmbient.new()
+	a.setup(self, layer)
+	_world.add_child(a)
 
 
 func _on_business_changed(id: String) -> void:
@@ -230,7 +244,7 @@ func _rebuild_workers(tier: int) -> void:
 	for i in mini(shown.size(), maxi(1, limit)):
 		var sp := _sprite(_people)
 		sp.texture = U.tex("characters/worker_%d.png" % shown[i]["variant"])
-		sp.hframes = 10
+		sp.hframes = maxi(1, sp.texture.get_width() / CHAR_W)
 		sp.frame = 4
 		var st: Dictionary = stations[i] if i < stations.size() else {}
 		sp.flip_h = bool(st.get("flip", false))
@@ -310,7 +324,17 @@ func _process(delta: float) -> void:
 	var busy: bool = s["running"] or (d["auto_sell"] and m.has_stock(bid))
 	for wk in _workers:
 		var i: int = wk["index"]
-		wk["sprite"].frame = (6 + (tick + i) % 2) if busy else (4 + int(_anim_t / 0.8 + i) % 2)
+		var spr: Sprite2D = wk["sprite"]
+		var f := (6 + (tick + i) % 2) if busy else (4 + int(_anim_t / 0.8 + i) % 2)
+		# Hojas de 12 cuadros (personajes 11): 8-9 festejar, 10 feliz, 11 triste.
+		if spr.hframes >= 12:
+			if _anim_t < _party_until:
+				f = 8 + (tick + i) % 2
+			elif bool(s.get("stockout", false)):
+				f = 11
+			elif _anim_t < _happy_until and i == 0:
+				f = 10
+		spr.frame = f
 	_animate_fx(delta)
 	_update_bus(delta, anim_on)
 
@@ -319,7 +343,7 @@ func _process(delta: float) -> void:
 	var max_w: int = MAX_WALKERS[level] if anim_on else 1
 	var rate := 0.08
 	if s.get("closed", false):
-		rate = 0.0
+		rate = 0.1                                  # igual pasa gente por la vereda
 	elif d["auto_sell"] and m.has_stock(bid):
 		rate = clampf(1.0 / float(d["cycle"]), 0.15, 0.8)
 	elif s["running"]:
@@ -336,7 +360,7 @@ func _spawn_walker() -> void:
 	var parent: Node2D = _customers if view == "interior" else _people
 	var sp := _sprite(parent)
 	sp.texture = U.tex("characters/customer_%d.png" % (randi() % 8))
-	sp.hframes = 10
+	sp.hframes = maxi(1, sp.texture.get_width() / CHAR_W)
 	var dir := 1.0 if randf() < 0.5 else -1.0
 	var y: float
 	var stop_x: float
@@ -390,7 +414,7 @@ func _update_bus(delta: float, anim_on: bool) -> void:
 	if view == "interior" or not anim_on or _bus.texture == null:
 		if _bus.visible:
 			_bus.visible = false
-			_bus_t = randf_range(20.0, 40.0)
+			_bus_t = randf_range(10.0, 22.0)
 		return
 	var frame_w := float(_bus.texture.get_width()) / _bus.hframes
 	if not _bus.visible:
@@ -403,12 +427,13 @@ func _update_bus(delta: float, anim_on: bool) -> void:
 	_bus.frame = int(_anim_t * 6.0) % 2
 	if _bus.position.x > size.x + 10:
 		_bus.visible = false
-		_bus_t = randf_range(20.0, 40.0)
+		_bus_t = randf_range(10.0, 22.0)
 
 
 func _on_sale(id: String, revenue: int) -> void:
 	if id != bid or not is_visible_in_tree() or Main.instance == null:
 		return
+	_happy_until = _anim_t + 0.45
 	var center := get_global_rect().position + Vector2(size.x / 2.0, 60)
 	if view == "interior":
 		var q: Array = _tier_info(_last_tier).get("queue", [])
@@ -438,17 +463,17 @@ func _tier_flash() -> void:
 ## Cartel "CERRADO" mientras el puesto no se abrió (misión guiada, paso 1).
 func _closed_sign(on: bool) -> void:
 	if _closed == null:
-		_closed = U.label("CERRADO", U.SIZE_TITLE, Color.WHITE, true, HORIZONTAL_ALIGNMENT_CENTER)
+		_closed = U.label("CERRADO", U.SIZE_BODY, Color.WHITE, true, HORIZONTAL_ALIGNMENT_CENTER)
 		var sb := StyleBoxFlat.new()
 		sb.bg_color = Color("b83a3f")
-		sb.border_color = Color("1b1a2e")
+		sb.border_color = Color("3d1b0b")
 		sb.set_border_width_all(2)
 		sb.content_margin_left = 8
 		sb.content_margin_right = 8
 		_closed.add_theme_stylebox_override("normal", sb)
 		add_child(_closed)
 	_closed.visible = on
-	_closed.position = Vector2(floor(size.x / 2.0) - 44, 54)
+	_closed.position = Vector2(floor(size.x / 2.0) + 52, 70)    # cartelito al costado: no pisa nada
 	var dim := Color(0.6, 0.6, 0.7) if on else Color.WHITE
 	_building.modulate = dim
 	_int_back.modulate = dim

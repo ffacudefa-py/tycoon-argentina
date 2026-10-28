@@ -49,6 +49,9 @@ func _run() -> void:
 		if a.begins_with("--shots-scale="):
 			get_window().content_scale_factor = float(a.get_slice("=", 1))
 	for a in OS.get_cmdline_user_args():
+		if a == "--shots-set=v11":
+			await _run_v11()
+			return
 		if a == "--shots-set=escenas":
 			await _run_scenes()
 			return
@@ -563,3 +566,86 @@ func _tap_at(p: Vector2) -> void:
 		ev.global_position = p
 		get_viewport().push_input(ev)
 		await get_tree().process_frame
+
+
+## Capturas del estilo 11 para el revisor: estados del mapa, zoom ida y
+## vuelta, escenas vivas y FPS. Uso: --shots-set=v11
+func _run_v11() -> void:
+	await get_tree().create_timer(1.0).timeout
+	var main := Main.instance
+	var m := Game.m
+	main.start.enter_game()
+	await get_tree().create_timer(0.6).timeout
+	main.tutorial._skip()
+	m.economy.earn(1_000_000_000, "dev")
+	# NOA: 2 conquistadas, 1 abierta, 1 recién desbloqueada (sin ver), resto bloqueado
+	for i in 3:
+		var b: String = m.data.businesses[i]["id"]
+		if not m.biz[b]["owned"]:
+			m._own_business(b, 1.0)
+		m.biz[b]["level"] = [60, 30, 12][i]
+		if i < 2:
+			ConquestSystem.conquer(m, m.data.zone_for_business(b))
+		else:
+			m.zones[m.data.zone_for_business(b)]["share"] = 0.6
+	ConquestSystem.conquer(m, m.data.zone_for_business(m.data.businesses[2]["id"]))
+	var seen := {}
+	for i in 3:
+		seen[m.data.zones[i]["id"]] = true
+	m.engage["seen_open"] = seen
+	m.invalidate()
+	main.modal_host.close_all()
+	UnlockShow.dismiss_all()
+	main.go_to(2)
+	var ms: MapScreen = main.find_children("*", "MapScreen", true, false)[0]
+	ms.open_region("noa")
+	for k in 4:
+		await _shot("v11_mapa_region_%d" % k, [0.06, 0.25, 0.45, 1.6][k])
+	# tocar un bloqueado (tiembla + toast)
+	var locked: BusinessPin = null
+	var open_pin: BusinessPin = null
+	for p in ms._pins.values():
+		if p.state == BusinessPin.State.LOCKED and locked == null:
+			locked = p
+		if p.state == BusinessPin.State.OPEN and open_pin == null:
+			open_pin = p
+	if locked:
+		await _tap(locked)
+		await _shot("v11_bloqueado_toque", 0.12)
+		await get_tree().create_timer(0.8).timeout
+	# zoom ida
+	if open_pin:
+		ms._on_pin(open_pin)
+		for k in 6:
+			await _shot("v11_zoom_ida_%d" % k, 0.11)
+		await get_tree().create_timer(0.6).timeout
+		Settings.set_value("scene_view", "fachada")
+		for k in 4:
+			await _shot("v11_fachada_viva_%d" % k, 1.5)
+		# zoom vuelta
+		main.go_to(2)
+		for k in 5:
+			await _shot("v11_zoom_vuelta_%d" % k, 0.11)
+	# escenas vivas en otras regiones
+	for i in [8, 13, 23]:
+		var b2: String = m.data.businesses[i]["id"]
+		if not m.biz[b2]["owned"]:
+			m._own_business(b2, 1.0)
+		m.biz[b2]["level"] = 50
+		m.invalidate()
+		main.select_business(b2)
+		Settings.set_value("scene_view", "fachada")
+		for k in 2:
+			await _shot("v11_viva_%s_%d" % [b2, k], 2.0)
+	# FPS en Imperio con todo animándose
+	main.go_to(0)
+	await get_tree().create_timer(1.0).timeout
+	var frames := 0
+	var t0 := Time.get_ticks_msec()
+	var worst := 0.0
+	while Time.get_ticks_msec() - t0 < 4000:
+		await get_tree().process_frame
+		frames += 1
+		worst = maxf(worst, Performance.get_monitor(Performance.TIME_PROCESS) * 1000.0)
+	print("V11_FPS %.1f (peor process %.2f ms, objetos %d)" % [frames / 4.0, worst, Performance.get_monitor(Performance.OBJECT_NODE_COUNT)])
+	get_tree().quit()

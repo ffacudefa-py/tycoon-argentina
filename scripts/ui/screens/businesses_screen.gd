@@ -49,7 +49,7 @@ func rebuild() -> void:
 		else:
 			hidden += 1
 	if hidden > 0:
-		_list.add_child(U.para("Y %d negocios más que se revelan a medida que crece tu imperio." % hidden, U.SIZE_SMALL, Color("c2c0d6")))
+		_list.add_child(U.para("Y %d negocios más que se revelan a medida que crece tu imperio." % hidden, U.SIZE_SMALL, Color("f0dcc0")))
 	_refresh()
 
 
@@ -102,13 +102,13 @@ func _locked_card(id: String) -> Control:
 	txt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var dark: bool = not st["available"]
 	txt.add_child(U.label(def["name"], U.SIZE_BODY, U.TEXT_LIGHT if dark else U.TEXT, true))
-	txt.add_child(U.para(def["description"], U.SIZE_SMALL, Color("c2c0d6") if dark else U.TEXT_SOFT))
+	txt.add_child(U.para(def["description"], U.SIZE_SMALL, Color("f0dcc0") if dark else U.TEXT_SOFT))
 	row.add_child(txt)
 	col.add_child(row)
 	var products := []
 	for p in def["products"]:
 		products.append(p["name"])
-	col.add_child(U.para("Vende: " + ", ".join(products) + ". Ciclo de %s." % Fmt.cycle(def["cycle"]), U.SIZE_SMALL, Color("c2c0d6") if dark else U.TEXT_SOFT))
+	col.add_child(U.para("Vende: " + ", ".join(products) + ". Ciclo de %s." % Fmt.cycle(def["cycle"]), U.SIZE_SMALL, Color("f0dcc0") if dark else U.TEXT_SOFT))
 	for req in m.requirements_for_business(id):
 		col.add_child(UiColors.requirement_row(req, dark))
 	var buy := UiColors.buy_button("ABRIR", st["cost"], func() -> void: BuyBusinessModal.open(id), 40)

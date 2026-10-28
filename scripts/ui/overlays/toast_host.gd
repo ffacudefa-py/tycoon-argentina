@@ -4,7 +4,7 @@ extends CanvasLayer
 
 const MAX_VISIBLE := 1
 const ICONS := {"info": "info", "good": "check", "bad": "alerta", "reward": "regalo"}
-const COLORS := {"info": Color("f2f0e6"), "good": Color("f2f0e6"), "bad": Color("f2f0e6"), "reward": Color("2b2746")}
+const COLORS := {"info": Color("3d1b0b"), "good": Color("2e5a1c"), "bad": Color("8e1f2c"), "reward": Color("3d1b0b")}  ## sobre paneles crema (11)
 
 var _box: VBoxContainer
 var _queue: Array = []

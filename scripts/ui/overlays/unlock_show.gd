@@ -102,7 +102,7 @@ func _ready() -> void:
 	name.size = Vector2(vp.x, 30)
 	name.position = Vector2(0, center.y + pic.size.y / 2.0 + 12)
 	_root.add_child(name)
-	var hint := U.label("Tocá para continuar", U.SIZE_SMALL, Color("c9c7da"), false, HORIZONTAL_ALIGNMENT_CENTER)
+	var hint := U.label("Tocá para continuar", U.SIZE_SMALL, Color("f0dcc0"), false, HORIZONTAL_ALIGNMENT_CENTER)
 	hint.size = Vector2(vp.x, 20)
 	hint.position = Vector2(0, name.position.y + 34)
 	_root.add_child(hint)

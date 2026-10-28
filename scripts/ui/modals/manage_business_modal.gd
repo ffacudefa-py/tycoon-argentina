@@ -277,12 +277,12 @@ func _employee_row(e: Dictionary, hired: bool, index: int) -> Control:
 func _portrait(variant: int) -> Control:
 	var at := AtlasTexture.new()
 	at.atlas = U.tex("characters/worker_%d.png" % variant)
-	var fw := at.atlas.get_width() / 10
+	var fw := 32
 	at.region = Rect2(4 * fw + 4, 2, 24, 24)
 	var frame := PanelContainer.new()
 	var sb := StyleBoxFlat.new()
 	sb.bg_color = Color("a9d2f2")
-	sb.border_color = Color("1b1a2e")
+	sb.border_color = Color("3d1b0b")
 	sb.set_border_width_all(2)
 	sb.set_content_margin_all(2)
 	frame.add_theme_stylebox_override("panel", sb)

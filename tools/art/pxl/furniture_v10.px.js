@@ -7,8 +7,8 @@ sprite("_bales", { w: 40, h: 26, outline: "o" },   // fardos de algodón o lana
 sprite("_sacks", { w: 36, h: 26, outline: "o" },   // bolsas de arroz, harina o yerba
   (c) => { for (let i = 0; i < 3; i++) { const x = i * 12, y = i === 1 ? 0 : 6; c.rect(x, y + 3, 12, 23 - y, "e"); c.rect(x + 2, y, 8, 4, "e"); c.hline(x + 2, y + 3, 8, "M"); c.vline(x, y + 3, 20 - y, "W"); c.rect(x + 3, y + 10, 6, 5, i === 1 ? "n" : "r") } })
 
-sprite("_barrels_wood", { w: 44, h: 30, outline: "o" },   // barricas de roble apiladas
-  (c) => { const pos = [[0, 15], [15, 15], [30, 15], [7, 0], [22, 0]]; for (const [x, y] of pos) { c.circ(x + 7, y + 7, 7, "M"); c.circ(x + 7, y + 7, 5, "t"); c.circ(x + 7, y + 7, 2, "m"); c.px(x + 4, y + 4, "T") } })
+sprite("_barrels_wood", { w: 44, h: 30, outline: "o" },   // barricas de roble con duelas y aros
+  (c) => { const pos = [[0, 15], [15, 15], [30, 15], [7, 0], [22, 0]]; for (const [x, y] of pos) { c.circ(x + 7, y + 7, 7, "M"); c.circ(x + 7, y + 7, 6, "t"); for (let k = -4; k <= 4; k += 2) c.vline(x + 7 + k, y + 2, 11, "M"); c.ring(x + 7, y + 7, 5, "d"); c.circ(x + 7, y + 7, 2, "m"); c.px(x + 6, y + 6, "T"); c.px(x + 3, y + 3, "W") } })
 
 sprite("_steel_tank", { w: 28, h: 68, outline: "o" },   // tanque de acero (vino, leche, aceite)
   rect(0, 6, 28, 56, "l"), vline(1, 6, 56, "W"), vline(26, 6, 56, "g"), (c) => { c.ellipse(14, 6, 13, 5, "w"); c.ellipse(14, 6, 9, 3, "l") },

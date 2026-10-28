@@ -64,26 +64,26 @@ func _ready() -> void:
 	_scene = BusinessScene.new()
 	_scene.set_anchors_preset(Control.PRESET_FULL_RECT)
 	scene_wrap.add_child(_scene)
-	_prev_btn = U.icon_button("izquierda", "crema", 36)
-	_prev_btn.position = Vector2(6, 90)
+	_prev_btn = U.icon_button("izquierda", "crema", 30)
+	_prev_btn.position = Vector2(6, 96)
 	U.on_press(_prev_btn, func() -> void: _cycle_business(-1))
 	scene_wrap.add_child(_prev_btn)
-	_next_btn = U.icon_button("derecha", "crema", 36)
+	_next_btn = U.icon_button("derecha", "crema", 30)
 	_next_btn.set_anchors_preset(Control.PRESET_TOP_RIGHT)
-	_next_btn.position = Vector2(-42, 90)
+	_next_btn.position = Vector2(-36, 96)
 	U.on_press(_next_btn, func() -> void: _cycle_business(1))
 	scene_wrap.add_child(_next_btn)
 	_events_row = U.hbox(4)
 	_events_row.position = Vector2(6, 6)
 	scene_wrap.add_child(_events_row)
 	# Cofres ganados (se abren con premio variable) y combo de ventas a mano.
-	_chest_btn = U.button("", "amarillo", "regalo", 34, U.SIZE_SMALL)
+	_chest_btn = U.button("", "amarillo", "regalo", 30, U.SIZE_SMALL)
 	_chest_btn.position = Vector2(6, 46)
 	_chest_btn.visible = false
 	U.on_press(_chest_btn, func() -> void: ChestModal.open(), "coin")
 	scene_wrap.add_child(_chest_btn)
 	_combo_label = U.label("", U.SIZE_TITLE, Color("ffd458"), true, HORIZONTAL_ALIGNMENT_CENTER)
-	_combo_label.add_theme_color_override("font_outline_color", Color("1b1a2e"))
+	_combo_label.add_theme_color_override("font_outline_color", Color("3d1b0b"))
 	_combo_label.add_theme_constant_override("outline_size", 6)
 	_combo_label.set_anchors_preset(Control.PRESET_CENTER_TOP)
 	_combo_label.position = Vector2(-60, 44)
@@ -231,6 +231,18 @@ func on_shown() -> void:
 	_update_events()
 
 
+## Llegada desde el mapa: la escena se acerca suave (parte del zoom mapa → fachada).
+func play_arrive() -> void:
+	if Settings.get_value("reduce_motion") or _scene == null:
+		return
+	_scene.pivot_offset = _scene.size / 2.0
+	_scene.scale = Vector2(1.18, 1.18)
+	_scene.modulate.a = 0.4
+	var tw := _scene.create_tween().set_parallel(true)
+	tw.tween_property(_scene, "scale", Vector2.ONE, 0.3).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	tw.tween_property(_scene, "modulate:a", 1.0, 0.25)
+
+
 func rebuild() -> void:
 	_select(m.first_business())
 
@@ -337,7 +349,7 @@ func _update() -> void:
 	_combo_label.pivot_offset = _combo_label.size / 2.0
 	var chests := int(m.engage.get("chests", 0))
 	_chest_btn.visible = chests > 0
-	_chest_btn.text = "COFRE x%d" % chests
+	_chest_btn.text = "x%d" % chests
 	_sub.text = ["Atendés vos", "Vende solo", "Vende y repone solo", "Gestión total"][int(d["automation"])] + " · " + m.data.zone_by_id[s["zone"]]["name"]
 	if _stars.get_child_count() == 0:
 		for i in 5:

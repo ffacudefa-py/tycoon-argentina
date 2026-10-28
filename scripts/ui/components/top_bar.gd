@@ -49,7 +49,7 @@ func _ready() -> void:
 
 	var center := U.vbox(0)
 	center.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_company = U.label("", U.SIZE_SMALL, Color("c9c7da"))
+	_company = U.label("", U.SIZE_SMALL, Color("f0dcc0"))
 	_company.clip_text = true
 	_company.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	center.add_child(_company)
@@ -59,8 +59,22 @@ func _ready() -> void:
 	_money = SlotCounter.new()
 	_money.font_size = U.SIZE_BIG
 	_money.reel_stopped.connect(_on_reel_stopped)
-	mrow.add_child(_money)
-	_income_label = U.label("", U.SIZE_SMALL, Color("8ccb6c"), true)
+	# Caja dorada de ancho fijo (§8): el contador animado nunca se encima.
+	var box := PanelContainer.new()
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color("6d432b")
+	sb.border_color = Color("f2d173")
+	sb.set_border_width_all(3)
+	sb.border_width_top = 4
+	sb.set_corner_radius_all(4)
+	sb.set_content_margin_all(2)
+	sb.content_margin_left = 6
+	sb.content_margin_right = 6
+	box.add_theme_stylebox_override("panel", sb)
+	box.custom_minimum_size.x = 132
+	box.add_child(_money)
+	mrow.add_child(box)
+	_income_label = U.label("", U.SIZE_SMALL, Color("9cf0b0"), true)
 	_income_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_income_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	_income_label.clip_text = true
@@ -107,10 +121,10 @@ func _refresh_income() -> void:
 		return
 	if inc > 0.0:
 		_income_label.text = "+%s%s" % [Fmt.per_sec(inc), "  x2" if m.boost_multiplier() > 1.0 else ""]
-		_income_label.add_theme_color_override("font_color", Color("8ccb6c"))
+		_income_label.add_theme_color_override("font_color", Color("9cf0b0"))
 	else:
 		_income_label.text = "vendé a mano"
-		_income_label.add_theme_color_override("font_color", Color("9b98b5"))
+		_income_label.add_theme_color_override("font_color", Color("f0dcc0"))
 	_refresh_names()
 
 

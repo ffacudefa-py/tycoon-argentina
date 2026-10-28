@@ -45,7 +45,7 @@ static func build() -> Theme:
 		th.set_color("font_hover_color", tv, fc)
 		th.set_color("font_pressed_color", tv, fc)
 		th.set_color("font_hover_pressed_color", tv, fc)
-		th.set_color("font_disabled_color", tv, Color("c2c0d6"))
+		th.set_color("font_disabled_color", tv, Color("f0dcc0"))
 		th.set_color("icon_disabled_color", tv, Color(1, 1, 1, 0.5))
 		th.set_font("font", tv, bold)
 		th.set_constant("h_separation", tv, 3)
@@ -69,15 +69,15 @@ static func build() -> Theme:
 	th.set_font("font", "Tab", bold)
 
 	# Paneles
-	for pair in [["Card", "panel.png", 6], ["DarkCard", "panel_dark.png", 6], ["WhiteCard", "panel_white.png", 6],
-			["GoldCard", "panel_gold.png", 6], ["SlateCard", "panel_slate.png", 6], ["Inset", "inset.png", 3], ["InsetDark", "inset_dark.png", 3]]:
+	for pair in [["Card", "panel.png", 9], ["DarkCard", "panel_dark.png", 9], ["WhiteCard", "panel_white.png", 9],
+			["GoldCard", "panel_gold.png", 9], ["SlateCard", "panel_slate.png", 9], ["Inset", "inset.png", 3], ["InsetDark", "inset_dark.png", 3]]:
 		th.set_type_variation(pair[0], "PanelContainer")
 		th.set_stylebox("panel", pair[0], _box("ui/" + pair[1], pair[2], pair[2] + 1))
-	th.set_stylebox("panel", "PanelContainer", _box("ui/panel.png", 6, 7))
+	th.set_stylebox("panel", "PanelContainer", _box("ui/panel.png", 9, 10))
 	for kind in ["info", "good", "bad", "reward"]:
 		var tv: String = "Toast_" + kind
 		th.set_type_variation(tv, "PanelContainer")
-		th.set_stylebox("panel", tv, _box("ui/toast_%s.png" % kind, 6, 6))
+		th.set_stylebox("panel", tv, _box("ui/toast_%s.png" % kind, 9, 9))
 
 	# Barras de progreso
 	for c in ["verde", "amarillo", "celeste", "rojo", "violeta"]:
@@ -142,12 +142,12 @@ static func _box(path: String, margin: int, content: int) -> StyleBoxTexture:
 static func _btn_box(style: String, state: String) -> StyleBoxTexture:
 	var sb := StyleBoxTexture.new()
 	sb.texture = U.tex("ui/btn_%s_%s.png" % [style, state])
-	sb.texture_margin_left = 4
-	sb.texture_margin_right = 4
-	sb.texture_margin_top = 4
-	sb.texture_margin_bottom = 6
-	sb.content_margin_left = 6
-	sb.content_margin_right = 6
-	sb.content_margin_top = 4 if state != "pressed" else 6
-	sb.content_margin_bottom = 6 if state != "pressed" else 4
+	sb.texture_margin_left = 5
+	sb.texture_margin_right = 5
+	sb.texture_margin_top = 5
+	sb.texture_margin_bottom = 7
+	sb.content_margin_left = 7
+	sb.content_margin_right = 7
+	sb.content_margin_top = 4 if state != "pressed" else 7
+	sb.content_margin_bottom = 7 if state != "pressed" else 4
 	return sb
