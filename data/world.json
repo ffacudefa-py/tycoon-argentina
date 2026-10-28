@@ -79,7 +79,7 @@
    "market_size": 230,
    "rival": "rival_santiago_del_estero",
    "conquest_minutes": 11.0,
-   "street": "barrio"
+   "street": "noa"
   },
   {
    "id": "jujuy",
@@ -103,7 +103,7 @@
    "market_size": 755,
    "rival": "rival_jujuy",
    "conquest_minutes": 13.8,
-   "street": "barrio"
+   "street": "noa"
   },
   {
    "id": "catamarca",
@@ -127,7 +127,7 @@
    "market_size": 2770,
    "rival": "rival_catamarca",
    "conquest_minutes": 17.2,
-   "street": "barrio"
+   "street": "noa"
   },
   {
    "id": "la_rioja",
@@ -151,7 +151,7 @@
    "market_size": 9210,
    "rival": "rival_la_rioja",
    "conquest_minutes": 21.5,
-   "street": "barrio"
+   "street": "noa"
   },
   {
    "id": "salta",
@@ -175,7 +175,7 @@
    "market_size": 33000,
    "rival": "rival_salta",
    "conquest_minutes": 26.9,
-   "street": "barrio"
+   "street": "noa"
   },
   {
    "id": "tucuman",
@@ -199,7 +199,7 @@
    "market_size": 111000,
    "rival": "rival_tucuman",
    "conquest_minutes": 33.6,
-   "street": "barrio"
+   "street": "noa"
   },
   {
    "id": "formosa",
@@ -223,7 +223,7 @@
    "market_size": 384000,
    "rival": "rival_formosa",
    "conquest_minutes": 42.0,
-   "street": "costanera"
+   "street": "nea"
   },
   {
    "id": "chaco",
@@ -247,7 +247,7 @@
    "market_size": 1360000,
    "rival": "rival_chaco",
    "conquest_minutes": 52.5,
-   "street": "costanera"
+   "street": "nea"
   },
   {
    "id": "corrientes",
@@ -271,7 +271,7 @@
    "market_size": 4810000,
    "rival": "rival_corrientes",
    "conquest_minutes": 65.6,
-   "street": "costanera"
+   "street": "nea"
   },
   {
    "id": "entre_rios",
@@ -295,7 +295,7 @@
    "market_size": 17000000,
    "rival": "rival_entre_rios",
    "conquest_minutes": 82.0,
-   "street": "costanera"
+   "street": "nea"
   },
   {
    "id": "misiones",
@@ -319,7 +319,7 @@
    "market_size": 57200000,
    "rival": "rival_misiones",
    "conquest_minutes": 102.4,
-   "street": "costanera"
+   "street": "nea"
   },
   {
    "id": "san_luis",
@@ -343,7 +343,7 @@
    "market_size": 193000000,
    "rival": "rival_san_luis",
    "conquest_minutes": 128.1,
-   "street": "universidad"
+   "street": "cuyo"
   },
   {
    "id": "san_juan",
@@ -367,7 +367,7 @@
    "market_size": 671000000,
    "rival": "rival_san_juan",
    "conquest_minutes": 160.1,
-   "street": "universidad"
+   "street": "cuyo"
   },
   {
    "id": "mendoza",
@@ -391,7 +391,7 @@
    "market_size": 2390000000,
    "rival": "rival_mendoza",
    "conquest_minutes": 200.1,
-   "street": "universidad"
+   "street": "cuyo"
   },
   {
    "id": "santa_cruz",
@@ -415,7 +415,7 @@
    "market_size": 8490000000,
    "rival": "rival_santa_cruz",
    "conquest_minutes": 250.1,
-   "street": "puerto"
+   "street": "patagonia"
   },
   {
    "id": "chubut",
@@ -439,7 +439,7 @@
    "market_size": 30400000000,
    "rival": "rival_chubut",
    "conquest_minutes": 312.6,
-   "street": "puerto"
+   "street": "patagonia"
   },
   {
    "id": "rio_negro",
@@ -463,7 +463,7 @@
    "market_size": 102000000000,
    "rival": "rival_rio_negro",
    "conquest_minutes": 390.8,
-   "street": "puerto"
+   "street": "patagonia"
   },
   {
    "id": "neuquen",
@@ -487,7 +487,7 @@
    "market_size": 316000000000,
    "rival": "rival_neuquen",
    "conquest_minutes": 488.5,
-   "street": "puerto"
+   "street": "patagonia"
   },
   {
    "id": "tierra_del_fuego",
@@ -511,7 +511,7 @@
    "market_size": 1110000000000,
    "rival": "rival_tierra_del_fuego",
    "conquest_minutes": 610.6,
-   "street": "puerto"
+   "street": "patagonia"
   },
   {
    "id": "la_pampa",
@@ -535,7 +535,7 @@
    "market_size": 4060000000000,
    "rival": "rival_la_pampa",
    "conquest_minutes": 763.3,
-   "street": "industrial"
+   "street": "pampeana"
   },
   {
    "id": "cordoba",
@@ -559,7 +559,7 @@
    "market_size": 13600000000000,
    "rival": "rival_cordoba",
    "conquest_minutes": 954.1,
-   "street": "centro"
+   "street": "centro_sierras"
   },
   {
    "id": "santa_fe",
@@ -583,7 +583,7 @@
    "market_size": 46700000000000,
    "rival": "rival_santa_fe",
    "conquest_minutes": 1192.6,
-   "street": "centro"
+   "street": "centro_sierras"
   },
   {
    "id": "buenos_aires",
@@ -607,7 +607,7 @@
    "market_size": 177000000000000,
    "rival": "rival_buenos_aires",
    "conquest_minutes": 1490.8,
-   "street": "centro"
+   "street": "centro_sierras"
   },
   {
    "id": "caba",

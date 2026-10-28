@@ -769,7 +769,8 @@ def generate(out, data_dir):
         # 10.0: los negocios provinciales sin arte propio usan una fachada
         # provisoria descrita en businesses.json (art.placeholder).
         spec = GENERIC.get(b["id"]) or tuple(b["art"].get("placeholder", ()))
-        fn = ARCH.get(b["id"]) or generic(b["id"], spec)
+        from buildings3 import ARCH3  # 10.0: un negocio propio por provincia
+        fn = ARCH3.get(b["id"]) or ARCH.get(b["id"]) or generic(b["id"], spec)
         for t in range(5):
             frames = [fn(t, f) for f in (0, 1)]
             for fr in frames:

@@ -23,7 +23,7 @@
     "archetype": "algodonal",
     "main": "amarillo",
     "accent": "blanco",
-    "sign": "estrella",
+    "sign": "p_algodon",
     "placeholder": [
      "verde",
      "ALGODÓN",
@@ -39,7 +39,7 @@
     {
      "id": "algodon",
      "name": "Algodón",
-     "icon": "estrella",
+     "icon": "p_algodon",
      "price": 5,
      "cost": 2.4,
      "demand": 4,
@@ -51,7 +51,7 @@
     {
      "id": "alfalfa",
      "name": "Alfalfa",
-     "icon": "yerba",
+     "icon": "p_alfalfa",
      "price": 8,
      "cost": 4,
      "demand": 3,
@@ -63,7 +63,7 @@
     {
      "id": "carne_caprina",
      "name": "Carne caprina",
-     "icon": "carne",
+     "icon": "p_cordero",
      "price": 6,
      "cost": 3.2,
      "demand": 2,
@@ -75,7 +75,7 @@
     {
      "id": "miel",
      "name": "Miel",
-     "icon": "golosina",
+     "icon": "p_miel",
      "price": 3,
      "cost": 1.2,
      "demand": 2,
@@ -122,7 +122,7 @@
     "archetype": "papas_andinas",
     "main": "violeta",
     "accent": "blanco",
-    "sign": "estrella",
+    "sign": "p_papa",
     "placeholder": [
      "crema",
      "PAPAS",
@@ -138,7 +138,7 @@
     {
      "id": "papas_andinas",
      "name": "Papas andinas",
-     "icon": "estrella",
+     "icon": "p_papa",
      "price": 16.5,
      "cost": 7.77,
      "demand": 4,
@@ -150,7 +150,7 @@
     {
      "id": "sal",
      "name": "Sal",
-     "icon": "snack",
+     "icon": "p_sal",
      "price": 25.9,
      "cost": 13.1,
      "demand": 3,
@@ -162,7 +162,7 @@
     {
      "id": "quinoa",
      "name": "Quinoa",
-     "icon": "fideos",
+     "icon": "p_quinoa",
      "price": 32.1,
      "cost": 22.2,
      "demand": 2,
@@ -174,7 +174,7 @@
     {
      "id": "tejidos_artesanales",
      "name": "Tejidos artesanales",
-     "icon": "regalo",
+     "icon": "p_poncho",
      "price": 14.7,
      "cost": 6.1,
      "demand": 2,
@@ -222,7 +222,7 @@
     "archetype": "almazara",
     "main": "verde",
     "accent": "blanco",
-    "sign": "aceite",
+    "sign": "p_aceite_oliva",
     "placeholder": [
      "ladrillo",
      "ACEITE",
@@ -238,7 +238,7 @@
     {
      "id": "aceite_de_oliva",
      "name": "Aceite de oliva",
-     "icon": "aceite",
+     "icon": "p_aceite_oliva",
      "price": 54.7,
      "cost": 25.2,
      "demand": 4,
@@ -250,7 +250,7 @@
     {
      "id": "aceitunas",
      "name": "Aceitunas",
-     "icon": "snack",
+     "icon": "p_aceituna",
      "price": 83.6,
      "cost": 43.1,
      "demand": 3,
@@ -263,7 +263,7 @@
     {
      "id": "nueces",
      "name": "Nueces",
-     "icon": "snack",
+     "icon": "p_nuez",
      "price": 172,
      "cost": 154,
      "demand": 2,
@@ -275,7 +275,7 @@
     {
      "id": "uvas",
      "name": "Uvas",
-     "icon": "golosina",
+     "icon": "p_uva",
      "price": 71.8,
      "cost": 31.1,
      "demand": 2,
@@ -322,7 +322,7 @@
     "archetype": "olivar",
     "main": "verde",
     "accent": "blanco",
-    "sign": "snack",
+    "sign": "p_aceituna",
     "placeholder": [
      "blanco",
      "OLIVAR",
@@ -338,7 +338,7 @@
     {
      "id": "aceitunas_la_rioja",
      "name": "Aceitunas",
-     "icon": "snack",
+     "icon": "p_aceituna",
      "price": 192,
      "cost": 91.3,
      "demand": 4,
@@ -350,7 +350,7 @@
     {
      "id": "aceite_de_oliva_la_rioja",
      "name": "Aceite de oliva",
-     "icon": "aceite",
+     "icon": "p_aceite_oliva",
      "price": 209,
      "cost": 102,
      "demand": 3,
@@ -362,7 +362,7 @@
     {
      "id": "vinos",
      "name": "Vinos",
-     "icon": "bebida",
+     "icon": "p_vino",
      "price": 406,
      "cost": 302,
      "demand": 2,
@@ -375,7 +375,7 @@
     {
      "id": "nueces_la_rioja",
      "name": "Nueces",
-     "icon": "snack",
+     "icon": "p_nuez",
      "price": 169,
      "cost": 78.3,
      "demand": 2,
@@ -423,7 +423,7 @@
     "archetype": "bodega_torrontes",
     "main": "bordo",
     "accent": "blanco",
-    "sign": "bebida",
+    "sign": "p_vino_blanco",
     "placeholder": [
      "gris",
      "TORRONTÉS",
@@ -439,7 +439,7 @@
     {
      "id": "vino_torrontes",
      "name": "Vino torrontés",
-     "icon": "bebida",
+     "icon": "p_vino_blanco",
      "price": 675,
      "cost": 335,
      "demand": 5,
@@ -452,7 +452,7 @@
     {
      "id": "tabaco",
      "name": "Tabaco",
-     "icon": "estrella",
+     "icon": "p_tabaco",
      "price": 509,
      "cost": 235,
      "demand": 3,
@@ -464,7 +464,7 @@
     {
      "id": "pimientos",
      "name": "Pimientos",
-     "icon": "snack",
+     "icon": "p_pimiento",
      "price": 885,
      "cost": 520,
      "demand": 2,
@@ -476,7 +476,7 @@
     {
      "id": "quesos_de_cabra",
      "name": "Quesos de cabra",
-     "icon": "leche",
+     "icon": "p_queso",
      "price": 368,
      "cost": 184,
      "demand": 2,
@@ -524,7 +524,7 @@
     "archetype": "citricola",
     "main": "amarillo",
     "accent": "blanco",
-    "sign": "licuado",
+    "sign": "p_limon",
     "placeholder": [
      "amarillo",
      "LIMONES",
@@ -540,7 +540,7 @@
     {
      "id": "limon",
      "name": "Limón",
-     "icon": "licuado",
+     "icon": "p_limon",
      "price": 1550,
      "cost": 641,
      "demand": 5,
@@ -553,7 +553,7 @@
     {
      "id": "empanadas_tucumanas",
      "name": "Empanadas tucumanas",
-     "icon": "choripan",
+     "icon": "p_empanada",
      "price": 1570,
      "cost": 652,
      "demand": 3,
@@ -565,7 +565,7 @@
     {
      "id": "azucar",
      "name": "Azúcar",
-     "icon": "golosina",
+     "icon": "p_azucar",
      "price": 1970,
      "cost": 978,
      "demand": 2,
@@ -577,7 +577,7 @@
     {
      "id": "arandanos",
      "name": "Arándanos",
-     "icon": "licuado",
+     "icon": "p_arandano",
      "price": 937,
      "cost": 357,
      "demand": 2,
@@ -624,7 +624,7 @@
     "archetype": "bananal",
     "main": "amarillo",
     "accent": "blanco",
-    "sign": "estrella",
+    "sign": "p_banana",
     "placeholder": [
      "verde",
      "BANANAS",
@@ -640,7 +640,7 @@
     {
      "id": "banana",
      "name": "Banana",
-     "icon": "estrella",
+     "icon": "p_banana",
      "price": 3220,
      "cost": 1060,
      "demand": 5,
@@ -652,7 +652,7 @@
     {
      "id": "algodon_formosa",
      "name": "Algodón",
-     "icon": "estrella",
+     "icon": "p_algodon",
      "price": 5120,
      "cost": 1880,
      "demand": 3,
@@ -664,7 +664,7 @@
     {
      "id": "pomelo",
      "name": "Pomelo",
-     "icon": "licuado",
+     "icon": "p_pomelo",
      "price": 4410,
      "cost": 1880,
      "demand": 2,
@@ -677,7 +677,7 @@
     {
      "id": "miel_formosa",
      "name": "Miel",
-     "icon": "golosina",
+     "icon": "p_miel",
      "price": 2470,
      "cost": 663,
      "demand": 2,
@@ -724,7 +724,7 @@
     "archetype": "desmotadora",
     "main": "celeste",
     "accent": "blanco",
-    "sign": "estrella",
+    "sign": "p_algodon",
     "placeholder": [
      "crema",
      "DESMOTADORA",
@@ -740,7 +740,7 @@
     {
      "id": "algodon_chaco",
      "name": "Algodón",
-     "icon": "estrella",
+     "icon": "p_algodon",
      "price": 11200,
      "cost": 4440,
      "demand": 5,
@@ -752,7 +752,7 @@
     {
      "id": "madera",
      "name": "Madera",
-     "icon": "caja",
+     "icon": "p_madera",
      "price": 13600,
      "cost": 5800,
      "demand": 3,
@@ -764,7 +764,7 @@
     {
      "id": "miel_chaco",
      "name": "Miel",
-     "icon": "golosina",
+     "icon": "p_miel",
      "price": 14600,
      "cost": 7140,
      "demand": 2,
@@ -776,7 +776,7 @@
     {
      "id": "soja",
      "name": "Soja",
-     "icon": "fideos",
+     "icon": "p_soja",
      "price": 9040,
      "cost": 2810,
      "demand": 2,
@@ -823,7 +823,7 @@
     "archetype": "arrocera",
     "main": "verde",
     "accent": "blanco",
-    "sign": "fideos",
+    "sign": "p_arroz",
     "placeholder": [
      "ladrillo",
      "ARROZ",
@@ -839,7 +839,7 @@
     {
      "id": "arroz",
      "name": "Arroz",
-     "icon": "fideos",
+     "icon": "p_arroz",
      "price": 47300,
      "cost": 26300,
      "demand": 5,
@@ -851,7 +851,7 @@
     {
      "id": "naranjas",
      "name": "Naranjas",
-     "icon": "licuado",
+     "icon": "p_naranja",
      "price": 33300,
      "cost": 18400,
      "demand": 3,
@@ -876,7 +876,7 @@
     {
      "id": "madera_corrientes",
      "name": "Madera",
-     "icon": "caja",
+     "icon": "p_madera",
      "price": 37400,
      "cost": 16300,
      "demand": 3,
@@ -923,7 +923,7 @@
     "archetype": "molino_arrocero",
     "main": "celeste",
     "accent": "blanco",
-    "sign": "fideos",
+    "sign": "p_arroz",
     "placeholder": [
      "blanco",
      "MOLINO",
@@ -939,7 +939,7 @@
     {
      "id": "arroz_entre_rios",
      "name": "Arroz",
-     "icon": "fideos",
+     "icon": "p_arroz",
      "price": 125000,
      "cost": 65400,
      "demand": 5,
@@ -951,7 +951,7 @@
     {
      "id": "mandarinas",
      "name": "Mandarinas",
-     "icon": "licuado",
+     "icon": "p_mandarina",
      "price": 78800,
      "cost": 43500,
      "demand": 3,
@@ -963,7 +963,7 @@
     {
      "id": "naranjas_entre_rios",
      "name": "Naranjas",
-     "icon": "licuado",
+     "icon": "p_naranja",
      "price": 148000,
      "cost": 92000,
      "demand": 2,
@@ -975,7 +975,7 @@
     {
      "id": "miel_entre_rios",
      "name": "Miel",
-     "icon": "golosina",
+     "icon": "p_miel",
      "price": 110000,
      "cost": 52300,
      "demand": 3,
@@ -1052,7 +1052,7 @@
     {
      "id": "te",
      "name": "Té",
-     "icon": "cafe",
+     "icon": "p_te",
      "price": 182000,
      "cost": 87400,
      "demand": 4,
@@ -1065,7 +1065,7 @@
     {
      "id": "madera_misiones",
      "name": "Madera",
-     "icon": "caja",
+     "icon": "p_madera",
      "price": 314000,
      "cost": 168000,
      "demand": 2,
@@ -1077,7 +1077,7 @@
     {
      "id": "mandioca",
      "name": "Mandioca",
-     "icon": "snack",
+     "icon": "p_mandioca",
      "price": 265000,
      "cost": 120000,
      "demand": 2,
@@ -1124,7 +1124,7 @@
     "archetype": "frigorifico",
     "main": "rojo",
     "accent": "blanco",
-    "sign": "carne",
+    "sign": "p_carne",
     "placeholder": [
      "amarillo",
      "FRIGORÍFICO",
@@ -1140,7 +1140,7 @@
     {
      "id": "productos_carnicos",
      "name": "Productos cárnicos",
-     "icon": "carne",
+     "icon": "p_carne",
      "price": 596000,
      "cost": 221000,
      "demand": 5,
@@ -1153,7 +1153,7 @@
     {
      "id": "quesos",
      "name": "Quesos",
-     "icon": "leche",
+     "icon": "p_queso",
      "price": 457000,
      "cost": 201000,
      "demand": 4,
@@ -1165,7 +1165,7 @@
     {
      "id": "miel_san_luis",
      "name": "Miel",
-     "icon": "golosina",
+     "icon": "p_miel",
      "price": 803000,
      "cost": 412000,
      "demand": 2,
@@ -1225,7 +1225,7 @@
     "archetype": "pasas",
     "main": "violeta",
     "accent": "blanco",
-    "sign": "golosina",
+    "sign": "p_pasa",
     "placeholder": [
      "verde",
      "PASAS",
@@ -1241,7 +1241,7 @@
     {
      "id": "pasas_de_uva",
      "name": "Pasas de uva",
-     "icon": "golosina",
+     "icon": "p_pasa",
      "price": 1580000,
      "cost": 678000,
      "demand": 5,
@@ -1254,7 +1254,7 @@
     {
      "id": "aceitunas_san_juan",
      "name": "Aceitunas",
-     "icon": "snack",
+     "icon": "p_aceituna",
      "price": 1230000,
      "cost": 519000,
      "demand": 3,
@@ -1266,7 +1266,7 @@
     {
      "id": "aceite_de_oliva_san_juan",
      "name": "Aceite de oliva",
-     "icon": "aceite",
+     "icon": "p_aceite_oliva",
      "price": 2400000,
      "cost": 1290000,
      "demand": 2,
@@ -1278,7 +1278,7 @@
     {
      "id": "vinos_san_juan",
      "name": "Vinos",
-     "icon": "bebida",
+     "icon": "p_vino",
      "price": 893000,
      "cost": 334000,
      "demand": 2,
@@ -1327,7 +1327,7 @@
     "archetype": "bodega_malbec",
     "main": "bordo",
     "accent": "blanco",
-    "sign": "bebida",
+    "sign": "p_vino",
     "placeholder": [
      "crema",
      "MALBEC",
@@ -1343,7 +1343,7 @@
     {
      "id": "vino_malbec",
      "name": "Vino Malbec",
-     "icon": "bebida",
+     "icon": "p_vino",
      "price": 4590000,
      "cost": 2310000,
      "demand": 5,
@@ -1356,7 +1356,7 @@
     {
      "id": "aceite_de_oliva_mendoza",
      "name": "Aceite de oliva",
-     "icon": "aceite",
+     "icon": "p_aceite_oliva",
      "price": 3560000,
      "cost": 1630000,
      "demand": 3,
@@ -1368,7 +1368,7 @@
     {
      "id": "ajo",
      "name": "Ajo",
-     "icon": "snack",
+     "icon": "p_ajo",
      "price": 6430000,
      "cost": 3770000,
      "demand": 2,
@@ -1380,7 +1380,7 @@
     {
      "id": "frutas_secas",
      "name": "Frutas secas",
-     "icon": "snack",
+     "icon": "p_nuez",
      "price": 2650000,
      "cost": 1100000,
      "demand": 2,
@@ -1427,7 +1427,7 @@
     "archetype": "estancia_ovina",
     "main": "celeste",
     "accent": "blanco",
-    "sign": "carne",
+    "sign": "p_cordero",
     "placeholder": [
      "ladrillo",
      "ESTANCIA",
@@ -1443,7 +1443,7 @@
     {
      "id": "cordero_patagonico",
      "name": "Cordero patagónico",
-     "icon": "carne",
+     "icon": "p_cordero",
      "price": 14700000,
      "cost": 8960000,
      "demand": 5,
@@ -1456,7 +1456,7 @@
     {
      "id": "lana",
      "name": "Lana",
-     "icon": "estrella",
+     "icon": "p_lana",
      "price": 11400000,
      "cost": 6510000,
      "demand": 3,
@@ -1468,7 +1468,7 @@
     {
      "id": "pesca",
      "name": "Pesca",
-     "icon": "estrella",
+     "icon": "p_pescado",
      "price": 15200000,
      "cost": 10200000,
      "demand": 3,
@@ -1480,7 +1480,7 @@
     {
      "id": "oro_y_plata",
      "name": "Oro y plata",
-     "icon": "moneda",
+     "icon": "p_oro",
      "price": 15500000,
      "cost": 9250000,
      "demand": 2,
@@ -1527,7 +1527,7 @@
     "archetype": "lanera",
     "main": "celeste",
     "accent": "blanco",
-    "sign": "estrella",
+    "sign": "p_lana",
     "placeholder": [
      "blanco",
      "LANERA",
@@ -1543,7 +1543,7 @@
     {
      "id": "lana_de_oveja",
      "name": "Lana de oveja",
-     "icon": "estrella",
+     "icon": "p_lana",
      "price": 34100000,
      "cost": 18800000,
      "demand": 5,
@@ -1555,7 +1555,7 @@
     {
      "id": "aluminio",
      "name": "Aluminio",
-     "icon": "engranaje",
+     "icon": "p_aluminio",
      "price": 32200000,
      "cost": 17900000,
      "demand": 3,
@@ -1567,7 +1567,7 @@
     {
      "id": "pesca_chubut",
      "name": "Pesca",
-     "icon": "estrella",
+     "icon": "p_pescado",
      "price": 31900000,
      "cost": 19900000,
      "demand": 3,
@@ -1579,7 +1579,7 @@
     {
      "id": "petroleo",
      "name": "Petróleo",
-     "icon": "fuego",
+     "icon": "p_petroleo",
      "price": 46100000,
      "cost": 32400000,
      "demand": 2,
@@ -1626,7 +1626,7 @@
     "archetype": "chacra_peras",
     "main": "verde",
     "accent": "blanco",
-    "sign": "licuado",
+    "sign": "p_pera",
     "placeholder": [
      "gris",
      "PERAS",
@@ -1642,7 +1642,7 @@
     {
      "id": "peras",
      "name": "Peras",
-     "icon": "licuado",
+     "icon": "p_pera",
      "price": 44100000,
      "cost": 13600000,
      "demand": 4,
@@ -1654,7 +1654,7 @@
     {
      "id": "manzanas",
      "name": "Manzanas",
-     "icon": "licuado",
+     "icon": "p_manzana",
      "price": 73800000,
      "cost": 25800000,
      "demand": 4,
@@ -1666,7 +1666,7 @@
     {
      "id": "cerezas",
      "name": "Cerezas",
-     "icon": "golosina",
+     "icon": "p_cereza",
      "price": 55000000,
      "cost": 22200000,
      "demand": 2,
@@ -1678,7 +1678,7 @@
     {
      "id": "lupulo",
      "name": "Lúpulo",
-     "icon": "bebida",
+     "icon": "p_lupulo",
      "price": 41900000,
      "cost": 24600000,
      "demand": 2,
@@ -1726,7 +1726,7 @@
     "archetype": "manzanas",
     "main": "rojo",
     "accent": "blanco",
-    "sign": "licuado",
+    "sign": "p_manzana",
     "placeholder": [
      "amarillo",
      "MANZANAS",
@@ -1742,7 +1742,7 @@
     {
      "id": "manzanas_neuquen",
      "name": "Manzanas",
-     "icon": "licuado",
+     "icon": "p_manzana",
      "price": 79300000,
      "cost": 17700000,
      "demand": 4,
@@ -1754,7 +1754,7 @@
     {
      "id": "peras_neuquen",
      "name": "Peras",
-     "icon": "licuado",
+     "icon": "p_pera",
      "price": 158000000,
      "cost": 43100000,
      "demand": 4,
@@ -1766,7 +1766,7 @@
     {
      "id": "vinos_neuquen",
      "name": "Vinos",
-     "icon": "bebida",
+     "icon": "p_vino",
      "price": 112000000,
      "cost": 35300000,
      "demand": 2,
@@ -1779,7 +1779,7 @@
     {
      "id": "petroleo_y_gas",
      "name": "Petróleo y gas",
-     "icon": "fuego",
+     "icon": "p_petroleo",
      "price": 55300000,
      "cost": 27200000,
      "demand": 2,
@@ -1826,7 +1826,7 @@
     "archetype": "electronica",
     "main": "gris",
     "accent": "blanco",
-    "sign": "celular",
+    "sign": "p_equipo",
     "placeholder": [
      "verde",
      "ELECTRÓNICA",
@@ -1842,7 +1842,7 @@
     {
      "id": "productos_electronicos_e",
      "name": "Productos electrónicos ensamblados",
-     "icon": "celular",
+     "icon": "p_equipo",
      "price": 340000000,
      "cost": 112000000,
      "demand": 4,
@@ -1854,7 +1854,7 @@
     {
      "id": "televisores",
      "name": "Televisores",
-     "icon": "vibrar",
+     "icon": "p_televisor",
      "price": 282000000,
      "cost": 107000000,
      "demand": 4,
@@ -1878,7 +1878,7 @@
     {
      "id": "equipos_electronicos",
      "name": "Equipos electrónicos",
-     "icon": "engranaje",
+     "icon": "p_equipo",
      "price": 198000000,
      "cost": 80600000,
      "demand": 2,
@@ -1925,7 +1925,7 @@
     "archetype": "estancia_ganadera",
     "main": "marron",
     "accent": "blanco",
-    "sign": "carne",
+    "sign": "p_carne",
     "placeholder": [
      "crema",
      "HACIENDA",
@@ -1941,7 +1941,7 @@
     {
      "id": "carne_vacuna",
      "name": "Carne vacuna",
-     "icon": "carne",
+     "icon": "p_carne",
      "price": 1230000000,
      "cost": 553000000,
      "demand": 4,
@@ -1954,7 +1954,7 @@
     {
      "id": "trigo",
      "name": "Trigo",
-     "icon": "fideos",
+     "icon": "p_harina",
      "price": 560000000,
      "cost": 272000000,
      "demand": 4,
@@ -1966,7 +1966,7 @@
     {
      "id": "girasol",
      "name": "Girasol",
-     "icon": "aceite",
+     "icon": "p_girasol",
      "price": 1020000000,
      "cost": 516000000,
      "demand": 2,
@@ -1978,7 +1978,7 @@
     {
      "id": "miel_la_pampa",
      "name": "Miel",
-     "icon": "golosina",
+     "icon": "p_miel",
      "price": 717000000,
      "cost": 262000000,
      "demand": 2,
@@ -2025,7 +2025,7 @@
     "archetype": "salames",
     "main": "rojo",
     "accent": "blanco",
-    "sign": "carne",
+    "sign": "p_sal",
     "placeholder": [
      "ladrillo",
      "SALAMES",
@@ -2041,7 +2041,7 @@
     {
      "id": "salame_de_colonia_caroya",
      "name": "Salame de Colonia Caroya",
-     "icon": "carne",
+     "icon": "p_sal",
      "price": 2070000000,
      "cost": 868000000,
      "demand": 5,
@@ -2054,7 +2054,7 @@
     {
      "id": "mani",
      "name": "Maní",
-     "icon": "snack",
+     "icon": "p_mani",
      "price": 1810000000,
      "cost": 792000000,
      "demand": 3,
@@ -2078,7 +2078,7 @@
     {
      "id": "maquinaria_agricola",
      "name": "Maquinaria agrícola",
-     "icon": "engranaje",
+     "icon": "p_tractor",
      "price": 2790000000,
      "cost": 1280000000,
      "demand": 1,
@@ -2153,7 +2153,7 @@
     {
      "id": "soja_santa_fe",
      "name": "Soja",
-     "icon": "fideos",
+     "icon": "p_soja",
      "price": 5790000000,
      "cost": 2370000000,
      "demand": 3,
@@ -2165,7 +2165,7 @@
     {
      "id": "maquinaria_agricola_sant",
      "name": "Maquinaria agrícola",
-     "icon": "engranaje",
+     "icon": "p_tractor",
      "price": 4470000000,
      "cost": 2330000000,
      "demand": 2,
@@ -2177,7 +2177,7 @@
     {
      "id": "miel_santa_fe",
      "name": "Miel",
-     "icon": "golosina",
+     "icon": "p_miel",
      "price": 10400000000,
      "cost": 5910000000,
      "demand": 1,
@@ -2224,7 +2224,7 @@
     "archetype": "molino_harinero",
     "main": "amarillo",
     "accent": "blanco",
-    "sign": "fideos",
+    "sign": "p_harina",
     "placeholder": [
      "gris",
      "HARINAS",
@@ -2240,7 +2240,7 @@
     {
      "id": "trigo_y_harina",
      "name": "Trigo y harina",
-     "icon": "fideos",
+     "icon": "p_harina",
      "price": 15500000000,
      "cost": 8580000000,
      "demand": 5,
@@ -2252,7 +2252,7 @@
     {
      "id": "carne_vacuna_buenos_aire",
      "name": "Carne vacuna",
-     "icon": "carne",
+     "icon": "p_carne",
      "price": 17400000000,
      "cost": 9230000000,
      "demand": 3,
@@ -2265,7 +2265,7 @@
     {
      "id": "girasol_buenos_aires",
      "name": "Girasol",
-     "icon": "aceite",
+     "icon": "p_girasol",
      "price": 18600000000,
      "cost": 11500000000,
      "demand": 3,
@@ -2354,7 +2354,7 @@
     {
      "id": "alfajores",
      "name": "Alfajores",
-     "icon": "alfajor",
+     "icon": "p_ajo",
      "price": 52000000000,
      "cost": 36000000000,
      "demand": 3,

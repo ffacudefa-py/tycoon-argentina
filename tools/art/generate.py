@@ -22,6 +22,8 @@ import coin_art  # noqa: E402
 import icons32  # noqa: E402
 import logo  # noqa: E402
 import map_art  # noqa: E402
+import icons_v10  # noqa: E402
+import landscapes  # noqa: E402
 import fx_art  # noqa: E402
 import map_avatars  # noqa: E402
 import ui_art  # noqa: E402
@@ -49,6 +51,7 @@ def gen_icons():
         cv.stamp([r if all(c in PAL or c == "." for c in r) else "".join(c if (c in PAL or c == ".") else "." for c in r) for r in clean], 0, top)
         cv.save(os.path.join(d, f"{name}.png"))
     coin_art.icon16().save(os.path.join(d, "moneda.png"))  # moneda 2.1 (procedural)
+    icons_v10.generate(OUT)  # productos regionales de la 10.0
     return problems
 
 
@@ -91,6 +94,7 @@ def main():
     backgrounds.generate(OUT, sorted({z.get("street", z["id"]) for z in world["zones"]}))
     map_avatars.generate(OUT, DATA)
     map_art.generate(OUT, DATA)     # mapas de la Argentina (10.0)
+    landscapes.generate(OUT)        # paisajes regionales (10.0)
     contact_sheet()
     for p in problems:
         print("AVISO:", p)

@@ -160,9 +160,40 @@ SHARE_SPEED = 0.0015
 # y x1,25 por provincia (NOA ~2 h, Cuyo ~16 h, toda la Argentina ~6 días de juego).
 CONQUEST_MINUTES = 11.0
 CONQUEST_GROWTH = 1.25
-# Fondo de calle provisorio (de la 0.7) por región hasta que llegue el arte de F3.
-STREET = {"noa": "barrio", "nea": "costanera", "cuyo": "universidad", "patagonia": "puerto",
-          "pampeana": "industrial", "centro": "centro"}
+# Paisaje de fondo por región (tools/art/landscapes.py).
+STREET = {"noa": "noa", "nea": "nea", "cuyo": "cuyo", "patagonia": "patagonia",
+          "pampeana": "pampeana", "centro": "centro_sierras"}
+STREET_OVERRIDE = {"caba": "centro"}   # la confitería porteña va en la calle de ciudad
+
+
+# Ícono de cada producto por palabra clave (tools/art/icons_v10.py genera los
+# "p_*"; el resto son íconos que ya existían).
+ICON_KEYS = [
+    ("torrontés", "p_vino_blanco"), ("vino", "p_vino"), ("aceite", "p_aceite_oliva"), ("aceituna", "p_aceituna"),
+    ("limón", "p_limon"), ("naranja", "p_naranja"), ("mandarina", "p_mandarina"), ("pomelo", "p_pomelo"),
+    ("manzana", "p_manzana"), ("pera", "p_pera"), ("cereza", "p_cereza"), ("arándano", "p_arandano"),
+    ("pasas", "p_pasa"), ("uva", "p_uva"), ("banana", "p_banana"), ("nuez", "p_nuez"), ("nueces", "p_nuez"),
+    ("frutas secas", "p_nuez"), ("maní", "p_mani"), ("ajo", "p_ajo"), ("papa", "p_papa"), ("pimiento", "p_pimiento"),
+    ("mandioca", "p_mandioca"), ("lúpulo", "p_lupulo"), ("girasol", "p_girasol"), ("trigo", "p_harina"),
+    ("miel", "p_miel"), ("arroz", "p_arroz"), ("azúcar", "p_azucar"), ("sal", "p_sal"), ("quinoa", "p_quinoa"),
+    ("soja", "p_soja"), ("alfalfa", "p_alfalfa"), ("algodón", "p_algodon"), ("lana", "p_lana"), ("cordero", "p_cordero"),
+    ("caprina", "p_cordero"), ("salame", "p_salame"), ("cárnicos", "p_carne"), ("carne", "p_carne"), ("queso", "p_queso"),
+    ("lácteo", "leche"), ("pesca", "p_pescado"), ("madera", "p_madera"), ("oro", "p_oro"), ("petróleo", "p_petroleo"),
+    ("aluminio", "p_aluminio"), ("televisor", "p_televisor"), ("celular", "celular"), ("equipos", "p_equipo"),
+    ("electrónicos", "p_equipo"), ("maquinaria", "p_tractor"), ("tejidos", "p_poncho"), ("tabaco", "p_tabaco"),
+    ("té", "p_te"), ("yerba", "yerba"), ("café", "cafe"), ("medialuna", "medialuna"), ("alfajor", "alfajor"),
+    ("panadería", "facturas"), ("empanada", "p_empanada"),
+]
+
+
+def icon_for(name, fallback):
+    low = name.lower()
+    for key, icon in ICON_KEYS:
+        if key == "té" and low != "té":
+            continue
+        if key in low:
+            return icon
+    return fallback
 
 
 def slug(text):
@@ -223,7 +254,7 @@ def main():
             if pid in used_pids:
                 pid = slug(name + "_" + p["id"])
             used_pids.add(pid)
-            products.append({"id": pid, "name": name, "icon": picons[j], "price": nice(price), "cost": nice(cost),
+            products.append({"id": pid, "name": name, "icon": icon_for(name, picons[j]), "price": nice(price), "cost": nice(cost),
                              "demand": dem + (1 if j == 0 else 0), "tags": ptags[j], "star": j == 0})
         cycle = round(e["cycle"], 1)
         biz = {
@@ -233,7 +264,7 @@ def main():
             "unlock": {"cost": 0 if i == 0 else nice(e["unlock"]), "stage": 1,
                        "requires": None if prev_bid is None else {"business": prev_bid, "conquer": True}},
             "restock_time": round(e["restock_time"], 1), "tags": tags,
-            "art": {"archetype": bid, "main": color, "accent": "blanco", "sign": picons[0],
+            "art": {"archetype": bid, "main": color, "accent": "blanco", "sign": icon_for(names[0], picons[0]),
                     "placeholder": [["verde", "crema", "ladrillo", "blanco", "gris", "amarillo"][i % 6], sign,
                                     "noche", {"bordo": "bordo", "rojo": "rojo", "verde": "verde", "amarillo": "amarillo"}.get(color, "celeste"),
                                     ["goods", "boxes", "tables", "goods"][i % 4], ["crates", "truck", "carts", "flag"][i % 4], 0.0]},
@@ -252,7 +283,7 @@ def main():
             "secondary_products": p["secondary_products"], "cost": 0, "stage": 1,
             "demand": {t: 0.1 for t in tags[:1]}, "competition": round(0.03 + 0.005 * region_order[p["region"]], 3),
             "market_size": nice(market), "rival": rid,
-            "conquest_minutes": round(CONQUEST_MINUTES * CONQUEST_GROWTH ** i, 1), "street": STREET[p["region"]],
+            "conquest_minutes": round(CONQUEST_MINUTES * CONQUEST_GROWTH ** i, 1), "street": STREET_OVERRIDE.get(p["id"], STREET[p["region"]]),
         })
         rivals.append({"id": rid, "name": p["rival_name"], "sector": p["star_product"], "tags": tags,
                        "zones": [p["id"]], "behavior": BEHAVIORS[i % 3],
