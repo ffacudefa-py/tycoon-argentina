@@ -1,0 +1,391 @@
+{
+ "_doc": "Borrador 10.0 Sigma Deza (aún no lo carga el juego). Fuente: ~/Descargas/productos_iconicos_argentina.xlsx. 'order' = orden de conquista (NOA primero, el de menores ingresos). Regiones y provincias según el Excel (Entre Ríos en NEA, Buenos Aires en Centro). Rivales ficticios.",
+ "regions": [
+  {
+   "id": "noa",
+   "name": "NOA",
+   "long_name": "Noroeste Argentino",
+   "order": 1,
+   "star_product": "Limón",
+   "star_province": "tucuman"
+  },
+  {
+   "id": "nea",
+   "name": "NEA",
+   "long_name": "Noreste Argentino",
+   "order": 2,
+   "star_product": "Yerba mate",
+   "star_province": "misiones"
+  },
+  {
+   "id": "cuyo",
+   "name": "Cuyo",
+   "long_name": "Región de Cuyo",
+   "order": 3,
+   "star_product": "Vino Malbec",
+   "star_province": "mendoza"
+  },
+  {
+   "id": "patagonia",
+   "name": "Patagonia",
+   "long_name": "Patagonia",
+   "order": 4,
+   "star_product": "Cordero patagónico",
+   "star_province": "santa_cruz"
+  },
+  {
+   "id": "pampeana",
+   "name": "Pampeana",
+   "long_name": "Región Pampeana",
+   "order": 5,
+   "star_product": "Carne vacuna",
+   "star_province": "buenos_aires"
+  },
+  {
+   "id": "centro",
+   "name": "Centro",
+   "long_name": "Región Centro",
+   "order": 6,
+   "star_product": "Maquinaria agrícola",
+   "star_province": "cordoba"
+  }
+ ],
+ "provinces": [
+  {
+   "id": "santiago_del_estero",
+   "name": "Santiago del Estero",
+   "region": "noa",
+   "order": 1,
+   "star_product": "Algodón",
+   "secondary_products": [
+    "Alfalfa",
+    "Carne caprina",
+    "Miel"
+   ],
+   "business_name": "Campo algodonero",
+   "rival_name": "Algodonera Los Quebrachos"
+  },
+  {
+   "id": "jujuy",
+   "name": "Jujuy",
+   "region": "noa",
+   "order": 2,
+   "star_product": "Papas andinas",
+   "secondary_products": [
+    "Sal",
+    "Quinoa",
+    "Tejidos artesanales"
+   ],
+   "business_name": "Chacra de papas andinas",
+   "rival_name": "Cooperativa Cerro Siete"
+  },
+  {
+   "id": "catamarca",
+   "name": "Catamarca",
+   "region": "noa",
+   "order": 3,
+   "star_product": "Aceite de oliva",
+   "secondary_products": [
+    "Aceitunas",
+    "Nueces",
+    "Uvas"
+   ],
+   "business_name": "Almazara",
+   "rival_name": "Olivares del Ambato"
+  },
+  {
+   "id": "la_rioja",
+   "name": "La Rioja",
+   "region": "noa",
+   "order": 4,
+   "star_product": "Aceitunas",
+   "secondary_products": [
+    "Aceite de oliva",
+    "Vinos",
+    "Nueces"
+   ],
+   "business_name": "Olivar",
+   "rival_name": "Aceitunera Famatina"
+  },
+  {
+   "id": "salta",
+   "name": "Salta",
+   "region": "noa",
+   "order": 5,
+   "star_product": "Vino torrontés",
+   "secondary_products": [
+    "Tabaco",
+    "Pimientos",
+    "Quesos de cabra"
+   ],
+   "business_name": "Bodega de altura",
+   "rival_name": "Bodegas Valle Alto"
+  },
+  {
+   "id": "tucuman",
+   "name": "Tucumán",
+   "region": "noa",
+   "order": 6,
+   "star_product": "Limón",
+   "secondary_products": [
+    "Empanadas tucumanas",
+    "Azúcar",
+    "Arándanos"
+   ],
+   "business_name": "Citrícola",
+   "rival_name": "Citrus del Aconquija"
+  },
+  {
+   "id": "formosa",
+   "name": "Formosa",
+   "region": "nea",
+   "order": 7,
+   "star_product": "Banana",
+   "secondary_products": [
+    "Algodón",
+    "Pomelo",
+    "Miel"
+   ],
+   "business_name": "Bananal",
+   "rival_name": "Bananera del Pilcomayo"
+  },
+  {
+   "id": "chaco",
+   "name": "Chaco",
+   "region": "nea",
+   "order": 8,
+   "star_product": "Algodón",
+   "secondary_products": [
+    "Madera",
+    "Miel",
+    "Soja"
+   ],
+   "business_name": "Desmotadora de algodón",
+   "rival_name": "Hilados El Impenetrable"
+  },
+  {
+   "id": "corrientes",
+   "name": "Corrientes",
+   "region": "nea",
+   "order": 9,
+   "star_product": "Arroz",
+   "secondary_products": [
+    "Naranjas",
+    "Yerba mate",
+    "Madera"
+   ],
+   "business_name": "Arrocera",
+   "rival_name": "Arrozales del Iberá"
+  },
+  {
+   "id": "entre_rios",
+   "name": "Entre Ríos",
+   "region": "nea",
+   "order": 10,
+   "star_product": "Arroz",
+   "secondary_products": [
+    "Mandarinas",
+    "Naranjas",
+    "Miel"
+   ],
+   "business_name": "Molino arrocero",
+   "rival_name": "Molinos del Litoral"
+  },
+  {
+   "id": "misiones",
+   "name": "Misiones",
+   "region": "nea",
+   "order": 11,
+   "star_product": "Yerba mate",
+   "secondary_products": [
+    "Té",
+    "Madera",
+    "Mandioca"
+   ],
+   "business_name": "Yerbatal y secadero",
+   "rival_name": "Yerbatera Tierra Colorada"
+  },
+  {
+   "id": "san_luis",
+   "name": "San Luis",
+   "region": "cuyo",
+   "order": 12,
+   "star_product": "Productos cárnicos",
+   "secondary_products": [
+    "Quesos",
+    "Miel",
+    "Productos lácteos"
+   ],
+   "business_name": "Frigorífico",
+   "rival_name": "Carnes del Morro"
+  },
+  {
+   "id": "san_juan",
+   "name": "San Juan",
+   "region": "cuyo",
+   "order": 13,
+   "star_product": "Pasas de uva",
+   "secondary_products": [
+    "Aceitunas",
+    "Aceite de oliva",
+    "Vinos"
+   ],
+   "business_name": "Secadero de pasas",
+   "rival_name": "Pasas del Zonda"
+  },
+  {
+   "id": "mendoza",
+   "name": "Mendoza",
+   "region": "cuyo",
+   "order": 14,
+   "star_product": "Vino Malbec",
+   "secondary_products": [
+    "Aceite de oliva",
+    "Ajo",
+    "Frutas secas"
+   ],
+   "business_name": "Bodega de Malbec",
+   "rival_name": "Bodegas Cordón del Plata"
+  },
+  {
+   "id": "santa_cruz",
+   "name": "Santa Cruz",
+   "region": "patagonia",
+   "order": 15,
+   "star_product": "Cordero patagónico",
+   "secondary_products": [
+    "Lana",
+    "Pesca",
+    "Oro y plata"
+   ],
+   "business_name": "Estancia ovina",
+   "rival_name": "Estancia La Escondida"
+  },
+  {
+   "id": "chubut",
+   "name": "Chubut",
+   "region": "patagonia",
+   "order": 16,
+   "star_product": "Lana de oveja",
+   "secondary_products": [
+    "Aluminio",
+    "Pesca",
+    "Petróleo"
+   ],
+   "business_name": "Lanera",
+   "rival_name": "Laneras del Chubut"
+  },
+  {
+   "id": "rio_negro",
+   "name": "Río Negro",
+   "region": "patagonia",
+   "order": 17,
+   "star_product": "Peras",
+   "secondary_products": [
+    "Manzanas",
+    "Cerezas",
+    "Lúpulo"
+   ],
+   "business_name": "Chacra de peras",
+   "rival_name": "Frutícola Alto Valle"
+  },
+  {
+   "id": "neuquen",
+   "name": "Neuquén",
+   "region": "patagonia",
+   "order": 18,
+   "star_product": "Manzanas",
+   "secondary_products": [
+    "Peras",
+    "Vinos",
+    "Petróleo y gas"
+   ],
+   "business_name": "Empaque de manzanas",
+   "rival_name": "Manzanares del Limay"
+  },
+  {
+   "id": "tierra_del_fuego",
+   "name": "Tierra del Fuego",
+   "region": "patagonia",
+   "order": 19,
+   "star_product": "Productos electrónicos ensamblados",
+   "secondary_products": [
+    "Televisores",
+    "Celulares",
+    "Equipos electrónicos"
+   ],
+   "business_name": "Planta de electrónica",
+   "rival_name": "Fueguina Electrónica"
+  },
+  {
+   "id": "la_pampa",
+   "name": "La Pampa",
+   "region": "pampeana",
+   "order": 20,
+   "star_product": "Carne vacuna",
+   "secondary_products": [
+    "Trigo",
+    "Girasol",
+    "Miel"
+   ],
+   "business_name": "Estancia ganadera",
+   "rival_name": "Hacienda Caldenal"
+  },
+  {
+   "id": "cordoba",
+   "name": "Córdoba",
+   "region": "centro",
+   "order": 21,
+   "star_product": "Salame de Colonia Caroya",
+   "secondary_products": [
+    "Maní",
+    "Lácteos",
+    "Maquinaria agrícola"
+   ],
+   "business_name": "Fábrica de salames",
+   "rival_name": "Chacinados Sierra Chica"
+  },
+  {
+   "id": "santa_fe",
+   "name": "Santa Fe",
+   "region": "centro",
+   "order": 22,
+   "star_product": "Productos lácteos",
+   "secondary_products": [
+    "Soja",
+    "Maquinaria agrícola",
+    "Miel"
+   ],
+   "business_name": "Usina láctea",
+   "rival_name": "Lácteos Cuenca Santafesina"
+  },
+  {
+   "id": "buenos_aires",
+   "name": "Buenos Aires",
+   "region": "centro",
+   "order": 23,
+   "star_product": "Trigo y harina",
+   "secondary_products": [
+    "Carne vacuna",
+    "Girasol",
+    "Lácteos"
+   ],
+   "business_name": "Molino harinero",
+   "rival_name": "Molinos de la Pampa Húmeda"
+  },
+  {
+   "id": "caba",
+   "name": "Ciudad Autónoma de Buenos Aires",
+   "region": "centro",
+   "order": 24,
+   "star_product": "Medialunas",
+   "secondary_products": [
+    "Alfajores",
+    "Productos de panadería",
+    "Café"
+   ],
+   "business_name": "Panadería y confitería",
+   "rival_name": "Confitería del Obelisco"
+  }
+ ]
+}
