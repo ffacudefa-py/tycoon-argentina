@@ -282,7 +282,11 @@ func test_hard_mode_bonus_lawsuit_theft_bribe() -> void:
 	# Sueldos atrasados más de lawsuit_after segundos (sin plata para pagar).
 	m.economy.reset_run(0)
 	m.salary_debt = 50
-	for i in 140:
+	near(HardMode.lawsuit_eta(m), 120.0, 0.01, "la cuenta regresiva arranca en 2 min")
+	for i in 60:
+		HardMode.advance(m, 1.0, false)
+	near(HardMode.lawsuit_eta(m), 60.0, 0.01, "y baja con el tiempo")
+	for i in 80:
 		HardMode.advance(m, 1.0, false)
 	eq(m.employees.size(), 0, "el empleado hizo juicio y se fue")
 	eq(int(m.counter("lawsuits")), 1, "un juicio")
@@ -314,3 +318,5 @@ func test_normal_mode_has_no_hard_events() -> void:
 	run(m, 600.0)
 	eq(int(m.counter("thefts")), 0, "sin robos")
 	check(not m.inflation_active(), "sin inflación")
+	m.salary_debt = 50
+	eq(HardMode.lawsuit_eta(m), -1.0, "sin cuenta regresiva de juicio")

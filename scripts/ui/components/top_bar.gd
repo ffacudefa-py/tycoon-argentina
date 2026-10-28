@@ -96,6 +96,15 @@ func _refresh_names() -> void:
 func _refresh_income() -> void:
 	var m := Game.m
 	var inc := m.income_per_sec()
+	# Modo bien argentino: en rojo, cuenta regresiva hasta el juicio laboral.
+	var eta := HardMode.lawsuit_eta(m)
+	if eta >= 0.0:
+		var secs := int(ceilf(eta))
+		_income_label.text = "JUICIO EN %d:%02d" % [secs / 60, secs % 60]
+		var blink := secs <= 30 and int(Time.get_ticks_msec() / 500) % 2 == 0
+		_income_label.add_theme_color_override("font_color", Color("ffd458") if blink else Color("e2665a"))
+		_refresh_names()
+		return
 	if inc > 0.0:
 		_income_label.text = "+%s%s" % [Fmt.per_sec(inc), "  x2" if m.boost_multiplier() > 1.0 else ""]
 		_income_label.add_theme_color_override("font_color", Color("8ccb6c"))

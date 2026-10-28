@@ -348,6 +348,18 @@ func _social_shots() -> void:
 	main.top_bar._show_balance(false)      # sin esperar el refresco de 0,3 s (humo headless)
 	await _shot("19_saldo_negativo", 0.8)
 	print("SALDO_NEGATIVO ", "OK" if main.top_bar.is_negative() else "FALLÓ")
+	var hard_prev: Dictionary = m.hard.duplicate(true)
+	HardMode.choose(m, true)
+	if m.employees.is_empty():
+		EmployeeSystem.ensure_candidates(m, B0)
+		m.economy.earn(1_000_000, "dev", false)
+		EmployeeSystem.hire(m, B0, 0)
+		m.economy.spend(m.economy.money, "dev")
+	m.hard["debt_time"] = 95.0
+	await get_tree().create_timer(0.6).timeout
+	await _shot("19b_cuenta_juicio", 0.2)
+	m.hard = hard_prev
+	m.invalidate()
 	m.salary_debt = 0
 	m.economy.earn(cash, "dev", false)
 	var saved := [Auth.uid, Auth.email, Auth.email_verified]

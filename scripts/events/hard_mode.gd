@@ -89,6 +89,15 @@ static func advance(m: GameModel, dt: float, offline: bool) -> void:
 	_advance_theft(m, dt)
 
 
+## Segundos que faltan para el próximo juicio laboral (-1 si no hay riesgo:
+## modo normal, sin deuda de sueldos o sin empleados). Lo muestra la barra superior.
+static func lawsuit_eta(m: GameModel) -> float:
+	if not on(m) or m.salary_debt <= 0 or m.employees.is_empty():
+		return -1.0
+	var left := float(cfg(m).get("lawsuit_after", 120)) - float(m.hard.get("debt_time", 0.0))
+	return maxf(0.0, maxf(left, float(m.hard.get("lawsuit_cd", 0.0))))
+
+
 static func _advance_lawsuits(m: GameModel, dt: float) -> void:
 	var c := cfg(m)
 	m.hard["lawsuit_cd"] = maxf(0.0, float(m.hard.get("lawsuit_cd", 0.0)) - dt)
