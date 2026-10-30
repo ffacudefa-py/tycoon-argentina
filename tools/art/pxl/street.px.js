@@ -123,13 +123,7 @@ sprite("_cables", { w: 480, h: 20 }, wire(0, 2, 480, 4, 10, "o"), wire(0, 6, 480
 sprite("_manhole", { w: 18, h: 6 }, ellipse(9, 3, 8, 2, "x"), ellipse(9, 3, 6, 1, "u"), hline(4, 3, 10, "d"))
 
 // ------------------------------------------------------------- vehículos
-sprite("_colectivo", { w: 120, h: 48, outline: "o" },   // colectivo porteño fileteado
-  rect(0, 4, 120, 36, "y"), rect(0, 4, 120, 4, "Z"), rect(0, 26, 120, 14, "r"), hline(0, 26, 120, "p"),
-  (c) => { for (let x = 6; x < 100; x += 16) { c.rect(x, 10, 13, 13, "c"); c.rect(x, 17, 13, 6, "C"); c.line(x + 2, 21, x + 7, 12, "W") } },
-  rect(104, 13, 14, 11, "c"), rect(104, 5, 14, 7, "u"), text(108, 6, "60", "Z"),
-  (c) => { for (let x = 4; x < 116; x += 12) { c.px(x, 30, "Z"); c.px(x + 1, 31, "Z"); c.px(x + 2, 30, "W") } },   // fileteado
-  rect(2, 36, 116, 4, "u"), circ(20, 40, 7, "o"), circ(20, 40, 3, "g"), circ(98, 40, 7, "o"), circ(98, 40, 3, "g"), rect(116, 28, 4, 4, "z"))
-anim("colectivo_anim", { base: "_colectivo", fps: 6 }, frame(), frame(px(20, 37, "W"), px(98, 37, "W")))
+// El colectivo (effects/colectivo_anim.png, 4 líneas) lo dibuja tools/art/bus_art.py.
 
 // --------------------------------------------------------------- horizontes
 sprite("_obelisco", { w: 16, h: 96 }, poly([5, 96, 11, 96, 9, 6, 7, 6], "l"), poly([7, 6, 9, 6, 8, 0], "l"), vline(7, 6, 90, "W"), rect(7, 30, 2, 2, "d"))

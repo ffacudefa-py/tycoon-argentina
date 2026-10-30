@@ -22,6 +22,9 @@ const WALK_Y := 178
 ## las ruedas acá y se dibuja DELANTE del negocio y de los peatones.
 const ROAD_Y := 198
 const BUS_SPEED := 110.0
+## Filas de effects/colectivo_anim.png: una línea de colectivo por fila
+## (60, 160, 103 y 59, ver tools/art/bus_art.py); cada pasada elige una.
+const BUS_LINES := 4
 const WORKER_Y := 171
 ## Interior: lienzo 400x170.
 const INT_W := 400
@@ -49,6 +52,7 @@ var _walkers: Array = []
 var _fx: Array = []               ## [{sprite, durations, t}]
 var _bus: Sprite2D
 var _bus_t := 12.0
+var _bus_line := 0
 var _spawn_t := 0.0
 var _anim_t := 0.0
 var _happy_until := 0.0   ## personajes 11: empleados felices tras una venta
@@ -84,6 +88,7 @@ func _ready() -> void:
 	_bus.texture = U.tex("effects/colectivo_anim.png")
 	if _bus.texture:
 		_bus.hframes = 2
+		_bus.vframes = BUS_LINES
 	_bus.visible = false
 	resized.connect(_layout)
 	preferred_view = str(Settings.get_value("scene_view"))
@@ -421,10 +426,11 @@ func _update_bus(delta: float, anim_on: bool) -> void:
 		_bus_t -= delta
 		if _bus_t <= 0.0:
 			_bus.visible = true
-			_bus.position = Vector2(-frame_w - 10, ROAD_Y - _bus.texture.get_height())
+			_bus_line = randi() % BUS_LINES
+			_bus.position = Vector2(-frame_w - 10, ROAD_Y - _bus.texture.get_height() / _bus.vframes)
 		return
 	_bus.position.x = round(_bus.position.x + BUS_SPEED * delta)
-	_bus.frame = int(_anim_t * 6.0) % 2
+	_bus.frame = _bus_line * _bus.hframes + int(_anim_t * 6.0) % 2
 	if _bus.position.x > size.x + 10:
 		_bus.visible = false
 		_bus_t = randf_range(10.0, 22.0)

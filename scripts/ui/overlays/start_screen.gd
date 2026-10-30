@@ -21,6 +21,7 @@ var _sky: ColorRect
 var _bg: TextureRect
 var _bus: Sprite2D
 var _bus_t := 1.5
+var _bus_line := 0
 var _anim := 0.0
 var _logo_box: Control
 var _menu: VBoxContainer
@@ -50,6 +51,7 @@ func _ready() -> void:
 	_bus = Sprite2D.new()
 	_bus.texture = U.tex("effects/colectivo_anim.png")
 	_bus.hframes = 2
+	_bus.vframes = BusinessScene.BUS_LINES
 	_bus.centered = false
 	_bus.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	_bus.visible = false
@@ -228,11 +230,12 @@ func _process(delta: float) -> void:
 		if _bus_t <= 0.0:
 			_bus.visible = true
 			_bus.flip_h = randf() < 0.5
+			_bus_line = randi() % BusinessScene.BUS_LINES
 			# El sprite mira a la derecha; con flip_h mira a la izquierda.
 			_bus.position = Vector2(-126 if not _bus.flip_h else BG_W + 4, ROAD_Y - 22)
 		return
 	_bus.position.x = round(_bus.position.x + (-70.0 if _bus.flip_h else 70.0) * delta)
-	_bus.frame = int(_anim * 6.0) % 2
+	_bus.frame = _bus_line * _bus.hframes + int(_anim * 6.0) % 2
 	if _bus.position.x < -130 or _bus.position.x > BG_W + 10:
 		_bus.visible = false
 		_bus_t = randf_range(3.0, 7.0)

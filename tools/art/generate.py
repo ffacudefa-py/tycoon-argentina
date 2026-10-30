@@ -17,6 +17,7 @@ DATA = os.path.join(ROOT, "data")
 
 import backgrounds  # noqa: E402
 import buildings2  # noqa: E402
+import product_badges  # noqa: E402
 import chars2  # noqa: E402
 import coin_art  # noqa: E402
 import icons32  # noqa: E402
@@ -88,6 +89,7 @@ def main():
     fx_art.generate(OUT)
     fixed = buildings2.generate(OUT, DATA)   # edificios 2.0 (192x150, 2 cuadros)
     print(f"Píxeles huérfanos corregidos en edificios: {fixed}")
+    product_badges.generate(OUT)   # íconos de negocio 11 (producto) sobre los badges de edificio
     logo.main()
     world = json.load(open(os.path.join(DATA, "world.json"), encoding="utf-8"))
     # 10.0: fondos provisorios por región (las calles de la 0.7) hasta el arte de F3.
