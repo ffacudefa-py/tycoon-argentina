@@ -29,6 +29,10 @@ var _roll_t := 0.0
 var _combo := 0
 var _last_land := 0
 var _jackpot_until := 0
+## Mientras gira la ruleta de un cofre el saldo queda congelado, para no
+## adelantar el premio; el jackpot que llegue mientras tanto se guarda.
+var _held := false
+var _held_jackpot := 0
 
 
 func _ready() -> void:
@@ -58,18 +62,21 @@ func _ready() -> void:
 	mrow.add_child(_coin)
 	_money = SlotCounter.new()
 	_money.font_size = U.SIZE_BIG
+	_money.alignment = BoxContainer.ALIGNMENT_CENTER
 	_money.reel_stopped.connect(_on_reel_stopped)
 	# Caja dorada de ancho fijo (§8): el contador animado nunca se encima.
 	var box := PanelContainer.new()
 	var sb := StyleBoxFlat.new()
-	sb.bg_color = Color("6d432b")
+	# El fondo es del dorado de las barras entre rodillos: marco y barras
+	# forman una sola reja, como la ventana de una tragamonedas.
+	sb.bg_color = SlotCounter.BAR
 	sb.border_color = Color("f2d173")
 	sb.set_border_width_all(3)
 	sb.border_width_top = 4
 	sb.set_corner_radius_all(4)
-	sb.set_content_margin_all(2)
-	sb.content_margin_left = 6
-	sb.content_margin_right = 6
+	sb.set_content_margin_all(1)
+	sb.content_margin_left = 3
+	sb.content_margin_right = 3
 	box.add_theme_stylebox_override("panel", sb)
 	box.custom_minimum_size.x = 132
 	box.add_child(_money)
@@ -152,7 +159,7 @@ func _animations_on() -> bool:
 func _process(delta: float) -> void:
 	_roll_t += delta
 	var now := Time.get_ticks_msec()
-	if _roll_t >= ROLL_EVERY and now >= _jackpot_until:
+	if _roll_t >= ROLL_EVERY and now >= _jackpot_until and not _held:
 		_roll_t = 0.0
 		_show_balance(_animations_on())
 	_timer += delta
@@ -168,7 +175,20 @@ func _on_money_changed(money: int, delta: int) -> void:
 	var cat: String = ledger[-1]["cat"] if not ledger.is_empty() else ""
 	var before := money - delta
 	if cat != "ventas" and delta >= JACKPOT_MIN and float(delta) >= float(before) * JACKPOT_RATIO:
-		jackpot(delta)
+		if _held:
+			_held_jackpot += delta
+		else:
+			jackpot(delta)
+
+
+## Congela el saldo (on=true) o lo suelta mostrando el jackpot pendiente.
+func hold_balance(on: bool) -> void:
+	_held = on
+	if on:
+		return
+	if _held_jackpot > 0:
+		jackpot(_held_jackpot)
+	_held_jackpot = 0
 
 
 ## Una moneda de una venta llegó al saldo: saltito y "clinc" que sube de tono

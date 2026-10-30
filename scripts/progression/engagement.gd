@@ -56,49 +56,77 @@ static func grant_chest(m: GameModel, reason: String, n := 1) -> void:
 
 
 ## Abre un cofre: premio variable con pesos de progression.json → engagement.chest.
-## Devuelve {ok, kind, text}.
+## Devuelve {ok, kind, text, chance, avatar} (chance = probabilidad de ese tipo
+## de premio, para que la ruleta lo pinte como común o raro).
 static func open_chest(m: GameModel) -> Dictionary:
 	if int(m.engage.get("chests", 0)) <= 0:
 		return {"ok": false, "msg": "No tenés cofres. Se ganan conquistando, con logros y en los eventos."}
 	m.engage["chests"] = int(m.engage["chests"]) - 1
 	m.engage["opened"] = int(m.engage.get("opened", 0)) + 1
-	var table: Array = cfg(m).get("chest", [])
+	var options := chest_options(m)
+	var total := 0.0
+	for o in options:
+		total += float(o["weight"])
+	var roll := m.rng.randf() * total
+	var pick: Dictionary = options[0]
+	for o in options:
+		roll -= float(o["weight"])
+		if roll <= 0.0:
+			pick = o
+			break
+	var p := roll_prize(m, pick, m.rng)
+	match p["kind"]:
+		"money":
+			m.economy.earn(int(p["amount"]), "cofres")
+		"boost":
+			m.add_boost(float(p["mult"]), float(p["secs"]))
+		"avatar":
+			m.unlock_avatar(p["avatar"])
+	m._count("chests_opened", 1)
+	m.celebrate.emit("chest_open", {"kind": p["kind"]})
+	m.progress_changed.emit()
+	p["ok"] = true
+	p["msg"] = "¡Cofre abierto! " + p["text"]
+	p["chance"] = float(pick["weight"]) / total
+	return p
+
+
+## Premios que puede dar un cofre ahora (sin avatares si ya están todos).
+static func chest_options(m: GameModel) -> Array:
+	var locked := locked_avatars(m)
+	var out := []
+	for e in cfg(m).get("chest", []):
+		if e["kind"] != "avatar" or not locked.is_empty():
+			out.append(e)
+	return out
+
+
+static func locked_avatars(m: GameModel) -> Array:
 	var locked := []
 	for a in m.data.avatars:
 		if not (m.profile["avatars"] as Array).has(a["id"]):
 			locked.append(a["id"])
-	var total := 0.0
-	for e in table:
-		if e["kind"] != "avatar" or not locked.is_empty():
-			total += float(e["weight"])
-	var roll := m.rng.randf() * total
-	var pick: Dictionary = table[0]
-	for e in table:
-		if e["kind"] == "avatar" and locked.is_empty():
-			continue
-		roll -= float(e["weight"])
-		if roll <= 0.0:
-			pick = e
-			break
-	var text := ""
-	match pick["kind"]:
+	return locked
+
+
+## Concreta una entrada de la tabla en un premio sin aplicarlo:
+## {kind, text, amount | mult+secs | avatar}. La ruleta del cofre lo usa con
+## su propio azar para mostrar premios posibles.
+static func roll_prize(m: GameModel, e: Dictionary, rng: RandomNumberGenerator) -> Dictionary:
+	match e["kind"]:
 		"money":
-			var secs := m.rng.randf_range(float(pick["seconds"][0]), float(pick["seconds"][1]))
-			var amount := maxi(int(pick.get("min", 100)), Economy.to_int_floor(m.income_per_sec() * secs))
-			m.economy.earn(amount, "cofres")
-			text = Fmt.money(amount)
+			var secs := rng.randf_range(float(e["seconds"][0]), float(e["seconds"][1]))
+			var amount := maxi(int(e.get("min", 100)), Economy.to_int_floor(m.income_per_sec() * secs))
+			return {"kind": "money", "amount": amount, "text": Fmt.money(amount)}
 		"boost":
-			var secs2 := float(pick["seconds"][m.rng.randi() % (pick["seconds"] as Array).size()])
-			m.add_boost(float(pick["mult"]), secs2)
-			text = "Turbo x%s por %s" % [str(pick["mult"]).trim_suffix(".0"), Fmt.duration(secs2)]
-		"avatar":
-			var av: String = locked[m.rng.randi() % locked.size()]
-			m.unlock_avatar(av)
-			text = "Avatar: %s" % m.data.avatar_by_id[av]["name"]
-	m._count("chests_opened", 1)
-	m.celebrate.emit("chest_open", {"kind": pick["kind"]})
-	m.progress_changed.emit()
-	return {"ok": true, "kind": pick["kind"], "text": text, "msg": "¡Cofre abierto! " + text}
+			var secs2 := float(e["seconds"][rng.randi() % (e["seconds"] as Array).size()])
+			var mult := float(e["mult"])
+			return {"kind": "boost", "mult": mult, "secs": secs2,
+				"text": "Turbo x%s por %s" % [str(mult).trim_suffix(".0"), Fmt.duration(secs2)]}
+		_:
+			var locked := locked_avatars(m)
+			var av: String = locked[rng.randi() % locked.size()]
+			return {"kind": "avatar", "avatar": av, "text": "Avatar: %s" % m.data.avatar_by_id[av]["name"]}
 
 
 ## Hitos de nivel de cada negocio (25, 50, 100): un cofre por cada uno, una vez.

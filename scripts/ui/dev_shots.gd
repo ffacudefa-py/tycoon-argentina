@@ -92,6 +92,13 @@ func _run() -> void:
 	await _shot("04e_combo_cofre", 0.4)
 	ChestModal.open()
 	await _shot("04f_cofre", 0.3)
+	var abrir := _find_button(main.modal_host, "ABRIR")
+	if abrir:
+		await _tap(abrir)
+	await _shot("04g_cofre_girando", 0.9)
+	await get_tree().create_timer(ChestModal.SPIN_TIME).timeout
+	await _shot("04h_cofre_premio", 0.2)
+	print("COFRE_RULETA ", "OK" if int(m.engage["chests"]) == 1 else "FALLÓ")
 	main.modal_host.close_all()
 	m.engage["combo"] = 1.0
 	# Partida avanzada para ver el resto de la interfaz
