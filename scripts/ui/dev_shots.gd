@@ -531,6 +531,9 @@ func _bus_check() -> void:
 	var x := scene._bus.position.x
 	var ok := scene._bus.visible and x > 40.0 and x < 120.0
 	print("COLECTIVO_SIGUE ", "OK" if ok else "FALLÓ (visible=%s x=%s)" % [scene._bus.visible, x])
+	scene._bus.position = Vector2(150.0, BusinessScene.ROAD_Y - scene._bus.texture.get_height() / scene._bus.vframes)
+	scene._bus_line = 1
+	await _shot("13d_colectivo", 0.05)
 	scene._bus.visible = false
 	Settings.set_value("scene_view", prev_view)
 	Settings.set_value("scene_anim", prev_anim)
