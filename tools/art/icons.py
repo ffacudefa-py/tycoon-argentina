@@ -617,6 +617,25 @@ ICONS["mas"] = """
 ................
 """
 
+ICONS["video_mas"] = """
+................
+.oooooooooooo...
+orppppppppppRo..
+orrrrwrrrrrrRo..
+orrrrhhrrrrrRo..
+orrrrhhhrrrrRo..
+orrrrhhhrrrrRo..
+orrrrhhrrrrrRo..
+orrrrwrrrrrrRo..
+oRRRRRRRRoooooo.
+.ooooooooonnnnGo
+.........onnwnGo
+.........onwwwGo
+.........onnwnGo
+.........oGGGGGo
+..........ooooo.
+"""
+
 ICONS["info"] = """
 ................
 .....oooooo.....

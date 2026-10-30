@@ -101,11 +101,12 @@ func _ready() -> void:
 	scene_wrap.add_child(_view_btn)
 	_update_view_btn()
 	# Bonos voluntarios por anuncio (siempre visible; el modal explica el estado).
-	var ads_btn := U.icon_button("regalo", "amarillo", 34)
+	var ads_btn := U.icon_button("video_mas", "amarillo", 34)
 	ads_btn.tooltip_text = "Bonos por anuncio"
 	ads_btn.set_anchors_preset(Control.PRESET_TOP_RIGHT)
 	ads_btn.position = Vector2(-40, 44)
 	U.on_press(ads_btn, func() -> void: AdsModal.open(bid))
+	_attention_glow(ads_btn)
 	scene_wrap.add_child(ads_btn)
 	col.add_child(scene_wrap)
 
@@ -429,3 +430,31 @@ func _update_events() -> void:
 		var idx := i
 		U.on_press(b, func() -> void: EventModal.open(idx))
 		_events_row.add_child(b)
+
+
+## Halo dorado que late detrás del botón para llamar la atención. Va detrás
+## (show_behind_parent) para no pelearse con la animación de tocar el botón;
+## con "Reducir movimiento" queda fijo.
+static func _attention_glow(b: Control) -> void:
+	var halo := Panel.new()
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(1.0, 0.85, 0.35, 0.35)
+	sb.border_color = Color("fff1a8")
+	sb.set_border_width_all(2)
+	sb.set_corner_radius_all(8)
+	halo.add_theme_stylebox_override("panel", sb)
+	halo.show_behind_parent = true
+	halo.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	halo.set_anchors_preset(Control.PRESET_FULL_RECT)
+	for side in [SIDE_LEFT, SIDE_TOP]:
+		halo.set_offset(side, -4)
+	for side in [SIDE_RIGHT, SIDE_BOTTOM]:
+		halo.set_offset(side, 4)
+	b.add_child(halo)
+	if Settings.get_value("reduce_motion"):
+		return
+	halo.modulate.a = 0.15
+	var tw := halo.create_tween().set_loops()
+	tw.tween_property(halo, "modulate:a", 1.0, 0.35).set_trans(Tween.TRANS_SINE)
+	tw.tween_property(halo, "modulate:a", 0.15, 0.6).set_trans(Tween.TRANS_SINE)
+
