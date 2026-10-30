@@ -67,6 +67,9 @@ var _pending_rebuild := false
 
 
 func rebuild() -> void:
+	# Oculta no se rearma: on_shown() la reconstruye al mostrarla.
+	if not is_visible_in_tree():
+		return
 	if _transitioning:
 		_pending_rebuild = true
 		return

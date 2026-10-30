@@ -177,3 +177,5 @@ static func advance(m: GameModel, dt: float, offline: bool) -> void:
 		s["cand_timer"] = float(s["cand_timer"]) - dt
 		if s["cand_timer"] <= 0.0:
 			generate_candidates(m, id)
+			# La UI contrata por índice: tiene que enterarse de la lista nueva.
+			m.business_changed.emit(id)

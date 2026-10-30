@@ -904,10 +904,10 @@
    "province": "entre_rios",
    "region": "nea",
    "cycle": 17.1,
-   "level_cost_base": 3980000,
+   "level_cost_base": 2550000,
    "level_cost_growth": 1.117,
    "unlock": {
-    "cost": 39800000,
+    "cost": 25500000,
     "stage": 1,
     "requires": {
      "business": "arrocera",
@@ -1003,10 +1003,10 @@
    "province": "misiones",
    "region": "nea",
    "cycle": 20.5,
-   "level_cost_base": 16700000,
+   "level_cost_base": 6830000,
    "level_cost_growth": 1.112,
    "unlock": {
-    "cost": 167000000,
+    "cost": 68300000,
     "stage": 1,
     "requires": {
      "business": "molino_arrocero",
@@ -1105,10 +1105,10 @@
    "province": "san_luis",
    "region": "cuyo",
    "cycle": 24.1,
-   "level_cost_base": 69900000,
+   "level_cost_base": 18300000,
    "level_cost_growth": 1.11,
    "unlock": {
-    "cost": 699000000,
+    "cost": 183000000,
     "stage": 1,
     "requires": {
      "business": "yerbatal",
@@ -1205,10 +1205,10 @@
    "province": "san_juan",
    "region": "cuyo",
    "cycle": 27.9,
-   "level_cost_base": 293000000,
+   "level_cost_base": 49100000,
    "level_cost_growth": 1.11,
    "unlock": {
-    "cost": 2930000000,
+    "cost": 491000000,
     "stage": 1,
     "requires": {
      "business": "frigorifico",
@@ -1307,10 +1307,10 @@
    "province": "mendoza",
    "region": "cuyo",
    "cycle": 32.2,
-   "level_cost_base": 1230000000,
+   "level_cost_base": 132000000,
    "level_cost_growth": 1.108,
    "unlock": {
-    "cost": 12300000000,
+    "cost": 1320000000,
     "stage": 1,
     "requires": {
      "business": "pasas",
@@ -1408,10 +1408,10 @@
    "province": "santa_cruz",
    "region": "patagonia",
    "cycle": 37.0,
-   "level_cost_base": 5140000000,
+   "level_cost_base": 353000000,
    "level_cost_growth": 1.103,
    "unlock": {
-    "cost": 51400000000,
+    "cost": 3530000000,
     "stage": 1,
     "requires": {
      "business": "bodega_malbec",
@@ -1508,10 +1508,10 @@
    "province": "chubut",
    "region": "patagonia",
    "cycle": 42.6,
-   "level_cost_base": 21600000000,
+   "level_cost_base": 948000000,
    "level_cost_growth": 1.1,
    "unlock": {
-    "cost": 216000000000,
+    "cost": 9480000000,
     "stage": 1,
     "requires": {
      "business": "estancia_ovina",
@@ -1607,10 +1607,10 @@
    "province": "rio_negro",
    "region": "patagonia",
    "cycle": 49.8,
-   "level_cost_base": 90300000000,
+   "level_cost_base": 2540000000,
    "level_cost_growth": 1.1,
    "unlock": {
-    "cost": 903000000000,
+    "cost": 25400000000,
     "stage": 1,
     "requires": {
      "business": "lanera",
@@ -1706,10 +1706,10 @@
    "province": "neuquen",
    "region": "patagonia",
    "cycle": 57.0,
-   "level_cost_base": 378000000000,
+   "level_cost_base": 6820000000,
    "level_cost_growth": 1.1,
    "unlock": {
-    "cost": 3780000000000,
+    "cost": 68200000000,
     "stage": 1,
     "requires": {
      "business": "chacra_peras",
@@ -1807,10 +1807,10 @@
    "province": "tierra_del_fuego",
    "region": "patagonia",
    "cycle": 64.1,
-   "level_cost_base": 1590000000000,
+   "level_cost_base": 18300000000,
    "level_cost_growth": 1.1,
    "unlock": {
-    "cost": 15900000000000,
+    "cost": 183000000000,
     "stage": 1,
     "requires": {
      "business": "manzanas",
@@ -1906,10 +1906,10 @@
    "province": "la_pampa",
    "region": "pampeana",
    "cycle": 71.7,
-   "level_cost_base": 6640000000000,
+   "level_cost_base": 49000000000,
    "level_cost_growth": 1.1,
    "unlock": {
-    "cost": 66400000000000,
+    "cost": 490000000000,
     "stage": 1,
     "requires": {
      "business": "electronica",
@@ -2006,10 +2006,10 @@
    "province": "cordoba",
    "region": "centro",
    "cycle": 81.3,
-   "level_cost_base": 27800000000000,
+   "level_cost_base": 131000000000,
    "level_cost_growth": 1.1,
    "unlock": {
-    "cost": 278000000000000,
+    "cost": 1310000000000,
     "stage": 1,
     "requires": {
      "business": "estancia_ganadera",
@@ -2106,10 +2106,10 @@
    "province": "santa_fe",
    "region": "centro",
    "cycle": 91.3,
-   "level_cost_base": 116000000000000,
+   "level_cost_base": 351000000000,
    "level_cost_growth": 1.1,
    "unlock": {
-    "cost": 1170000000000000,
+    "cost": 3530000000000,
     "stage": 1,
     "requires": {
      "business": "salames",
@@ -2205,10 +2205,10 @@
    "province": "buenos_aires",
    "region": "centro",
    "cycle": 105.7,
-   "level_cost_base": 488000000000000,
+   "level_cost_base": 944000000000,
    "level_cost_growth": 1.1,
    "unlock": {
-    "cost": 4890000000000000,
+    "cost": 9450000000000,
     "stage": 1,
     "requires": {
      "business": "usina_lactea",
@@ -2305,10 +2305,10 @@
    "province": "caba",
    "region": "centro",
    "cycle": 120.0,
-   "level_cost_base": 2050000000000000,
+   "level_cost_base": 2540000000000,
    "level_cost_growth": 1.1,
    "unlock": {
-    "cost": 20500000000000000,
+    "cost": 25400000000000,
     "stage": 1,
     "requires": {
      "business": "molino_harinero",

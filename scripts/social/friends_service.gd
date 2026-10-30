@@ -358,6 +358,15 @@ func delete_my_data() -> Dictionary:
 			if sub == "friends":
 				writes.append({"delete": _name("players/%s/friends/%s" % [id, me_uid])})
 				writes.append({"delete": _name("players/%s/gifts/%s" % [id, me_uid])})
+	# Solicitudes que mandé y nadie aceptó todavía (en el buzón de otros).
+	var sent := await _call(HTTPClient.METHOD_POST, ":runQuery", {"structuredQuery": {
+		"from": [{"collectionId": "requests", "allDescendants": true}],
+		"where": {"fieldFilter": {"field": {"fieldPath": "from"}, "op": "EQUAL", "value": {"stringValue": me_uid}}}}})
+	if sent["code"] != 200:
+		return _fail(sent)
+	for row in (sent["data"] if sent["data"] is Array else []):
+		if row is Dictionary and row.get("document") is Dictionary:
+			writes.append({"delete": str(row["document"]["name"])})
 	var code := my_code
 	if code == "":
 		var got := await _call(HTTPClient.METHOD_GET, "players/" + me_uid)

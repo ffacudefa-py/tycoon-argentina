@@ -26,6 +26,10 @@ service cloud.firestore {
     function count(v) {
       return v is int && v >= 0;
     }
+    // Ids de avatar del juego (data/avatars): nada de rutas ni caracteres raros.
+    function avatarId(v) {
+      return v is string && v.matches('^[a-z0-9_]{1,24}$');
+    }
 
     // Cada cuenta lee y escribe sólo su partida. La partida va como texto
     // (sobre con checksum) y entra holgada en 900 KB; el límite de Firestore es 1 MiB.
@@ -35,9 +39,19 @@ service cloud.firestore {
         && onlyKeys(["save", "saved_at", "stage", "lifetime", "money", "company",
                      "prestige", "play_time", "app_version", "device"])
         && shortText(data().save, 900000)
+        && data().saved_at is number
+        && data().stage is int && data().stage >= 1 && data().stage <= 20
+        && count(data().lifetime) && count(data().money)
+        && count(data().prestige) && data().prestige <= 1000
+        && data().play_time is number && data().play_time >= 0
         && (!("company" in data()) || shortText(data().company, 40))
         && (!("app_version" in data()) || shortText(data().app_version, 20))
         && (!("device" in data()) || shortText(data().device, 40));
+    }
+
+    // Solicitudes que mandé (consulta de grupo, al borrar la cuenta).
+    match /{path=**}/requests/{from} {
+      allow list: if verified() && resource.data.from == request.auth.uid;
     }
 
     // Código de amigo -> uid. Se crea una vez y no se cambia; no se listan.
@@ -56,19 +70,23 @@ service cloud.firestore {
       allow create, update: if isMe(uid)
         && onlyKeys(["company", "avatar", "stage", "lifetime", "prestige", "code", "updated"])
         && shortText(data().company, 40)
-        && shortText(data().avatar, 24)
+        && avatarId(data().avatar)
         && data().stage is int && data().stage >= 1 && data().stage <= 20
         && count(data().lifetime)
         && count(data().prestige) && data().prestige <= 1000
-        && data().code is string && data().code.matches('^[A-Z2-9]{6}$');
+        && data().code is string && data().code.matches('^[A-Z2-9]{6}$')
+        // El código mostrado tiene que ser el propio (codes/{code}.uid).
+        && get(/databases/$(database)/documents/codes/$(data().code)).data.uid == uid;
 
       // Solicitudes recibidas: las manda {from}, las ve y las borra el dueño.
+      // Quien la mandó también puede borrarla (al borrar su cuenta).
       match /requests/{from} {
-        allow read, delete: if isMe(uid);
+        allow read: if isMe(uid);
+        allow delete: if isMe(uid) || (verified() && request.auth.uid == from);
         allow create: if verified() && request.auth.uid == from && from != uid
           && onlyKeys(["from", "company", "avatar", "at"])
           && data().from == from
-          && shortText(data().company, 40) && shortText(data().avatar, 24)
+          && shortText(data().company, 40) && avatarId(data().avatar)
           && !exists(/databases/$(database)/documents/players/$(uid)/friends/$(from));
       }
 

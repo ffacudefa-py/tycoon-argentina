@@ -3,14 +3,15 @@ extends RefCounted
 ## "Novedades": se muestra una vez por versión al entrar al juego (Ajustes guarda
 ## la última vista en news_seen). No aparece en las capturas automáticas.
 
-const VERSION := "10.0"
-const TITLE := "Novedades 10.0 · Sigma Deza"
+const VERSION := "11.0"
+const TITLE := "Novedades 11.0 · Sigma Deza"
 const ITEMS := [
-	["mapa", "¡A conquistar la Argentina!", "El objetivo ahora es dominar las 24 provincias, región por región: NOA, NEA, Cuyo, Patagonia, Pampeana y Centro."],
-	["estrella", "Productos de cada provincia", "Cada provincia tiene su negocio: algodón en Santiago del Estero, papas andinas en Jujuy, Malbec en Mendoza, yerba en Misiones, medialunas en CABA…"],
-	["grafico", "Cuota de mercado", "Ganale el mercado al rival local hasta el 100 % y la provincia es tuya: +10 % en la región. Con la región completa, su producto estrella te da +25 % en todo."],
-	["bandera", "Mapa nuevo", "Primero ves el país; tocá una región para entrar y ver sus provincias."],
-	["reloj", "Empezás de cero", "Con el juego nuevo, todos arrancan desde el NOA. Tu nombre, avatar y amigos siguen intactos."],
+	["tienda", "Juego rediseñado", "Paleta cálida nueva, edificios que cambian en cada nivel, interiores, personajes y paisajes propios de cada región."],
+	["regalo", "Combo, cofres y eventos", "Vendé a mano para llegar al combo x2, ganá cofres jugando y aprovechá la Vendimia, la Zafra o la Fiesta de la Yerba."],
+	["alerta", "Modo bien argentino", "Elegí al empezar: +25 % de ingresos a cambio de inflación, juicios laborales, robos y coimas."],
+	["flecha_arriba", "Provincias lejanas más accesibles", "Desde Cuyo en adelante, abrir y mejorar los negocios cuesta menos y los mercados son más chicos: la conquista ya no se estanca al final."],
+	["mapa", "Conquistá la Argentina", "Ganale el mercado al rival de cada provincia hasta el 100 %, región por región: NOA, NEA, Cuyo, Patagonia, Pampeana y Centro."],
+	["reloj", "Si venís de antes de la 10.0", "Con el juego nuevo arrancás de cero desde el NOA. Tu nombre, avatar y amigos siguen intactos."],
 ]
 
 

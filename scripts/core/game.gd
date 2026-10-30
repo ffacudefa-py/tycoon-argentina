@@ -128,8 +128,10 @@ func replace_with(payload: Dictionary) -> void:
 
 ## Agrupa varios cambios seguidos en un solo guardado.
 func save_soon() -> void:
+	# Agrupa ráfagas (compras, rivales, logros) en una escritura; al pausar,
+	# cerrar o perder el foco se guarda igual al instante.
 	if _save_soon < 0.0:
-		_save_soon = 0.5
+		_save_soon = 3.0
 
 
 func reset_everything() -> void:

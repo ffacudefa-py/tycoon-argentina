@@ -1,7 +1,18 @@
-# Tycoon Argentina
+<p align="center">
+  <img src="assets/pixel_art/logo/logo_coronados.png" alt="Coronados de Gloria" width="363">
+</p>
+<p align="center">
+  <img src="assets/pixel_art/logo/icono_192.png" alt="Ícono de la app" width="96">
+</p>
+
+# Coronados de Gloria (antes Tycoon Argentina)
+
+**Descargar:** el APK de Android está en
+[Releases](https://github.com/ffacudefa-py/tycoon-argentina/releases/latest)
+(versión de prueba, firmada con clave de depuración).
 
 Simulador de negocios pixel art para Android (Godot 4.7, GDScript, vertical).
-**10.0 "Sigma Deza":** el objetivo es conquistar la Argentina región por región
+**11.0 "Sigma Deza":** el objetivo es conquistar la Argentina región por región
 y provincia por provincia. Empezás con un campito de algodón en Santiago del
 Estero (NOA) y cada provincia tiene su negocio según su producto icónico:
 papas andinas en Jujuy, Malbec en Mendoza, yerba en Misiones, medialunas en
@@ -24,16 +35,17 @@ Godot 4.7.2 está instalado sin root en `~/.local/opt/godot` (`~/.local/bin/godo
 ## Pruebas
 
 ```bash
-tools/run_tests.sh                # 91 pruebas + humo de UI headless + toques reales
+tools/run_tests.sh                # 96 pruebas + humo de UI headless + toques reales
 tools/run_tests.sh --only=balance # sólo la simulación de balance
 BALANCE_HOURS=4 tools/run_tests.sh --only=balance   # corrida más larga
+FULL_GAME=1 tools/run_tests.sh --only=full_game     # partida completa (24 provincias, ~1 h)
 tools/screenshots.sh              # capturas reales de todas las pantallas (abre ventana)
 ```
 
 ## Exportar a Android
 
 Export con Gradle (por el SDK de anuncios). Comando completo, plantilla y firma en
-`docs/ANDROID.md`. Resultado: `build/tycoon-argentina-<versión>.apk`.
+`docs/ANDROID.md`. Resultado: `build/coronados-de-gloria-<versión>.apk`.
 
 ## Regenerar arte y sonido
 
@@ -41,6 +53,7 @@ Export con Gradle (por el SDK de anuncios). Comando completo, plantilla y firma 
 python3 tools/v10/build_data.py # datos de provincias/negocios/misiones (desde data/v10/provinces.json)
 python3 tools/art/pxl/build.py  # interiores, calles, inicio y efectos (PXL)
 python3 tools/art/generate.py   # personajes, íconos, logo, edificios, mapas y paisajes
+                                # (el ícono de la app sale de tools/art/fuentes/iconocoronados.png)
 python3 tools/sfx.py            # efectos de sonido sintetizados
 ```
 

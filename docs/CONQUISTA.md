@@ -38,6 +38,19 @@ La economía de cada provincia interpola en escala logarítmica la curva de los
 Con el bot de balance (juego activo y razonable): primera provincia ~11 min,
 NOA completo ~2 h. `tests/progression/test_balance.gd` vigila esas ventanas.
 
+**Corrección 11.0 (simulación de 20 h).** Con el balance de la 10.x el bot quedaba
+trabado: Misiones tardaba 6 h y San Luis no caía en 7,5 h, con todos los negocios
+anteriores al nivel 100 y la plata sin nada útil en qué gastarse. Causas:
+- El mercado crecía ×1,6 por provincia más rápido que el propio negocio: desde San
+  Juan superaba la ganancia a nivel 100 con todas las mejoras (en CABA, ×150), así
+  que el juego **no se podía terminar**. Ahora deja de crecer desde la provincia 11
+  (`MARKET_GROWTH_CAP_AT`): hace falta entre el 33 % y el 60 % del máximo.
+- Los costos de nivel y de apertura crecían ~×4 por provincia contra ~×2 de la
+  ganancia: pagar los 100 niveles pasaba de 5 h a meses, y los últimos costos tocaban
+  el tope de los enteros (9e18). Desde la provincia 9 se multiplican por
+  `COST_DAMP` = 0,64 por provincia: ahora se pagan en 5-22 h al máximo.
+`test_toda_la_argentina_es_conquistable` vigila las dos cosas en las 24 provincias.
+
 ## Partidas viejas
 
 La migración v4 (`Migrations._v3_to_v4`) empieza de cero las partidas 0.7 y

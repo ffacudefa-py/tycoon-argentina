@@ -202,7 +202,6 @@ func _ready() -> void:
 			_update())
 	m.businesses_changed.connect(_update)
 	m.events_changed.connect(_update_events)
-	m.money_changed.connect(func(_a: int, _b: int) -> void: _timer = 1.0)
 	_select(bid)
 
 

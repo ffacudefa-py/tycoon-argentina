@@ -7,3 +7,4 @@ export_credentials.cfg
 addons/admob/ios/
 addons/admob/downloads/
 *-debug.log
+__pycache__/

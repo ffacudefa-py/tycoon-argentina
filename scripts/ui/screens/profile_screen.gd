@@ -29,7 +29,8 @@ func on_shown() -> void:
 
 
 func rebuild() -> void:
-	if not is_inside_tree():
+	# Oculta no se rearma: on_shown() la reconstruye al mostrarla.
+	if not is_visible_in_tree():
 		return
 	U.clear(_col)
 	_col.add_child(_header())
@@ -49,7 +50,7 @@ func rebuild() -> void:
 	U.on_press(se, func() -> void: SettingsModal.open())
 	row.add_child(se)
 	_col.add_child(row)
-	_col.add_child(U.para("Tycoon Argentina v%s · %s Fuente VT323 (licencia OFL). Arte, sonidos y nombres originales y ficticios." % [ProjectSettings.get_setting("application/config/version"), Cloud.status_text() if Auth.signed_in() else "Progreso guardado en este teléfono (con una cuenta, también en la nube)."], U.SIZE_SMALL, Color("8c8aa8")))
+	_col.add_child(U.para("Coronados de Gloria v%s · %s Fuente VT323 (licencia OFL). Arte, sonidos y nombres originales y ficticios." % [ProjectSettings.get_setting("application/config/version"), Cloud.status_text() if Auth.signed_in() else "Progreso guardado en este teléfono (con una cuenta, también en la nube)."], U.SIZE_SMALL, Color("8c8aa8")))
 	_refresh()
 
 

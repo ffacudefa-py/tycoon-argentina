@@ -463,8 +463,7 @@ func net_worth() -> float:
 		var def: Dictionary = data.business_by_id[id]
 		for p in def["products"]:
 			total += float(s["stock"].get(p["id"], 0.0)) * float(p["cost"])
-	for z in zones.values():
-		total += 0.5 * float(z["paid"])
+	# zones[z]["paid"] es la misma compra que ya está en "invested".
 	return total
 
 
@@ -826,7 +825,9 @@ func preview_profit_gain(id: String, mutator: Callable) -> float:
 	mutator.call(biz[id])
 	invalidate()
 	var after: float = derive(id)["profit_sec"]
-	biz[id] = snap
+	# Se restaura en el mismo Dictionary: la UI puede tener referencias a biz[id].
+	biz[id].clear()
+	biz[id].merge(snap)
 	invalidate()
 	return after - before
 

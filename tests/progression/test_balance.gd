@@ -37,3 +37,25 @@ func test_early_game_pacing() -> void:
 		var per_level: float = float(def["profit_per_unit"]) / float(def["cycle"])
 		check(per_level > prev, "%s rinde más por nivel que el anterior" % def["id"])
 		prev = per_level
+
+
+## 11.0: todas las provincias se pueden conquistar y la economía no se dispara.
+## Con el negocio a nivel 100 y todas las mejoras (sin empleados ni bonos) tiene
+## que alcanzar para ganar el mercado con el rival en su poder inicial, y el
+## costo de los niveles tiene que pagarse en un tiempo razonable.
+func test_toda_la_argentina_es_conquistable() -> void:
+	var m := make_model(1, false)
+	for z in data().zones:
+		var bid: String = z["business"]
+		m.biz[bid]["owned"] = true
+		m.biz[bid]["level"] = 100
+		for u in data().upgrades:
+			m.biz[bid]["upgrades"][u["id"]] = int(u["max_level"])
+		m.invalidate()
+		var top := float(m.derive(bid)["profit_sec"])
+		var need := ConquestSystem.market_needed(m, z["id"])
+		check(need < top * 0.8, "%s se puede conquistar (hace falta %d %% del máximo)" % [z["name"], int(need / top * 100.0)])
+		m.biz[bid]["level"] = 1
+		var cost := float(m.level_cost(bid, 99))
+		check(cost < 1e18, "%s: los niveles no tocan el tope de los enteros" % z["name"])
+		check(cost / top < 30.0 * 3600.0, "%s: los 100 niveles se pagan en menos de 30 h al máximo (%d h)" % [z["name"], int(cost / top / 3600.0)])

@@ -4,7 +4,7 @@
   juego). Tiene **Authentication → Email/contraseña** y **Firestore** en
   `southamerica-east1`. Hasta la 0.5 se usó `tycoon-argentina-juego` (otra cuenta).
 - Reglas versionadas en `firestore.rules`; se publican con
-  `firebase deploy --only firestore:rules` (`firebase.json` y `.firebaserc` en la raíz).
+  `firebase deploy --only firestore:rules,firestore:indexes` (`firebase.json`, `firestore.indexes.json` y `.firebaserc` en la raíz; el índice de grupo de `requests.from` lo usa el borrado de cuenta).
 - `data/firebase.json` tiene la API key web. No es un secreto: identifica al
   proyecto; lo que protege es la configuración de Authentication (y las reglas
   si en el futuro se usa Firestore/Storage).

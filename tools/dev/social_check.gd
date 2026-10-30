@@ -87,9 +87,15 @@ func _sign_in(email: String) -> void:
 		await process_frame
 
 
+## Campos de saves/<uid> como los arma el juego (las reglas exigen el resumen).
+func _save_fields(text: String, money := 0) -> Dictionary:
+	return CloudSync.to_fields(text, {"saved_at": 1.0, "stage": 1, "lifetime": 0, "money": money,
+		"company": "Test", "prestige": 0, "play_time": 0.0}, "test")
+
+
 func _save_doc(uid: String) -> int:
 	var token: String = await _wait(func(cb: Callable) -> void: auth.get_token(cb))
-	var body := JSON.stringify({"fields": {"save": {"stringValue": "{}"}}})
+	var body := JSON.stringify(_save_fields("{}"))
 	var r := await _http(HTTPClient.METHOD_PATCH, CloudSync.docs_root(project) + "/saves/" + uid, body, token)
 	return r[0]
 
@@ -128,13 +134,17 @@ func _run() -> void:
 		"partida con campos de más: rechazada (403)")
 	_check(await _raw_doc("saves/" + a["uid"], {"save": {"stringValue": "x".repeat(950000)}}) == 403,
 		"partida de más de 900 KB: rechazada (403)")
+	_check(await _raw_doc("saves/" + a["uid"], {"save": {"stringValue": "{}"}}) == 403,
+		"partida sin resumen (etapa, ganado…): rechazada (403)")
+	_check(await _raw_doc("saves/" + a["uid"], _save_fields("{}", -5)["fields"]) == 403,
+		"partida con plata negativa en el resumen: rechazada (403)")
 	# Dos teléfonos con la misma cuenta: el segundo sube con la versión vieja.
 	var root_saves: String = CloudSync.docs_root(project) + "/saves/" + a["uid"]
 	var commit_url: String = CloudSync.docs_root(project) + ":commit"
 	var tok: String = await _wait(func(cb: Callable) -> void: auth.get_token(cb))
 	var first := await _http(HTTPClient.METHOD_GET, root_saves, "", tok)
 	var seen := str(first[1].get("updateTime", ""))
-	var f1 := {"fields": {"save": {"stringValue": "{\"telefono\":1}"}}}
+	var f1 := _save_fields("{\"telefono\":1}")
 	var up1 := await _http(HTTPClient.METHOD_POST, commit_url, JSON.stringify(CloudSync.commit_body(project, a["uid"], f1, seen)), tok)
 	_check(up1[0] == 200 and CloudSync.committed_time(up1[1]) != "", "teléfono 1 sube con la versión que vio")
 	var up2 := await _http(HTTPClient.METHOD_POST, commit_url, JSON.stringify(CloudSync.commit_body(project, a["uid"], f1, seen)), tok)
@@ -164,6 +174,10 @@ func _run() -> void:
 		await process_frame
 	var code_b: String = friends.my_code
 	_check(code_b != "" and code_b != code_a, "Beto tiene otro código")
+	var stolen := FriendLogic.profile_fields({"company": "Beto", "avatar": "perro", "stage": 1, "lifetime": 0, "prestige": 0, "code": code_a}, 1.0)
+	_check(await _raw_doc("players/" + b["uid"], stolen["fields"]) == 403, "perfil con el código de otro: rechazado (403)")
+	var bad_av := FriendLogic.profile_fields({"company": "Beto", "avatar": "../logo", "stage": 1, "lifetime": 0, "prestige": 0, "code": code_b}, 1.0)
+	_check(await _raw_doc("players/" + b["uid"], bad_av["fields"]) == 403, "perfil con avatar que es una ruta: rechazado (403)")
 	var r: Dictionary = await friends.add_by_code(code_b)
 	_check(not r["ok"], "no se puede agregar a uno mismo")
 	r = await friends.add_by_code("ZZZZZZ")
@@ -220,6 +234,8 @@ func _run() -> void:
 	await _sign_in(c["email"])
 	r = await friends.send_gift(a["uid"])
 	_check(r["ok"], "Carla le convida un mate a Ana")
+	r = await friends.add_by_code(code_b)
+	_check(r["ok"], "Carla le manda solicitud a Beto (queda sin aceptar)")
 	r = await auth.delete_account("contraseña-equivocada")
 	_check(not r["ok"] and auth.signed_in(), "con la contraseña mal no se borra nada: " + r["msg"])
 	r = await auth.delete_account("clave-segura-123")
@@ -227,6 +243,9 @@ func _run() -> void:
 	await _sign_in(a["email"])
 	_check(not friends.is_friend(c["uid"]), "Carla ya no está en la lista de Ana")
 	_check(friends.gifts.filter(func(g: Dictionary) -> bool: return g["uid"] == c["uid"]).is_empty(), "el mate de Carla se borró")
+	await _sign_in(b["email"])
+	_check(friends.requests.filter(func(q: Dictionary) -> bool: return q["uid"] == c["uid"]).is_empty(), "la solicitud que Carla le mandó a Beto se borró")
+	await _sign_in(a["email"])
 	var tok_a: String = await _wait(func(cb: Callable) -> void: auth.get_token(cb))
 	var root_docs: String = CloudSync.docs_root(project)
 	_check((await _http(HTTPClient.METHOD_GET, root_docs + "/players/" + c["uid"], "", tok_a))[0] == 404, "el perfil público de Carla no existe más")

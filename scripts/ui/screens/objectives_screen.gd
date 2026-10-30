@@ -44,7 +44,8 @@ func on_shown() -> void:
 
 
 func rebuild() -> void:
-	if not is_inside_tree():
+	# Oculta no se rearma: on_shown() la reconstruye al mostrarla.
+	if not is_visible_in_tree():
 		return
 	if _hold:
 		_pending = true

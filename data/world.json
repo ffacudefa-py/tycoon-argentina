@@ -340,7 +340,7 @@
     "fabrica": 0.1
    },
    "competition": 0.045,
-   "market_size": 193000000,
+   "market_size": 121000000,
    "rival": "rival_san_luis",
    "conquest_minutes": 128.1,
    "street": "cuyo"
@@ -364,7 +364,7 @@
     "agro": 0.1
    },
    "competition": 0.045,
-   "market_size": 671000000,
+   "market_size": 262000000,
    "rival": "rival_san_juan",
    "conquest_minutes": 160.1,
    "street": "cuyo"
@@ -388,7 +388,7 @@
     "bebida": 0.1
    },
    "competition": 0.045,
-   "market_size": 2390000000,
+   "market_size": 583000000,
    "rival": "rival_mendoza",
    "conquest_minutes": 200.1,
    "street": "cuyo"
@@ -412,7 +412,7 @@
     "ganaderia": 0.1
    },
    "competition": 0.05,
-   "market_size": 8490000000,
+   "market_size": 1300000000,
    "rival": "rival_santa_cruz",
    "conquest_minutes": 250.1,
    "street": "patagonia"
@@ -436,7 +436,7 @@
     "fabrica": 0.1
    },
    "competition": 0.05,
-   "market_size": 30400000000,
+   "market_size": 2900000000,
    "rival": "rival_chubut",
    "conquest_minutes": 312.6,
    "street": "patagonia"
@@ -460,7 +460,7 @@
     "agro": 0.1
    },
    "competition": 0.05,
-   "market_size": 102000000000,
+   "market_size": 6100000000,
    "rival": "rival_rio_negro",
    "conquest_minutes": 390.8,
    "street": "patagonia"
@@ -484,7 +484,7 @@
     "agro": 0.1
    },
    "competition": 0.05,
-   "market_size": 316000000000,
+   "market_size": 11800000000,
    "rival": "rival_neuquen",
    "conquest_minutes": 488.5,
    "street": "patagonia"
@@ -508,7 +508,7 @@
     "fabrica": 0.1
    },
    "competition": 0.05,
-   "market_size": 1110000000000,
+   "market_size": 25900000000,
    "rival": "rival_tierra_del_fuego",
    "conquest_minutes": 610.6,
    "street": "patagonia"
@@ -532,7 +532,7 @@
     "ganaderia": 0.1
    },
    "competition": 0.055,
-   "market_size": 4060000000000,
+   "market_size": 59100000000,
    "rival": "rival_la_pampa",
    "conquest_minutes": 763.3,
    "street": "pampeana"
@@ -556,7 +556,7 @@
     "fabrica": 0.1
    },
    "competition": 0.06,
-   "market_size": 13600000000000,
+   "market_size": 124000000000,
    "rival": "rival_cordoba",
    "conquest_minutes": 954.1,
    "street": "centro_sierras"
@@ -580,7 +580,7 @@
     "fabrica": 0.1
    },
    "competition": 0.06,
-   "market_size": 46700000000000,
+   "market_size": 265000000000,
    "rival": "rival_santa_fe",
    "conquest_minutes": 1192.6,
    "street": "centro_sierras"
@@ -604,7 +604,7 @@
     "fabrica": 0.1
    },
    "competition": 0.06,
-   "market_size": 177000000000000,
+   "market_size": 627000000000,
    "rival": "rival_buenos_aires",
    "conquest_minutes": 1490.8,
    "street": "centro_sierras"
@@ -628,7 +628,7 @@
     "comida": 0.1
    },
    "competition": 0.06,
-   "market_size": 559000000000000,
+   "market_size": 1240000000000,
    "rival": "rival_caba",
    "conquest_minutes": 1863.5,
    "street": "centro"

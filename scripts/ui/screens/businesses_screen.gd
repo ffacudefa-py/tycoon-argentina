@@ -26,6 +26,9 @@ func on_shown() -> void:
 
 
 func rebuild() -> void:
+	# Oculta no se rearma: on_shown() la reconstruye al mostrarla.
+	if not is_visible_in_tree():
+		return
 	U.clear(_list)
 	_rows.clear()
 	var owned := m.owned_ids()

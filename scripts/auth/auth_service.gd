@@ -331,7 +331,10 @@ func _request(url: String, body: String, headers: Array, cb: Callable, backgroun
 			cb.call(false, {}, "NETWORK")
 		elif status >= 200 and status < 300:
 			var d = JSON.parse_string(text)
-			cb.call(true, d if d is Dictionary else {}, "")
+			if d is Dictionary:
+				cb.call(true, d, "")
+			else:
+				cb.call(false, {}, "NETWORK")
 		else:
 			cb.call(false, {}, AuthErrors.code_from_body(text)))
 	var err := http.request(url, PackedStringArray(headers), HTTPClient.METHOD_POST, body)

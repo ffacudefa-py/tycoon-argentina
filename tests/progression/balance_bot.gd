@@ -10,6 +10,7 @@ var clock_holder: Dictionary
 var timeline := {}        ## hito -> segundos
 var t := 0.0
 var _decide_timer := 0.0
+var decide_every := 0.5   ## cada cuánto "mira la pantalla" y compra (s de juego)
 
 
 func _init(model: GameModel, holder: Dictionary) -> void:
@@ -33,7 +34,7 @@ func play(seconds: float, tick := 0.1) -> void:
 				m.tap_sell(id)
 		m.simulate(tick)
 		_decide_timer += tick
-		if _decide_timer >= 0.5:
+		if _decide_timer >= decide_every:
 			_decide_timer = 0.0
 			_decide()
 

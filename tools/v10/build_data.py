@@ -155,6 +155,15 @@ BEHAVIORS = ["Conservador", "Agresivo", "Expansivo"]
 # las provincias más avanzadas cuestan más (ajustado con el bot de balance).
 MARKET_BASE = 2.0
 MARKET_GROWTH = 1.6
+# 11.0: el mercado deja de crecer a partir de la provincia 11. Antes seguía ×1,6
+# y desde San Juan superaba la ganancia del negocio a nivel 100 con todas las
+# mejoras: la conquista era imposible y el juego no se podía terminar.
+MARKET_GROWTH_CAP_AT = 10
+# 11.0: desde la provincia 9 los costos de nivel y de apertura crecen menos
+# (×COST_DAMP por provincia); si no, el tiempo para pagar los niveles pasaba de
+# horas a meses y los últimos costos tocaban el tope de los enteros (9e18).
+COST_DAMP_FROM = 8
+COST_DAMP = 0.64
 SHARE_SPEED = 0.0015
 # Tiempo mínimo para ir de 0 a 100 % de cuota: 11 min en la primera provincia
 # y x1,25 por provincia (NOA ~2 h, Cuyo ~16 h, toda la Argentina ~6 días de juego).
@@ -247,6 +256,9 @@ def main():
     for i, p in enumerate(provs):
         bid, tags, ptags, picons, color, sign, bdesc, pdesc = SPEC[p["id"]]
         e = interp(i, n)
+        damp = COST_DAMP ** max(0, i - COST_DAMP_FROM)
+        e["level_cost_base"] *= damp
+        e["unlock"] *= damp
         products = []
         names = [p["star_product"]] + p["secondary_products"]
         for j, (name, (price, cost, dem)) in enumerate(zip(names, e["products"])):
@@ -275,7 +287,7 @@ def main():
         # sin mejoras ni empleados (con el hito x2 de velocidad del nivel 25).
         share_tot = sum(pp["demand"] for pp in products)
         ppu = sum(pp["demand"] / share_tot * (pp["price"] - pp["cost"]) for pp in products)
-        market = 25 * ppu * 2.0 / cycle * rate * MARKET_BASE * MARKET_GROWTH ** i
+        market = 25 * ppu * 2.0 / cycle * rate * MARKET_BASE * MARKET_GROWTH ** min(i, MARKET_GROWTH_CAP_AT)
         rid = "rival_" + p["id"]
         zones.append({
             "id": p["id"], "name": p["name"], "region": p["region"], "order": p["order"],

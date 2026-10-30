@@ -235,9 +235,11 @@ func resolve(use_cloud: bool) -> void:
 func _apply(doc: Dictionary, chosen: bool) -> void:
 	var payload := Game.saver.payload_from_text(CloudSync.save_text(doc), Game.data)
 	if payload.is_empty():
-		last_error = "La partida de la nube está dañada; se conserva la del teléfono."
+		# No se sube encima: puede ser de una versión más nueva de la app.
+		# Sin _cloud_seen no hay subidas automáticas; se vuelve a comparar.
+		last_error = "No se pudo leer la partida de la nube (¿versión más nueva?). Se conserva la del teléfono sin subirla."
+		_cloud_seen = false
 		_set_status("error")
-		upload()
 		return
 	Game.replace_with(payload)
 	_synced_saved_at = CloudSync.summary_from_doc(doc)["saved_at"]
@@ -317,7 +319,9 @@ func _request(method: int, body: String, cb: Callable, url := "") -> void:
 			http.queue_free()
 			_inflight = false
 			var d = JSON.parse_string(raw.get_string_from_utf8()) if raw.size() > 0 else {}
-			if result != HTTPRequest.RESULT_SUCCESS:
+			# Un 2xx que no es JSON (portal cautivo, proxy) es un fallo de red,
+			# no "no hay partida en la nube".
+			if result != HTTPRequest.RESULT_SUCCESS or (code >= 200 and code < 300 and not d is Dictionary):
 				cb.call(false, 0, {})
 			else:
 				cb.call(code >= 200 and code < 300, code, d if d is Dictionary else {}))

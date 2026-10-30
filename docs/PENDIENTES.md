@@ -6,8 +6,9 @@
 - Revisar en un teléfono real la letra VT323 y la animación del saldo (0.6).
 
 ## 10.0 "Sigma Deza" (conquista de la Argentina)
-- Balance largo: el bot cubre ~4 h (NOA y parte del NEA); falta revisar con
-  corridas de varios días de juego (Cuyo en adelante) y el ritmo offline.
+- Balance largo: corregido en la 11.0 con una corrida de 20 h (ver CONQUISTA.md).
+  Falta revisar con corridas de varios días (Patagonia en adelante), el ritmo
+  offline y el prestigio (el bot no lo usa).
 - Probar en teléfono real los toques sobre el mapa (provincias chicas: CABA,
   Tucumán) y el aviso de novedades.
 - Las firestore.rules y el ranking de amigos siguen usando `lifetime`: con el
