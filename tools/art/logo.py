@@ -336,26 +336,70 @@ def make_icon():
     return L
 
 
+# Ícono de la app (Coronados de Gloria): sale de una lámina hecha a mano.
+# La lámina trae el ícono redondeado a la izquierda (512x512 sobre fondo
+# oscuro) y vistas previas chicas a la derecha.
+ICON_SRC = os.path.join(os.path.dirname(os.path.abspath(__file__)), "fuentes", "iconocoronados.png")
+
+
+def _icon_square():
+    """Ícono a sangre completa: recorta el cuadrado y rellena las esquinas
+    oscuras con el color de cada fila (las franjas son horizontales)."""
+    src = Image.open(ICON_SRC).convert("RGBA").crop((0, 0, 512, 512))
+    px = src.load()
+    dark = lambda c: max(c[:3]) < 60
+    rim = 4   # el borde redondeado tiene un degradado y un brillo de ~3 px
+    for y in range(512):
+        row = [x for x in range(512) if not dark(px[x, y])]
+        if not row:
+            continue
+        left, right = min(row[0] + rim, 255), max(row[-1] - rim, 256)
+        for x in range(left):
+            px[x, y] = px[left, y]
+        for x in range(right + 1, 512):
+            px[x, y] = px[right, y]
+    return src
+
+
+def _pad_edges(im, size):
+    """Centra im en un lienzo size x size estirando sus bordes hacia afuera."""
+    out = Image.new("RGBA", (size, size))
+    w, h = im.size
+    ox, oy = (size - w) // 2, (size - h) // 2
+    out.paste(im, (ox, oy))
+    out.paste(im.crop((0, 0, w, 1)).resize((w, oy)), (ox, 0))
+    out.paste(im.crop((0, h - 1, w, h)).resize((w, size - oy - h)), (ox, oy + h))
+    col = out.crop((ox, 0, ox + 1, size))
+    out.paste(col.resize((ox, size)), (0, 0))
+    col = out.crop((ox + w - 1, 0, ox + w, size))
+    out.paste(col.resize((size - ox - w, size)), (ox + w, 0))
+    return out
+
+
+def make_app_icons():
+    sq = _icon_square()
+    sq.save(os.path.join(OUT, "icono_512.png"))
+    sq.resize((192, 192), Image.LANCZOS).save(os.path.join(OUT, "icono_192.png"))
+    sq.resize((64, 64), Image.LANCZOS).save(os.path.join(OUT, "icono_64.png"))
+    # Adaptativo Android 432x432: el sistema muestra el 66 % central, así que
+    # el dibujo va a 330 px (entra el sol entero) y el fondo sigue las franjas.
+    _pad_edges(sq.resize((330, 330), Image.LANCZOS), 432).save(os.path.join(OUT, "icono_adaptativo_fondo.png"))
+    Image.new("RGBA", (432, 432), (0, 0, 0, 0)).save(os.path.join(OUT, "icono_adaptativo_frente.png"))
+
+
 def main():
     os.makedirs(OUT, exist_ok=True)
     logo = make_logo()
     icon = make_icon()
     logo.im.save(os.path.join(OUT, "logo_128.png"))
-    icon.im.save(os.path.join(OUT, "icono_64.png"))
-    logo.im.resize((512, 512), Image.NEAREST).save(os.path.join(OUT, "logo_512.png"))
-    icon.im.resize((192, 192), Image.NEAREST).save(os.path.join(OUT, "icono_192.png"))
-    icon.im.resize((512, 512), Image.NEAREST).save(os.path.join(OUT, "icono_512.png"))
-    # Ícono adaptativo Android 432x432: frente con margen seguro (zona central 66 %)
-    fg = Image.new("RGBA", (432, 432), (0, 0, 0, 0))
-    fg.paste(icon.im.resize((256, 256), Image.NEAREST), (88, 88))
-    fg.save(os.path.join(OUT, "icono_adaptativo_frente.png"))
-    Image.new("RGBA", (432, 432), hexrgb(P["C3"])).save(os.path.join(OUT, "icono_adaptativo_fondo.png"))
+    make_app_icons()
     # Hoja de prueba: logo grande + ícono en tamaños reales de launcher
+    app_icon = Image.open(os.path.join(OUT, "icono_512.png"))
     sheet = Image.new("RGBA", (512 + 16 + 260, 512), hexrgb(P["u"]))
     sheet.alpha_composite(logo.im.resize((512, 512), Image.NEAREST), (0, 0))
     y = 0
     for s in (192, 96, 48, 24):
-        sheet.alpha_composite(icon.im.resize((s, s), Image.NEAREST if s % 64 == 0 or s >= 64 else Image.BOX), (528, y))
+        sheet.alpha_composite(app_icon.resize((s, s), Image.LANCZOS), (528, y))
         y += s + 8
     sheet.save(os.path.join(OUT, "preview_logo.png"))
     used = set(c for c in logo.im.getdata() if c[3]) | set(c for c in icon.im.getdata() if c[3])

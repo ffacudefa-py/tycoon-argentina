@@ -65,14 +65,15 @@ func _ready() -> void:
 	_root.add_child(col)
 	_logo_box = U.vbox(2)
 	_logo_box.alignment = BoxContainer.ALIGNMENT_CENTER
-	var emblem := U.icon("", "logo/logo_128.png")
-	emblem.custom_minimum_size = Vector2(96, 96)
-	emblem.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	emblem.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	emblem.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	_logo_box.add_child(emblem)
-	_logo_box.add_child(_title("TYCOON", 32, Color("ffd458")))
-	_logo_box.add_child(_title("ARGENTINA", 24, Color("a9d2f2")))
+	# Logo "Coronados de Gloria" (351x146): en 360 px de ancho entra apenas
+	# achicado, por eso se filtra lineal en vez de píxel exacto.
+	var logo := U.icon("", "logo/logo_coronados.png")
+	logo.custom_minimum_size = Vector2(0, 136)
+	logo.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	logo.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	logo.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	logo.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+	_logo_box.add_child(logo)
 	col.add_child(_logo_box)
 	col.add_child(U.spacer())
 	var card := U.panel("Card")
@@ -95,15 +96,6 @@ func _ready() -> void:
 	rebuild()
 	_layout()
 	open(false)
-
-
-func _title(text: String, size: int, color: Color) -> Label:
-	var l := U.label(text, size, color, true, HORIZONTAL_ALIGNMENT_CENTER)
-	l.add_theme_constant_override("outline_size", 8)
-	l.add_theme_color_override("font_outline_color", Color("3d1b0b"))
-	l.add_theme_constant_override("shadow_offset_y", 3)
-	l.add_theme_color_override("font_shadow_color", Color("3d1b0b"))
-	return l
 
 
 ## Fondo a escala 1 (píxeles enteros), pegado abajo y centrado; arriba se
