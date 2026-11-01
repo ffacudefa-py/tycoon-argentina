@@ -21,9 +21,14 @@ la provincia anterior.
 
 `ConquestSystem` (scripts/progression/conquest_system.gd):
 
-- Objetivo = ganancia neta/s del negocio ÷ (`market_size` × (0,5 + 0,1 × poder del rival)).
-- La cuota sube hacia el objetivo como mucho a 100 % cada `conquest_minutes`
-  (11 min en la primera provincia, ×1,25 por provincia). También avanza offline.
+- **Ritmo** = ganancia neta/s del negocio ÷ (`market_size` × (0,5 + 0,1 × poder del rival)),
+  con tope `max_pace` = 2 (11.1).
+- La cuota sube `ritmo / conquest_minutes` por minuto (11 min en la primera
+  provincia, ×1,25 por provincia) y nunca baja. Con ritmo 1 tarda
+  `conquest_minutes`; invirtiendo en el negocio se llega a la mitad, y ganando
+  menos que el mercado tarda más. También avanza offline. La ficha de la provincia
+  y la "próxima meta" muestran el ritmo y cuánto falta.
+- El rival local crece como mucho `rival_max_growth` = 2 puntos sobre su poder inicial.
 - Al 100 %: provincia conquistada para siempre, el rival cae a poder 1 y los
   negocios de esa región ganan **+10 %**. Región completa: **+25 % a todo**.
 - Las campañas de marketing bajan el poder del rival y suman 8 % de cuota.
@@ -35,7 +40,7 @@ la provincia anterior.
 La economía de cada provincia interpola en escala logarítmica la curva de los
 12 negocios de la 0.7 (~×4,5 por provincia). Todo se genera con
 `python3 tools/v10/build_data.py` (constantes `MARKET_*` y `CONQUEST_*`).
-Con el bot de balance (juego activo y razonable): primera provincia ~11 min,
+Con el bot de balance (juego activo y razonable): primera provincia ~16 min,
 NOA completo ~2 h. `tests/progression/test_balance.gd` vigila esas ventanas.
 
 **Corrección 11.0 (simulación de 20 h).** Con el balance de la 10.x el bot quedaba
@@ -50,6 +55,24 @@ anteriores al nivel 100 y la plata sin nada útil en qué gastarse. Causas:
   el tope de los enteros (9e18). Desde la provincia 9 se multiplican por
   `COST_DAMP` = 0,64 por provincia: ahora se pagan en 5-22 h al máximo.
 `test_toda_la_argentina_es_conquistable` vigila las dos cosas en las 24 provincias.
+
+**Corrección 11.1 (ritmo de conquista).** Con la 11.0 el mercado era un múltiplo de
+la ganancia a nivel 25: en el NOA alcanzaba con el 0-3 % de la ganancia máxima
+del negocio y hasta Entre Ríos la cuota apuntaba al 100 % a los pocos segundos
+o minutos de abrir. La conquista era un temporizador puro: el jugador compraba
+todo (Jujuy al máximo en 7 min) y esperaba 10 min a 1 h sin nada útil que hacer. Cambios:
+- La cuota avanza a un **ritmo** proporcional a ganancia ÷ mercado (ver arriba):
+  cada nivel y cada mejora acortan la conquista.
+- `market_size` = `MARKET_FRAC` × ganancia máxima del negocio (nivel 100 con todas
+  las mejoras, sin empleados ni bonos) con el rival en su poder inicial;
+  `MARKET_FRAC` baja de 0,55 (Santiago) a 0,15 (CABA) porque en las provincias
+  avanzadas los niveles altos cuestan horas.
+- Las mejoras cuestan ×4 (`cost_factor` en data/upgrades.json): eran ~10 % del costo
+  del negocio y multiplicaban la ganancia ×14, así que se compraban todas en minutos.
+- El rival no crece más de 2 sobre su poder inicial (antes llegaba a 10 y duplicaba el mercado).
+- Diagnóstico: `PACING_DIAG=1 PACING_HOURS=20 tools/run_tests.sh --only=pacing_diag`
+  imprime por provincia cuándo se abre, cuándo llega al ritmo tope, si el negocio
+  queda al máximo y cuándo se conquista (`PACING_TRACE=1` agrega el ritmo cada 5 min).
 
 ## Partidas viejas
 

@@ -55,7 +55,10 @@ static func advance(m: GameModel, dt: float) -> void:
 		var roll := m.rng.randf()
 		var lines: Dictionary = m.data.world["rival_lines"]
 		var zone_name: String = m.data.zone_by_id[r["zones"][m.rng.randi() % r["zones"].size()]]["name"]
-		if roll < grow and int(st["power"]) < 10:
+		# 11.1: el rival crece como mucho rival_max_growth sobre su poder inicial
+		# (llegar a 10 duplicaba el mercado y frenaba la conquista sin remedio).
+		var top := mini(10, int(r["start_power"]) + int(m.data.world.get("rival_max_growth", 10)))
+		if roll < grow and int(st["power"]) < top:
 			st["power"] = int(st["power"]) + 1
 			st["trend"] = 1
 			st["last"] = _line(m, lines["grow"], r["name"], zone_name)

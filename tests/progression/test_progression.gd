@@ -95,18 +95,44 @@ func test_conquest_share_grows_and_conquers() -> void:
 	var m := make_model()
 	var zid := Z0
 	eq(ConquestSystem.share(m, zid), 0.0, "arranca en 0 %")
-	m.biz[B0]["level"] = 60
-	m.biz[B0]["upgrades"]["caja_rapida"] = 3
+	var p_low := ConquestSystem.pace(m, zid)
+	check(p_low > 0.0 and p_low < 1.0, "recién abierto avanza lento (ritmo %.2f)" % p_low)
+	m.biz[B0]["level"] = 100
+	for u in m.data.upgrades:
+		m.biz[B0]["upgrades"][u["id"]] = int(u["max_level"])
 	m.invalidate()
-	check(ConquestSystem.target_share(m, zid) >= 1.0, "con ganancia alta apunta al 100 %")
+	var p_max := ConquestSystem.pace(m, zid)
+	check(p_max > p_low, "invertir acelera la conquista")
+	check(p_max > 1.5, "con el negocio al máximo va rápido (ritmo %.2f)" % p_max)
 	m.biz[B0]["stock"] = {}
 	for p in m.data.business_by_id[B0]["products"]:
 		m.biz[B0]["stock"][p["id"]] = 1e9
-	for i in 60:
-		ConquestSystem.advance(m, 20.0)
+	# Tarda conquest_minutes / ritmo (ni antes ni mucho después).
+	var need_s := float(m.data.zone_by_id[zid]["conquest_minutes"]) * 60.0 / p_max
+	var t := 0.0
+	while not ConquestSystem.is_conquered(m, zid) and t < need_s * 2.0:
+		ConquestSystem.advance(m, 5.0)
+		t += 5.0
 	check(ConquestSystem.is_conquered(m, zid), "conquistada (cuota %s)" % str(ConquestSystem.share(m, zid)))
+	check(absf(t - need_s) <= 10.0, "tarda lo previsto para su ritmo (%d s, esperado %d s)" % [int(t), int(need_s)])
 	eq(int(m.rivals[m.data.zone_by_id[zid]["rival"]]["power"]), 1, "el rival cae")
 	check(m.derive(B0)["price_mult"] > 0.0 and ConquestSystem.income_mult(m, B0) > 1.0, "bonus de provincia")
+
+
+func test_cuota_no_baja_y_eta() -> void:
+	var m := make_model()
+	m.zones[Z0]["share"] = 0.5
+	m.biz[B0]["level"] = 30
+	m.invalidate()
+	var e1 := ConquestSystem.eta(m, Z0)
+	check(e1 > 0.0 and e1 < INF, "hay tiempo estimado")
+	m.biz[B0]["level"] = 80
+	m.invalidate()
+	check(ConquestSystem.eta(m, Z0) < e1, "con más nivel se conquista antes")
+	m.rivals[m.data.zone_by_id[Z0]["rival"]]["power"] = 10
+	m.invalidate()
+	ConquestSystem.advance(m, 1.0)
+	check(ConquestSystem.share(m, Z0) >= 0.5, "la cuota no baja aunque el rival crezca")
 
 
 func test_competition_and_campaign() -> void:
@@ -356,3 +382,12 @@ func test_engagement_combo_chests_goals() -> void:
 	var m2 := make_model(2)
 	m2.from_dict(m.to_dict())
 	eq(int(m2.engage["chests"]), 1, "cofres guardados")
+
+
+func test_rival_no_crece_sin_techo() -> void:
+	var m := make_model(5)
+	var rid: String = m.data.zone_by_id[Z0]["rival"]
+	var top: int = int(m.data.rival_by_id[rid]["start_power"]) + int(m.data.world["rival_max_growth"])
+	for i in 400:
+		RivalSystem.advance(m, float(m.data.world["rival_update_seconds"]))
+	check(int(m.rivals[rid]["power"]) <= top, "el rival no pasa de %d (está en %d)" % [top, int(m.rivals[rid]["power"])])

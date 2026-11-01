@@ -151,22 +151,31 @@ UPGRADE_NAMES = {
 }
 
 BEHAVIORS = ["Conservador", "Agresivo", "Expansivo"]
-# Tamaño de mercado = ganancia del negocio a nivel 25 × MARKET_BASE × MARKET_GROWTH^i:
-# las provincias más avanzadas cuestan más (ajustado con el bot de balance).
-MARKET_BASE = 2.0
-MARKET_GROWTH = 1.6
-# 11.0: el mercado deja de crecer a partir de la provincia 11. Antes seguía ×1,6
-# y desde San Juan superaba la ganancia del negocio a nivel 100 con todas las
-# mejoras: la conquista era imposible y el juego no se podía terminar.
-MARKET_GROWTH_CAP_AT = 10
 # 11.0: desde la provincia 9 los costos de nivel y de apertura crecen menos
 # (×COST_DAMP por provincia); si no, el tiempo para pagar los niveles pasaba de
 # horas a meses y los últimos costos tocaban el tope de los enteros (9e18).
 COST_DAMP_FROM = 8
 COST_DAMP = 0.64
+# 11.1: el mercado se mide contra la ganancia MÁXIMA del negocio (nivel 100 con
+# todas las mejoras, sin empleados ni bonos), con el rival en su poder inicial. Antes era
+# un múltiplo del nivel 25: en el NOA alcanzaba con el 0-3 % del máximo, la cuota
+# llegaba al 100 % apenas abrías el negocio y la conquista era un temporizador
+# puro mientras el negocio quedaba al máximo sin nada que comprar.
+MARKET_FRAC_START = 0.55
+MARKET_FRAC_END = 0.15
+# 11.1: costos de nivel, mejoras y apertura ×COST_MULT para que maxear el negocio
+# lleve más que conquistar la provincia.
+COST_MULT = 1.0
+COST_MULT_RAMP = 2   # la primera provincia queda igual (arranque probado)
 SHARE_SPEED = 0.0015
+# 11.1: la cuota avanza a ritmo ganancia/mercado, como mucho ×MAX_PACE.
+MAX_PACE = 2.0
+# 11.1: el rival local crece como mucho esto sobre su poder inicial.
+RIVAL_MAX_GROWTH = 2
 # Tiempo mínimo para ir de 0 a 100 % de cuota: 11 min en la primera provincia
 # y x1,25 por provincia (NOA ~2 h, Cuyo ~16 h, toda la Argentina ~6 días de juego).
+# 11.1: es el tiempo con ritmo 1 (ganancia = mercado); invirtiendo se baja
+# hasta la mitad (MAX_PACE) y ganando menos que el mercado se alarga.
 CONQUEST_MINUTES = 11.0
 CONQUEST_GROWTH = 1.25
 # Paisaje de fondo por región (tools/art/landscapes.py).
@@ -233,6 +242,27 @@ def interp(i, n):
     }
 
 
+def top_profit(products, cycle, rate, bal, upgrades):
+    """Ganancia/s a nivel 100 con todas las mejoras, sin empleados, bonos ni
+    competencia (misma cuenta que GameModel._compute)."""
+    mods = {}
+    for u in upgrades:
+        for e in u["effects"]:
+            mods[e["stat"]] = mods.get(e["stat"], 0.0) + e["value"] * u["max_level"]
+    level = 100
+    ms_speed = 1.0
+    for ms in bal["milestones"]:
+        if level >= ms["level"]:
+            ms_speed *= ms["speed"]
+    units = level * (1 + mods.get("units", 0))
+    cyc = max(bal["min_cycle"], cycle / (ms_speed * (1 + mods.get("speed", 0))))
+    price_m = (1 + mods.get("revenue", 0)) * rate
+    cost_m = max(0.5, 1 - mods.get("cost_reduction", 0)) * rate
+    tot = sum(p["demand"] for p in products)
+    per_cycle = sum(units * p["demand"] / tot * (p["price"] * price_m - p["cost"] * cost_m) for p in products)
+    return per_cycle / cyc
+
+
 def nice(v):
     """Redondea a 3 cifras significativas (enteros si es grande)."""
     if v == 0:
@@ -253,10 +283,11 @@ def main():
     prev_bid = None
     bal = json.load(open(os.path.join(DATA, "progression.json"), encoding="utf-8"))["balance"]
     rate = float(bal["income_rate"])
+    upgrades = json.load(open(os.path.join(DATA, "upgrades.json"), encoding="utf-8"))["upgrades"]
     for i, p in enumerate(provs):
         bid, tags, ptags, picons, color, sign, bdesc, pdesc = SPEC[p["id"]]
         e = interp(i, n)
-        damp = COST_DAMP ** max(0, i - COST_DAMP_FROM)
+        damp = COST_DAMP ** max(0, i - COST_DAMP_FROM) * (1 + (COST_MULT - 1) * min(1.0, i / COST_MULT_RAMP))
         e["level_cost_base"] *= damp
         e["unlock"] *= damp
         products = []
@@ -283,11 +314,11 @@ def main():
             "max_level": 100, "products": products, "upgrade_names": dict(UPGRADE_NAMES),
         }
         businesses.append(biz)
-        # Tamaño de mercado: la ganancia por segundo del negocio a nivel 25
-        # sin mejoras ni empleados (con el hito x2 de velocidad del nivel 25).
-        share_tot = sum(pp["demand"] for pp in products)
-        ppu = sum(pp["demand"] / share_tot * (pp["price"] - pp["cost"]) for pp in products)
-        market = 25 * ppu * 2.0 / cycle * rate * MARKET_BASE * MARKET_GROWTH ** min(i, MARKET_GROWTH_CAP_AT)
+        # Tamaño de mercado: con el rival en su poder inicial hace falta ganar
+        # frac × la ganancia máxima del negocio para ir a ritmo 1.
+        frac = MARKET_FRAC_START + (MARKET_FRAC_END - MARKET_FRAC_START) * i / (n - 1)
+        start_power = min(8, 3 + region_order[p["region"]] // 2 + i % 2)
+        market = frac * top_profit(products, cycle, rate, bal, upgrades) / (0.5 + 0.1 * start_power)
         rid = "rival_" + p["id"]
         zones.append({
             "id": p["id"], "name": p["name"], "region": p["region"], "order": p["order"],
@@ -299,7 +330,7 @@ def main():
         })
         rivals.append({"id": rid, "name": p["rival_name"], "sector": p["star_product"], "tags": tags,
                        "zones": [p["id"]], "behavior": BEHAVIORS[i % 3],
-                       "start_power": min(8, 3 + region_order[p["region"]] // 2 + i % 2), "color": color})
+                       "start_power": start_power, "color": color})
         prev_bid = bid
 
     world = json.load(open(os.path.join(DATA, "world.json"), encoding="utf-8"))
@@ -312,9 +343,9 @@ def main():
         "regions": [dict(r, bonus=region_bonus) for r in regions],
         "zones": zones,
         "province_bonus": 0.10, "region_bonus": region_bonus,
-        "share_speed": SHARE_SPEED, "campaign_share": 0.08,
+        "share_speed": SHARE_SPEED, "max_pace": MAX_PACE, "campaign_share": 0.08,
         "relocate_cost_factor": world["relocate_cost_factor"],
-        "competition_per_power": 0.015, "max_competition": 0.3,
+        "competition_per_power": 0.015, "rival_max_growth": RIVAL_MAX_GROWTH, "max_competition": 0.3,
         "rival_update_seconds": world["rival_update_seconds"],
         "campaign_power_reduction": 2, "campaign_cooldown_seconds": world["campaign_cooldown_seconds"],
         "campaign_income_seconds": world["campaign_income_seconds"], "campaign_min_cost": world["campaign_min_cost"],

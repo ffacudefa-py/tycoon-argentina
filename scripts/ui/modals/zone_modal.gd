@@ -38,8 +38,10 @@ static func open(zid: String) -> void:
 			if ConquestSystem.is_conquered(m, zid):
 				hint.text = "¡Provincia conquistada! Tus negocios de la región ganan +%d %%." % int(round(float(m.data.world["province_bonus"]) * 100))
 			else:
-				hint.text = "Llegá al 100 %% ganando %s neto. Ahora vas hacia el %d %%." % [
-					Fmt.per_sec(ConquestSystem.market_needed(m, zid)), int(floorf(ConquestSystem.target_share(m, zid) * 100.0))]
+				var e := ConquestSystem.eta(m, zid)
+				hint.text = "El mercado es de %s neto. Vas a ritmo x%.1f (máx. x%.0f): %s. Subí niveles y mejoras para conquistarla antes." % [
+					Fmt.per_sec(ConquestSystem.market_needed(m, zid)), ConquestSystem.pace(m, zid), ConquestSystem.max_pace(m),
+					"sin avanzar" if e == INF else "faltan " + Fmt.duration(e)]
 		upd.call()
 		var t := Timer.new()
 		t.wait_time = 0.5

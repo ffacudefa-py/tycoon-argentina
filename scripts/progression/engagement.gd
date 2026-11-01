@@ -172,7 +172,10 @@ static func next_goal(m: GameModel, bid: String) -> Dictionary:
 	var zid: String = s["zone"]
 	if not ConquestSystem.is_conquered(m, zid):
 		var sh := ConquestSystem.share(m, zid)
-		goals.append({"text": "Cuota %d %%: al 100 %% conquistás %s" % [int(floorf(sh * 100.0)), m.data.zone_by_id[zid]["name"]], "value": sh})
+		var e := ConquestSystem.eta(m, zid)
+		var zname: String = m.data.zone_by_id[zid]["name"]
+		var txt0 := ("Cuota %d %%: subí el negocio para conquistar %s" % [int(floorf(sh * 100.0)), zname]) if e == INF else ("Cuota %d %%: conquistás %s en %s" % [int(floorf(sh * 100.0)), zname, Fmt.duration(e)])
+		goals.append({"text": txt0, "value": sh})
 	var nm := int(d["next_milestone"])
 	if nm > 0:
 		var lvl := int(s["level"])

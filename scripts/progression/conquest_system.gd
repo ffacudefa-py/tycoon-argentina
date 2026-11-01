@@ -2,12 +2,14 @@ class_name ConquestSystem
 extends RefCounted
 ## 10.0 "Sigma Deza": conquista de provincias por cuota de mercado.
 ##
-## Cada provincia abierta (m.zones[zid]) guarda {share, conquered}. La cuota
-## tiende a la ganancia neta por segundo del negocio de la provincia dividida
-## por el tamaño de mercado, que crece con el poder del rival local:
-##     objetivo = ganancia_neta / (market_size × (0,5 + 0,1 × poder))
-## y se mueve hacia ese objetivo a 1/conquest_minutes por minuto (también offline):
-## las provincias más avanzadas tardan más en conquistarse.
+## Cada provincia abierta (m.zones[zid]) guarda {share, conquered}.
+## 11.1: la cuota ya no tiende a un objetivo con un reloj fijo (eso hacía que
+## el negocio quedara al máximo esperando). Avanza a un RITMO que depende de
+## cuánto ganás frente al tamaño del mercado:
+##     ritmo = ganancia_neta / (market_size × (0,5 + 0,1 × poder))   (tope max_pace)
+##     cuota += ritmo / (conquest_minutes × 60) por segundo (también offline)
+## Con ritmo 1 la provincia tarda conquest_minutes; invertir más la acelera
+## (hasta max_pace) y ganar menos que el mercado la frena. La cuota no baja.
 ## Al llegar al 100 % la provincia queda conquistada para siempre: el rival
 ## cae a poder 1 y la provincia suma province_bonus a los negocios de su
 ## región; con la región completa, region_bonus a todos los negocios.
@@ -76,20 +78,37 @@ static func market_needed(m: GameModel, zid: String) -> float:
 	return float(z["market_size"]) * (0.5 + 0.1 * power)
 
 
-## Cuota a la que tiende la provincia con la ganancia actual (0..1).
-static func target_share(m: GameModel, zid: String) -> float:
+## Ritmo de conquista (0..max_pace): ganancia neta del negocio ÷ mercado.
+static func pace(m: GameModel, zid: String) -> float:
 	var bid: String = m.data.zone_by_id[zid]["business"]
 	if not m.biz.has(bid) or not m.biz[bid]["owned"]:
 		return 0.0
 	var d := m.derive(bid)
 	var net := float(d["profit_sec"]) - float(d["salary_sec"])
-	return clampf(net / maxf(market_needed(m, zid), 0.001), 0.0, 1.0)
+	return clampf(net / maxf(market_needed(m, zid), 0.001), 0.0, max_pace(m))
 
 
-## Cuota por segundo a la que puede subir la provincia (conquest_minutes = de 0 a 100 %).
+static func max_pace(m: GameModel) -> float:
+	return float(m.data.world.get("max_pace", 2.0))
+
+
+## Compatibilidad: ritmo acotado a 1 (1 = vas al ritmo normal del mercado).
+static func target_share(m: GameModel, zid: String) -> float:
+	return minf(1.0, pace(m, zid))
+
+
+## Cuota por segundo con ritmo 1 (conquest_minutes = de 0 a 100 %).
 static func share_speed(m: GameModel, zid: String) -> float:
 	var mins := float(m.data.zone_by_id[zid].get("conquest_minutes", 0.0))
 	return 1.0 / (mins * 60.0) if mins > 0.0 else float(m.data.world.get("share_speed", 0.01))
+
+
+## Segundos que faltan para conquistar al ritmo de hoy (INF si no avanza).
+static func eta(m: GameModel, zid: String) -> float:
+	var p := pace(m, zid)
+	if p <= 0.0:
+		return INF
+	return (1.0 - share(m, zid)) / (share_speed(m, zid) * p)
 
 
 static func advance(m: GameModel, dt: float) -> void:
@@ -97,10 +116,8 @@ static func advance(m: GameModel, dt: float) -> void:
 		var st: Dictionary = m.zones[zid]
 		if st.get("conquered", false):
 			continue
-		var speed := share_speed(m, zid)
 		var cur := float(st.get("share", 0.0))
-		var tgt := target_share(m, zid)
-		st["share"] = move_toward(cur, tgt, speed * dt)
+		st["share"] = minf(1.0, cur + share_speed(m, zid) * pace(m, zid) * dt)
 		if float(st["share"]) >= 1.0:
 			conquer(m, zid)
 
