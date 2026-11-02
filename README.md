@@ -67,6 +67,7 @@ python3 tools/sfx.py            # efectos de sonido sintetizados
 - `docs/CUENTAS.md` — cuentas con Firebase Auth y verificación del email.
 - `docs/AMIGOS.md` — amigos: códigos, ranking, mates, reglas y prueba con emuladores.
 - `docs/PERFIL.md` — foto de perfil, banner, recorte y cómo probarlo.
+- `docs/MINIJUEGOS.md` — asalto y coima: reglas, balance, arte, pruebas y capturas.
 - `docs/PASSIDLE.md` — qué se tomó de PassIdle y qué no.
 - `docs/PLAY_STORE.md` — requisitos de Google Play: estado, formularios y pasos de publicación.
 - `docs/PENDIENTES.md` — lo que queda para próximas versiones.

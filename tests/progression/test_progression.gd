@@ -320,29 +320,32 @@ func test_hard_mode_bonus_lawsuit_theft_bribe() -> void:
 	# Robo: se lleva parte de la mercadería.
 	var pid: String = m.data.business_by_id[B0]["products"][0]["id"]
 	m.biz[B0]["stock"][pid] = 100.0
-	check(HardMode.theft(m, B0)["ok"], "robo")
-	check(float(m.biz[B0]["stock"][pid]) <= 80.0, "se llevaron al menos 20 %")
+	check(Security.start_theft(m, B0)["ok"], "robo (sin interfaz se resuelve al toque)")
+	check(float(m.biz[B0]["stock"][pid]) <= 80.0, "en este modo se llevan al menos 20 %")
 	# Coima: protege la provincia.
 	m.salary_debt = 0
 	m.economy.reset_run(1_000_000)
-	check(HardMode.pay_bribe(m, Z0)["ok"], "paga la seguridad")
+	check(Security.start_bribe(m, Z0)["ok"], "paga la coima")
+	Security.resolve_bribe(m, true)
 	m.biz[B0]["stock"][pid] = 100.0
-	check(not HardMode.theft(m, B0)["ok"], "con seguridad no roban")
+	check(not Security.start_theft(m, B0)["ok"], "con seguridad no roban")
 	eq(float(m.biz[B0]["stock"][pid]), 100.0, "stock intacto")
 	# Se guarda con la partida.
 	var m2 := make_model(2)
 	m2.from_dict(m.to_dict())
 	check(HardMode.on(m2) and m2.hard["chosen"], "el modo se guarda")
-	check(HardMode.protected_left(m2, Z0) > 0.0, "la seguridad paga se guarda")
+	check(Security.protected_left(m2, Z0) > 0.0, "la seguridad paga se guarda")
 
 
+## 11.2: en el modo normal también hay robos (menos seguidos), pero no
+## inflación ni juicios.
 func test_normal_mode_has_no_hard_events() -> void:
 	var m := make_model()
 	HardMode.choose(m, false)
 	var pid: String = m.data.business_by_id[B0]["products"][0]["id"]
 	m.biz[B0]["stock"][pid] = 100.0
-	run(m, 600.0)
-	eq(int(m.counter("thefts")), 0, "sin robos")
+	run(m, 400.0)
+	eq(int(m.counter("thefts")), 0, "el primer robo no llega antes de 8 min")
 	check(not m.inflation_active(), "sin inflación")
 	m.salary_debt = 50
 	eq(HardMode.lawsuit_eta(m), -1.0, "sin cuenta regresiva de juicio")

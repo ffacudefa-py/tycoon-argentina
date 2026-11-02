@@ -86,8 +86,7 @@ func _section(text: String) -> Label:
 func _build_business() -> void:
 	var d := m.derive(bid)
 	var s: Dictionary = m.biz[bid]
-	if HardMode.on(m):
-		_content.add_child(_security_card(s["zone"]))
+	_content.add_child(_security_card(s["zone"]))
 	_content.add_child(_section("Mercadería"))
 	_content.add_child(U.para("Cada venta atiende %s clientes repartidos según lo que más se pide. Si un producto se acaba, esa venta se pierde." % Fmt.num(d["units"]), U.SIZE_SMALL, U.TEXT_SOFT))
 	for p in d["products"]:
@@ -161,7 +160,8 @@ func _build_business() -> void:
 	_content.add_child(mb)
 
 
-## Modo bien argentino: estado de la seguridad de la provincia y botón de coima.
+## Seguridad de la provincia (los dos modos desde la 11.2): estado, multa y
+## botón de coima, que abre el minijuego de los documentos (BribeView).
 func _security_card(zid: String) -> Control:
 	var card := U.panel("Inset")
 	var col := U.vbox(4)
@@ -172,13 +172,24 @@ func _security_card(zid: String) -> Control:
 	st.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	top.add_child(st)
 	col.add_child(top)
-	var b := UiColors.buy_button("PAGAR SEGURIDAD", HardMode.bribe_cost(m), func() -> void: Main.instance.result(HardMode.pay_bribe(m, zid)), 36)
+	var fine := U.label("", U.SIZE_SMALL, UiColors.LOSS, true)
+	col.add_child(fine)
+	var b := UiColors.buy_button("COIMEAR A LA POLICÍA", Security.bribe_cost(m), func() -> void:
+		var r := Security.can_bribe(m, zid)
+		if Main.instance.result(r):
+			Main.instance.modal_host.close_all()
+			MinigameHost.play_bribe(zid), 36)
 	col.add_child(b)
 	var upd := func() -> void:
-		var left := HardMode.protected_left(m, zid)
+		var left := Security.protected_left(m, zid)
 		st.text = ("Seguridad arreglada: %s" % Fmt.duration(left)) if left > 0.0 else "Sin seguridad: te pueden robar mercadería"
 		st.add_theme_color_override("font_color", UiColors.GAIN if left > 0.0 else UiColors.LOSS)
-		UiColors.set_cost(b, HardMode.bribe_cost(m))
+		var fl := Security.fine_left(m)
+		fine.visible = fl > 0.0
+		fine.text = "Multa: -%d %% de ingresos por %s" % [int(round(Security.fine_income(m) * 100)), Fmt.duration(fl)]
+		var n := Security.bribes_left_today(m)
+		b.set_meta("label", "COIMEAR (%d/%d HOY)" % [n, Security.bribe_daily(m)])
+		UiColors.set_cost(b, Security.bribe_cost(m), "" if n > 0 else "COMISARÍA CERRADA HASTA MAÑANA")
 	upd.call()
 	_refreshers.append(upd)
 	return card

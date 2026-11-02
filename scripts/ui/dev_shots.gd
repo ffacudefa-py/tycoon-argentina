@@ -55,6 +55,9 @@ func _run() -> void:
 		if a == "--shots-set=escenas":
 			await _run_scenes()
 			return
+		if a == "--shots-set=minijuegos":
+			await _run_minigames()
+			return
 	var main := Main.instance
 	var m := Game.m
 	Game.reset_everything()
@@ -211,6 +214,7 @@ func _run() -> void:
 	await _juice_shots()
 	await _social_shots()
 	await _account_switch_check()
+	await _minigame_check(false)
 	main.go_to(0)
 	main.start.open(false)
 	await _shot("18_volver_al_inicio", 0.6)
@@ -658,4 +662,204 @@ func _run_v11() -> void:
 		frames += 1
 		worst = maxf(worst, Performance.get_monitor(Performance.TIME_PROCESS) * 1000.0)
 	print("V11_FPS %.1f (peor process %.2f ms, objetos %d)" % [frames / 4.0, worst, Performance.get_monitor(Performance.OBJECT_NODE_COUNT)])
+	get_tree().quit()
+
+
+# ------------------------------------------------------------- minijuegos 11.2
+
+var _frame := 0
+
+
+func _press(p: Vector2, pressed: bool) -> void:
+	var ev := InputEventMouseButton.new()
+	ev.button_index = MOUSE_BUTTON_LEFT
+	ev.pressed = pressed
+	ev.position = p
+	ev.global_position = p
+	if pressed:
+		ev.button_mask = MOUSE_BUTTON_MASK_LEFT
+	get_viewport().push_input(ev)
+
+
+func _move(p: Vector2) -> void:
+	var mv := InputEventMouseMotion.new()
+	mv.position = p
+	mv.global_position = p
+	mv.button_mask = MOUSE_BUTTON_MASK_LEFT
+	get_viewport().push_input(mv)
+
+
+## Cuadro de la "película" del minijuego (sólo con ventana).
+func _film(prefix: String) -> void:
+	if DisplayServer.get_name() == "headless":
+		await get_tree().process_frame
+		return
+	await RenderingServer.frame_post_draw
+	var img := get_viewport().get_texture().get_image()
+	img.save_png("%s/%s_%03d.png" % [out_dir, prefix, _frame])
+	_frame += 1
+
+
+## Juega el asalto con toques y arrastres reales. accuracy: chance de acertar.
+func _play_theft(prefix: String, accuracy: float, film: bool) -> TheftView:
+	var host := MinigameHost.current
+	var view: TheftView = host._view
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 5
+	var skipped := false
+	var t0 := Time.get_ticks_msec()
+	while is_instance_valid(view) and not view._dismissed and Time.get_ticks_msec() - t0 < 60000:
+		var o := view.get_global_rect().position
+		if view.phase == "intro" and view._waiting:
+			if film:
+				for i in 6:
+					await _film(prefix)
+			await _tap_at(o + view.size / 2.0)
+		elif view.phase == "intro" and view.pt > 1.4 and not skipped and not film:
+			skipped = true
+			await _tap_at(o + view.size / 2.0)
+		elif view.phase == "play":
+			var g := view.game
+			if g.ammo <= 0 and g.reload_t <= 0.0:
+				await _tap_at(o + view._gun_rect().get_center())
+			else:
+				var floor_l := {}
+				for l in g.loot:
+					if l["state"] == "floor":
+						floor_l = l
+						break
+				if not floor_l.is_empty():
+					var a: Vector2 = o + (floor_l["pos"] as Vector2)
+					var b: Vector2 = o + g.bag.get_center()
+					_press(a, true)
+					await get_tree().process_frame
+					for i in 6:
+						_move(a.lerp(b, (i + 1) / 6.0))
+						await get_tree().process_frame
+						if film:
+							await _film(prefix)
+					_press(b, false)
+				else:
+					for th in g.thieves:
+						if th["state"] in ["enter", "grab", "flee"]:
+							var miss := Vector2.ZERO if rng.randf() < accuracy else Vector2(rng.randf_range(-70, 70), rng.randf_range(-50, 50))
+							await _tap_at(o + (th["pos"] as Vector2) - Vector2(0, TheftGame.BODY_OFFSET) + miss)
+							break
+		elif view.phase == "result" and view.pt > 2.2 and view._result_btn:
+			await _tap(view._result_btn)
+		if film:
+			await _film(prefix)
+			await get_tree().create_timer(0.06).timeout
+		else:
+			await get_tree().create_timer(0.08).timeout
+	return view
+
+
+## Juega la coima deslizando de verdad; wrong_at = papel en el que se equivoca (-1: nunca).
+func _play_bribe(prefix: String, wrong_at: int, film: bool) -> void:
+	var host := MinigameHost.current
+	var view: BribeView = host._view
+	var t0 := Time.get_ticks_msec()
+	var skipped := false
+	while is_instance_valid(view) and not view._dismissed and Time.get_ticks_msec() - t0 < 60000:
+		var o := view.get_global_rect().position
+		if view.phase == "intro" and view._waiting:
+			if film:
+				for i in 6:
+					await _film(prefix)
+			await _tap_at(o + view.size / 2.0)
+		elif view.phase == "intro" and view.pt > 1.6 and not skipped and not film:
+			skipped = true
+			await _tap_at(o + view.size / 2.0)
+		elif view.phase == "play" and view.game.state == "play" and view.game.reveal_t <= 0.0 and view.game.urgency() < 0.8:
+			var d := view.game.current()
+			var dir := -1 if d["red"] else 1
+			if view.game.idx == wrong_at:
+				dir = -dir
+			var a := o + view._stack_center()
+			_press(a, true)
+			await get_tree().process_frame
+			for i in 4:
+				_move(a + Vector2(dir * 40.0 * (i + 1), 0))
+				await get_tree().process_frame
+				if film:
+					await _film(prefix)
+			_press(a + Vector2(dir * 160.0, 0), false)
+		elif view.phase == "result" and view.pt > 2.4 and view._result_btn:
+			await _tap(view._result_btn)
+		if film:
+			await _film(prefix)
+			await get_tree().create_timer(0.06).timeout
+		else:
+			await get_tree().create_timer(0.05).timeout
+
+
+func _prepare_minigames() -> void:
+	var main := Main.instance
+	var m := Game.m
+	main.modal_host.close_all()
+	m.economy.earn(1_000_000_000, "dev")
+	for i in 3:
+		var b: String = m.data.businesses[i]["id"]
+		if not m.biz[b]["owned"]:
+			m._own_business(b, 1.0)
+		m.biz[b]["level"] = 40
+		for p in m.data.business_by_id[b]["products"]:
+			m.biz[b]["stock"][p["id"]] = 500.0
+	m.invalidate()
+	main.select_business(B0)
+
+
+## Robo y coima jugados con toques reales (prueba de humo y capturas).
+func _minigame_check(film: bool) -> void:
+	var main := Main.instance
+	var m := Game.m
+	await _prepare_minigames()
+	var stock0 := 0.0
+	for pid in m.biz[B0]["stock"]:
+		stock0 += float(m.biz[B0]["stock"][pid])
+	Security.start_theft(m, B0)
+	for i in 30:
+		await get_tree().process_frame
+		if MinigameHost.is_open():
+			break
+	var opened := MinigameHost.is_open()
+	if film:
+		_frame = 0
+	var view := await _play_theft("mg_robo", 0.8, film)
+	for i in 20:
+		await get_tree().process_frame
+	print("MINIJUEGO_ROBO ", "OK" if opened and Security.pending_theft(m).is_empty() and not MinigameHost.is_open() else "FALLÓ (abierto=%s)" % opened)
+	# Coima ganada y coima perdida (multa).
+	var zid: String = m.data.zone_for_business(B0)
+	var left := Security.bribes_left_today(m)
+	MinigameHost.play_bribe(zid)
+	await get_tree().process_frame
+	if film:
+		_frame = 0
+	await _play_bribe("mg_coima_ok", -1, film)
+	for i in 20:
+		await get_tree().process_frame
+	var won := Security.protected_left(m, zid) > 0.0
+	MinigameHost.play_bribe(zid)
+	await get_tree().process_frame
+	if film:
+		_frame = 0
+	await _play_bribe("mg_coima_mal", 4, film)
+	for i in 20:
+		await get_tree().process_frame
+	var fined := Security.fine_left(m) > 0.0
+	print("MINIJUEGO_COIMA ", "OK" if won and fined and Security.bribes_left_today(m) == left - 2 else "FALLÓ (ganó=%s multa=%s)" % [won, fined])
+
+
+## Set "minijuegos": película de los dos minijuegos (un cuadro cada ~0,1 s).
+func _run_minigames() -> void:
+	await get_tree().create_timer(1.0).timeout
+	var main := Main.instance
+	main.start.enter_game()
+	await get_tree().create_timer(0.6).timeout
+	main.modal_host.close_all()
+	main.tutorial._skip()
+	Game.m.set_company_name("Los Pibes del Norte")
+	await _minigame_check(true)
 	get_tree().quit()

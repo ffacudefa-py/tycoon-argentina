@@ -39,6 +39,8 @@ var _back_armed := 0
 func _ready() -> void:
 	instance = self
 	m = Game.m
+	# 11.2: con interfaz, los robos esperan a jugarse como minijuego.
+	Security.ui_attached = true
 	selected_business = m.first_business()
 	_fit_integer_scale()
 	get_window().size_changed.connect(_fit_integer_scale)
@@ -110,6 +112,24 @@ func _ready() -> void:
 			var r := Game.pending_offline
 			Game.pending_offline = {}
 			OfflineReport.open(r))
+
+
+## 11.2: arranca el asalto pendiente (o retoma una coima a medias) cuando no
+## hay nada delante: modales, tutorial, pantalla de inicio o festejos.
+func _process(_dt: float) -> void:
+	if MinigameHost.is_open() or start.is_open() or modal_host._stack.size() > 0 or TutorialSteps.active(m):
+		return
+	if UnlockShow.current and is_instance_valid(UnlockShow.current):
+		return
+	var pb := Security.pending_bribe(m)
+	if not pb.is_empty():
+		MinigameHost.play_bribe(pb["zone"])
+	elif not Security.pending_theft(m).is_empty():
+		MinigameHost.play_theft()
+
+
+func _exit_tree() -> void:
+	Security.ui_attached = false
 
 
 func _show_offline(r: Dictionary) -> void:
@@ -264,6 +284,8 @@ func _on_model_reset() -> void:
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_WM_GO_BACK_REQUEST:
+		if MinigameHost.is_open():
+			return          # en pleno minijuego "atrás" no hace nada
 		if modal_host.close_top():
 			return
 		if start.is_open():

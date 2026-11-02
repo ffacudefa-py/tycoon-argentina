@@ -2,7 +2,8 @@ extends Node
 ## Autoload "Sfx": efectos de sonido (sintetizados para el proyecto, ver
 ## tools/sfx.py) y vibración. No hay música en esta versión.
 
-const NAMES := ["tap", "coin", "buy", "upgrade", "unlock", "hire", "mission", "error", "event", "register", "tier", "whoosh"]
+const NAMES := ["tap", "coin", "buy", "upgrade", "unlock", "hire", "mission", "error", "event", "register", "tier", "whoosh",
+	"shot", "hit", "ricochet", "empty", "reload", "bag", "alarm", "siren", "swipe", "shred", "stamp", "buzzer", "tick"]
 const POOL := 6
 
 var _streams := {}

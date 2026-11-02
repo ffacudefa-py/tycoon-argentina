@@ -125,6 +125,9 @@ func _reset_run() -> void:
 	boosts = []
 	hard["protected"] = {}
 	hard["debt_time"] = 0.0
+	hard["pending_theft"] = {}
+	hard["pending_bribe"] = {}
+	hard["fine_until"] = 0.0
 	salary_due = 0.0
 	salary_debt = 0
 	stage = 1
@@ -272,7 +275,7 @@ func _compute(id: String) -> Dictionary:
 	# income_rate (0,8) achica precios y costo de mercadería por igual: el margen
 	# se mantiene y la ganancia neta baja 20 %.
 	var rate := income_rate()
-	var income_mult := prestige_multiplier() * boost_multiplier() * rate * ConquestSystem.income_mult(self, id) * HardMode.income_mult(self)
+	var income_mult := prestige_multiplier() * boost_multiplier() * rate * ConquestSystem.income_mult(self, id) * HardMode.income_mult(self) * Security.income_mult(self)
 	var price_index := float(inflation["price_index"]) if inflation_active() else 1.0
 	var cost_index := float(inflation["cost_index"]) if inflation_active() else 1.0
 
@@ -987,6 +990,7 @@ func simulate(dt: float, offline := false) -> void:
 	ConquestSystem.advance(self, dt)
 	EmployeeSystem.advance(self, dt, offline)
 	HardMode.advance(self, dt, offline)
+	Security.advance(self, dt, offline)
 	if not offline:
 		Engagement.advance(self, dt)
 	if not offline:
@@ -1172,8 +1176,10 @@ func from_dict(d: Dictionary) -> void:
 	next_employee_id = maxi(int(d.get("next_employee_id", 1)), employees.size() + 1)
 	stage = conquest_stage()
 	hard = _merge(HardMode.default_state(), d.get("hard"))
-	if not hard["protected"] is Dictionary:
-		hard["protected"] = {}
+	for k in ["protected", "pending_theft", "pending_bribe"]:
+		if not hard[k] is Dictionary:
+			hard[k] = {}
+	Security.sanitize(self)
 	engage = _merge(Engagement.default_state(), d.get("engage"))
 	if not engage["marks"] is Dictionary:
 		engage["marks"] = {}

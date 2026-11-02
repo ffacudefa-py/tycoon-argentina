@@ -33,6 +33,25 @@ static func open() -> void:
 	else:
 		body.add_child(U.stat_row("Modo de juego", "Normal"))
 	body.add_child(U.para("Se elige al empezar la cuenta. El modo bien argentino trae inflación, juicios laborales y robos, a cambio de más ingresos.", U.SIZE_SMALL, U.TEXT_SOFT))
+	# Sólo para desarrollo (project.godot → application/config/dev_tools = true):
+	# probar los minijuegos sin esperar. Los releases se exportan en modo debug,
+	# así que no alcanza con OS.is_debug_build().
+	if bool(ProjectSettings.get_setting("application/config/dev_tools", false)):
+		body.add_child(_section("Pruebas (sólo desarrollo)", "engranaje"))
+		var row := U.hbox(6)
+		var bt := U.button("Probar asalto", "rojo", "", 32, U.SIZE_SMALL)
+		bt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		U.on_press(bt, func() -> void:
+			Main.instance.modal_host.close_all()
+			MinigameHost.debug_theft(Game.m))
+		row.add_child(bt)
+		var bb := U.button("Probar coima", "celeste", "", 32, U.SIZE_SMALL)
+		bb.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		U.on_press(bb, func() -> void:
+			Main.instance.modal_host.close_all()
+			MinigameHost.debug_bribe(Game.m))
+		row.add_child(bb)
+		body.add_child(row)
 	body.add_child(U.stat_row("Idioma", "Español (Argentina)"))
 	body.add_child(U.para("Notificaciones: todavía no hay avisos fuera del juego. Al volver ves el resumen de lo que ganaste.", U.SIZE_SMALL, U.TEXT_SOFT))
 	# --- Cuenta

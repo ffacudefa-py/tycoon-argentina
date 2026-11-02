@@ -7,9 +7,9 @@ extends RefCounted
 ##   - inflación reforzada siempre activa (remarcaciones más seguidas y grandes)
 ##   - juicios laborales: con sueldos atrasados más de lawsuit_after segundos,
 ##     un empleado te hace juicio, cobra la indemnización y se va
-##   - robos: cada tanto roban parte de la mercadería de un negocio
-##   - coima de seguridad: pagás por provincia y no te roban por un rato
-## Juicios y robos sólo pasan con la app abierta (nada de sorpresas offline).
+##   - robos más seguidos y más grandes (los robos, la coima y la multa están
+##     en Security y existen también en el modo normal desde la 11.2)
+## Los juicios sólo pasan con la app abierta (nada de sorpresas offline).
 ## Estado en m.hard (se guarda con la partida). Balance en progression.json →
 ## hard_mode.
 
@@ -23,14 +23,15 @@ static func on(m: GameModel) -> bool:
 
 
 static func default_state() -> Dictionary:
-	return {"enabled": false, "chosen": false, "protected": {}, "debt_time": 0.0, "lawsuit_cd": 0.0, "theft_in": -1.0, "warned": false}
+	return {"enabled": false, "chosen": false, "protected": {}, "debt_time": 0.0, "lawsuit_cd": 0.0, "theft_in": -1.0, "warned": false,
+		"pending_theft": {}, "pending_bribe": {}, "fine_until": 0.0, "bribe_day": -1, "bribe_count": 0}
 
 
 ## Se elige una sola vez por cuenta (el prestigio la conserva).
 static func choose(m: GameModel, enabled: bool) -> void:
 	m.hard["chosen"] = true
 	m.hard["enabled"] = enabled
-	m.hard["theft_in"] = _next_theft(m)
+	m.hard["theft_in"] = -1.0       # Security elige el próximo robo según el modo
 	m.invalidate()
 	if enabled:
 		m.add_milestone("Elegiste el modo bien argentino: +%d %% de ingresos, con inflación, juicios y robos." % int(round(income_bonus(m) * 100)))
@@ -53,40 +54,12 @@ static func inflation_cfg(m: GameModel) -> Dictionary:
 	return base
 
 
-# ------------------------------------------------------------------ seguridad
-
-static func bribe_cost(m: GameModel) -> int:
-	var c := cfg(m)
-	return maxi(int(c.get("bribe_min", 200)), Economy.to_int_ceil(m.income_per_sec() * float(c.get("bribe_income_seconds", 120))))
-
-
-static func protected_left(m: GameModel, zid: String) -> float:
-	return maxf(0.0, float(m.hard.get("protected", {}).get(zid, 0.0)) - m.now())
-
-
-static func pay_bribe(m: GameModel, zid: String) -> Dictionary:
-	if not on(m):
-		return GameModel.fail("Sólo en el modo bien argentino.")
-	if not m.zones.has(zid):
-		return GameModel.fail("No tenés negocios en esa provincia.")
-	var cost := bribe_cost(m)
-	if not m.economy.spend(cost, "coimas"):
-		return GameModel.fail("No te alcanza (%s)." % Fmt.cost(cost))
-	var until := maxf(m.now(), float(m.hard["protected"].get(zid, 0.0))) + float(cfg(m).get("bribe_minutes", 30)) * 60.0
-	m.hard["protected"][zid] = until
-	m._count("bribes", 1)
-	m.notify.emit("Arreglaste con la seguridad de %s: nadie te toca el depósito por %s." % [m.data.zone_by_id[zid]["name"], Fmt.duration(until - m.now())], "info")
-	m.world_changed.emit()
-	return GameModel.ok()
-
-
 # -------------------------------------------------------------------- ciclo
 
 static func advance(m: GameModel, dt: float, offline: bool) -> void:
 	if not on(m) or offline:
 		return
 	_advance_lawsuits(m, dt)
-	_advance_theft(m, dt)
 
 
 ## Segundos que faltan para el próximo juicio laboral (-1 si no hay riesgo:
@@ -137,49 +110,4 @@ static func lawsuit(m: GameModel) -> Dictionary:
 	m.notify.emit("%s te hizo juicio laboral por sueldos impagos: pagás %s y se va de la empresa." % [e["name"], Fmt.cost(cost)], "bad")
 	m.celebrate.emit("lawsuit", {"business": e["business"]})
 	m.business_changed.emit(e["business"])
-	return GameModel.ok()
-
-
-static func _next_theft(m: GameModel) -> float:
-	var r: Array = cfg(m).get("theft_interval", [240, 480])
-	return m.rng.randf_range(float(r[0]), float(r[1]))
-
-
-static func _advance_theft(m: GameModel, dt: float) -> void:
-	if float(m.hard.get("theft_in", -1.0)) < 0.0:
-		m.hard["theft_in"] = _next_theft(m)
-	m.hard["theft_in"] = float(m.hard["theft_in"]) - dt
-	if float(m.hard["theft_in"]) > 0.0:
-		return
-	m.hard["theft_in"] = _next_theft(m)
-	var targets := []
-	for id in m.owned_ids():
-		if m.has_stock(id):
-			targets.append(id)
-	if targets.is_empty():
-		return
-	theft(m, targets[m.rng.randi() % targets.size()])
-
-
-## Roban entre theft_fraction[0] y [1] del stock del negocio, salvo que la
-## provincia tenga la seguridad paga.
-static func theft(m: GameModel, bid: String) -> Dictionary:
-	var zid: String = m.biz[bid]["zone"]
-	var name: String = m.data.business_by_id[bid]["name"]
-	if protected_left(m, zid) > 0.0:
-		m._count("thefts_blocked", 1)
-		m.notify.emit("Quisieron robar en %s, pero la seguridad estaba arreglada. 😎" % name, "good")
-		return GameModel.fail("protegido")
-	var r: Array = cfg(m).get("theft_fraction", [0.2, 0.4])
-	var frac := m.rng.randf_range(float(r[0]), float(r[1]))
-	var stolen := 0.0
-	for pid in m.biz[bid]["stock"]:
-		var q := float(m.biz[bid]["stock"][pid])
-		var take := floorf(q * frac)
-		m.biz[bid]["stock"][pid] = q - take
-		stolen += take
-	m._count("thefts", 1)
-	m.notify.emit("¡Robo en %s! Una banda se llevó el %d %% de la mercadería (%s unidades). Pagá la seguridad para que no vuelva a pasar." % [name, int(round(frac * 100)), Fmt.num(stolen)], "bad")
-	m.celebrate.emit("theft", {"business": bid})
-	m.business_changed.emit(bid)
 	return GameModel.ok()

@@ -97,8 +97,9 @@ conserva) y reemplaza al viejo ajuste de inflación ficticia. Lógica en
 - **Inflación fuerte** siempre activa (remarcación cada 6 min, +12 %).
 - **Juicios laborales**: con sueldos atrasados más de 2 min, el empleado de mayor
   sueldo hace juicio (15 min de sueldo; lo que no se pueda pagar queda como deuda) y se va.
-- **Robos**: cada 4-8 min una banda se lleva 20-40 % de la mercadería de un negocio.
-- **Seguridad (coima)**: 2 min de ingresos por provincia → 30 min sin robos.
+- **Robos más seguidos y grandes**: cada 4-8 min, 20-40 % de la mercadería (en el
+  modo normal, 8-15 min y 15-30 %). Desde la 11.2 los robos y la coima existen en los
+  dos modos y se juegan como minijuegos: ver docs/MINIJUEGOS.md.
 - Juicios y robos sólo pasan con el juego abierto.
 
 ## Ciclo de enganche (10.3)
