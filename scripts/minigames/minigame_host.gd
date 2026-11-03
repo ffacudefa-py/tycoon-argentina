@@ -16,6 +16,8 @@ static var current: MinigameHost
 const STRIP_H := 26.0
 
 var kind := ""            ## "theft" o "bribe"
+var practice := false     ## práctica: el resultado no se aplica
+var _pending := {}        ## robo de práctica (no se guarda en la partida)
 var zid := ""
 var _root: Control
 var _strip: Control
@@ -47,11 +49,43 @@ static func play_bribe(zone_id: String) -> void:
 	_open("bribe", zone_id)
 
 
-static func _open(k: String, zone_id: String) -> void:
+static func _open(k: String, zone_id: String, practice_run := false, pending := {}) -> void:
 	var h := MinigameHost.new()
 	h.kind = k
 	h.zid = zone_id
+	h.practice = practice_run
+	h._pending = pending
 	Main.instance.add_child(h)
+
+
+# ------------------------------------------------- práctica (beta, para todos)
+
+## Botones "Practicar" de Ajustes, para todos los jugadores mientras el juego está
+## en prueba. Se apagan con project.godot → application/config/minigame_practice = false
+## (sacarlos cuando salga el juego).
+static func practice_enabled() -> bool:
+	return bool(ProjectSettings.get_setting("application/config/minigame_practice", false))
+
+
+## Asalto de práctica en el negocio elegido: no hace falta stock ni que haya un
+## robo, y el resultado no se aplica (no se pierde mercadería ni se gana cofre).
+static func practice_theft(m: GameModel) -> void:
+	if is_open() or Main.instance == null or m.owned_ids().is_empty():
+		return
+	var bid: String = Main.instance.selected_business
+	if not m.biz.has(bid) or not m.biz[bid]["owned"]:
+		bid = m.owned_ids()[0]
+	_open("theft", "", true, {"business": bid, "fraction": 0.2, "seed": randi(), "difficulty": Security.difficulty(m)})
+
+
+## Coima de práctica: no cobra, no gasta intentos del día, no da seguridad ni multa.
+static func practice_bribe(m: GameModel) -> void:
+	if is_open() or Main.instance == null:
+		return
+	var bid: String = Main.instance.selected_business
+	if not m.biz.has(bid):
+		bid = m.first_business()
+	_open("bribe", m.biz[bid]["zone"], true)
 
 
 func _init() -> void:
@@ -71,13 +105,15 @@ func _ready() -> void:
 	_root.add_child(_strip)
 	if kind == "theft":
 		var tv := TheftView.new()
-		tv.setup(m, Security.pending_theft(m))
+		tv.setup(m, _pending if practice else Security.pending_theft(m))
+		tv.practice = practice
 		tv.finished.connect(_on_theft_done)
 		tv.dismissed.connect(close)
 		_view = tv
 	else:
 		var bv := BribeView.new()
 		bv.setup(m, zid)
+		bv.practice = practice
 		bv.finished.connect(_on_bribe_done)
 		bv.dismissed.connect(close)
 		_view = bv
@@ -115,10 +151,12 @@ func _make_strip() -> Control:
 	_strip_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	var who: String = m.profile["company"]
 	if kind == "theft":
-		var bid: String = Security.pending_theft(m).get("business", "")
+		var bid: String = (_pending if practice else Security.pending_theft(m)).get("business", "")
 		_strip_label.text = "%s defiende %s" % [who, m.data.business_by_id[bid]["name"] if m.data.business_by_id.has(bid) else "su negocio"]
 	else:
 		_strip_label.text = "%s en la comisaría de %s" % [who, m.data.zone_by_id[zid]["name"] if m.data.zone_by_id.has(zid) else ""]
+	if practice:
+		_strip_label.text = "PRÁCTICA · " + _strip_label.text
 	strip.add_child(_strip_label)
 	return strip
 
@@ -152,11 +190,15 @@ func _process(dt: float) -> void:
 ## El resultado se aplica apenas termina el juego (la pantalla de resultado es
 ## sólo visual): cerrar la app en el resultado no permite repetirlo.
 func _on_theft_done(saved: float, perfect: bool) -> void:
+	if practice:
+		return
 	Security.resolve_theft(Game.m, saved, perfect)
 	Game.save()
 
 
 func _on_bribe_done(success: bool) -> void:
+	if practice:
+		return
 	Security.resolve_bribe(Game.m, success)
 	Game.save()
 

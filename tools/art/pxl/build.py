@@ -36,15 +36,9 @@ def main():
     for f in ("furniture.px.js", "locations.px.js", "interiors.px.js", "avatars.px.js"):
         pxl(f)
     out = os.path.join(HERE, "out")
-    d = os.path.join(ART, "interiors"); os.makedirs(d, exist_ok=True)
-    n = 0
-    for sc in glob.glob(os.path.join(out, "scenes", "int_*")):
-        if not os.path.isdir(sc):
-            continue
-        name = os.path.basename(sc)[4:]
-        for layer in ("back", "front"):
-            shutil.copy(os.path.join(sc, f"{layer}.png"), os.path.join(d, f"{name}_{layer}.png"))
-            n += 1
+    # 12.1: PXL pinta la habitación; la utilería "símil 3D" la estampa compose_interiors.py.
+    subprocess.run([sys.executable, os.path.join(HERE, "compose_interiors.py")], check=True)
+    n = 2 * len(glob.glob(os.path.join(out, "scenes", "int_*")))
     d = os.path.join(ART, "locations"); os.makedirs(d, exist_ok=True)
     for f in glob.glob(os.path.join(out, "scenes", "loc_*.png")):
         shutil.copy(f, os.path.join(d, "street_" + os.path.basename(f)[4:]))

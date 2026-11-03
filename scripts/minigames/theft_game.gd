@@ -3,14 +3,15 @@ extends RefCounted
 ## Lógica del minijuego "¡Asalto!" (sin interfaz: la dibuja TheftView).
 ##
 ## Coordenadas en píxeles de un campo de w × h. Arriba (shelf_y) está la
-## mercadería en la estantería; abajo (bag) la bolsa. Los ladrones entran por
+## mercadería en la estantería; abajo a la izquierda (bag) la bolsa que sostiene
+## la mano izquierda; la pistola va abajo a la derecha. Los ladrones entran por
 ## los costados a rachas muy rápidas con pausas cortas (el momento justo para
 ## dispararles), agarran una caja y huyen por el costado más cercano.
 ##  - tap(pos): disparo. Un ladrón con casco aguanta dos tiros. Si cae con una
 ##    caja, la caja queda en el piso: hay que arrastrarla a la bolsa antes de
 ##    que otro ladrón la levante o se la lleve un cómplice (floor_life).
-##  - Revólver de AMMO balas: con el tambor vacío hay que recargar (reload()).
-##  - Pasan clientes: dispararles deja el revólver trabado un rato.
+##  - Pistola de AMMO balas: con el cargador vacío hay que recargar (reload()).
+##  - Pasan clientes: dispararles deja la pistola trabada un rato.
 ## Resultado: recovered() = cajas en la bolsa ÷ cajas que salieron del estante.
 ## events guarda lo que pasó en el último paso para efectos y sonidos.
 
@@ -32,7 +33,7 @@ var h := 560.0
 var diff := 0.3
 var rng := RandomNumberGenerator.new()
 
-var thieves: Array = []     ## {id, pos, state, hp, helmet, carry, target, dash_t, pause_t, dir, spawn_at, side, flash}
+var thieves: Array = []     ## {id, pos, vel, state, hp, helmet, carry, target, dash_t, pause_t, dir, weave, spawn_at, side, flash}
 var loot: Array = []        ## {id, pos, home, state, floor_t, product}
 var civilians: Array = []   ## {pos, vel, spawn_at, state, kind}
 var events: Array = []      ## [{type, pos, ...}] pendientes: la vista los toma con take_events()
@@ -63,7 +64,7 @@ func _init(seed_value: int, difficulty: float, width := 360.0, height := 560.0, 
 	shelf_y = h * 0.27
 	floor_top = shelf_y + REACH + 20.0
 	floor_bottom = h - 140.0
-	bag = Rect2(w * 0.5 - 62.0, h - 124.0, 124.0, 112.0)
+	bag = bag_rect(h)
 	var n := thief_count()
 	# Cajas en la estantería: una por ladrón y un par de más.
 	var crates := n + 2
@@ -77,7 +78,8 @@ func _init(seed_value: int, difficulty: float, width := 360.0, height := 560.0, 
 		var hp := 2 if rng.randf() < diff * 0.55 else 1
 		thieves.append({"id": i, "pos": Vector2(-30.0 if side < 0 else w + 30.0, rng.randf_range(floor_top, floor_bottom)),
 			"state": "wait", "hp": hp, "helmet": hp > 1, "carry": -1, "target": -1,
-			"dash_t": 0.0, "pause_t": 0.0, "dir": Vector2.ZERO,
+			"dash_t": 0.0, "pause_t": 0.0, "dir": Vector2.ZERO, "vel": Vector2.ZERO, "bias": 0.0, "bias_to": 0.0,
+			"weave": rng.randf() * TAU, "weave_f": rng.randf_range(5.0, 8.0),
 			"spawn_at": 0.8 + spread * float(i) / maxf(1.0, float(n - 1)) + rng.randf_range(-0.4, 0.4),
 			"side": side, "flash": 0.0, "exit_y": 0.0})
 	var nciv := 0 if diff < 0.25 else (1 if diff < 0.55 else 2) + rng.randi_range(0, 1)
@@ -142,6 +144,8 @@ func tap(pos: Vector2) -> String:
 			th["pause_t"] = 0.45
 			th["dash_t"] = 0.0
 			th["flash"] = 0.2
+			# Trastabilla: el tiro lo empuja hacia atrás (se frena con la aceleración).
+			th["vel"] = (th["vel"] as Vector2) * -0.4 + Vector2(0, -dash_speed() * 0.15)
 			_event("armor", th["pos"], {"thief": best})
 			return "armor"
 		th["state"] = "down"
@@ -318,29 +322,48 @@ func _step_thief(th: Dictionary, dt: float) -> void:
 		loot[int(th["carry"])]["pos"] = (th["pos"] as Vector2) + Vector2(0, CARRY_OFFSET)
 
 
-## Rachas rápidas en zigzag con pausas cortas. Devuelve true al llegar.
+## 12.1: movimiento con inercia (antes cambiaba de rumbo y de velocidad de golpe y
+## se veía robótico). Mantiene el ritmo de rachas y pausas cortas (el momento de
+## disparar), pero con un "steering" simple: la velocidad se acerca a la deseada
+## con aceleración limitada, el rumbo serpentea con una onda suave más un desvío
+## por racha que cambia de a poco, en las pausas casi se detiene (mira, duda) y
+## frena al llegar. dir = hacia dónde mira. Devuelve true al llegar.
 func _move(th: Dictionary, goal: Vector2, dt: float) -> bool:
 	var pos: Vector2 = th["pos"]
-	if pos.distance_to(goal) < 8.0:
+	var vel: Vector2 = th["vel"]
+	var to_goal := goal - pos
+	var dist := to_goal.length()
+	if dist < 8.0:
+		th["vel"] = vel * 0.5
 		return true
+	var top := dash_speed()
+	var want := top
 	if float(th["pause_t"]) > 0.0:
 		th["pause_t"] = float(th["pause_t"]) - dt
-		return false
-	if float(th["dash_t"]) <= 0.0:
-		th["dash_t"] = rng.randf_range(0.22, 0.4)
-		var to := (goal - pos).normalized()
-		var side := Vector2(-to.y, to.x) * rng.randf_range(-0.85, 0.85)
-		th["dir"] = (to + side).normalized()
-	th["dash_t"] = float(th["dash_t"]) - dt
-	var step_len := dash_speed() * dt
-	var d: Vector2 = th["dir"]
-	if pos.distance_to(goal) < step_len * 3.0:
-		d = (goal - pos).normalized()
-	pos += d * minf(step_len, pos.distance_to(goal))
+		want = top * 0.03                        # duda: se planta (casi quieto), el momento de disparar
+	else:
+		if float(th["dash_t"]) <= 0.0:
+			th["dash_t"] = rng.randf_range(0.22, 0.4)
+			th["bias_to"] = rng.randf_range(-0.75, 0.75)
+		th["dash_t"] = float(th["dash_t"]) - dt
+		if float(th["dash_t"]) <= 0.0:
+			th["pause_t"] = rng.randf_range(lerpf(0.16, 0.07, diff), lerpf(0.42, 0.22, diff))
+	# Rumbo: hacia la meta + desvío de la racha (suavizado) + serpenteo.
+	th["bias"] = lerpf(float(th["bias"]), float(th["bias_to"]), minf(1.0, dt * 7.0))
+	th["weave"] = float(th["weave"]) + dt * float(th["weave_f"])
+	var fwd := to_goal / dist
+	var lat := Vector2(-fwd.y, fwd.x)
+	var near := clampf((dist - 30.0) / 90.0, 0.0, 1.0)     # cerca de la meta va derecho
+	var heading := (fwd + lat * (float(th["bias"]) + sin(float(th["weave"])) * 0.3) * near).normalized()
+	want *= clampf(dist / 60.0, 0.25, 1.0)                    # llegada: frena
+	var accel := top * (9.0 if want > vel.length() else 16.0)   # arranca en ~0,1 s, frena en ~0,06 s
+	vel = vel.move_toward(heading * want, accel * dt)
+	pos += vel * dt
 	pos.y = clampf(pos.y, shelf_y + REACH - 4.0, floor_bottom)
 	th["pos"] = pos
-	if float(th["dash_t"]) <= 0.0:
-		th["pause_t"] = rng.randf_range(lerpf(0.16, 0.07, diff), lerpf(0.42, 0.22, diff))
+	th["vel"] = vel
+	if vel.length() > top * 0.05:
+		th["dir"] = vel.normalized()
 	return pos.distance_to(goal) < 8.0
 
 
@@ -418,6 +441,12 @@ func saved() -> float:
 	return 1.0 - float(lost_count()) / float(maxi(1, loot.size()))
 
 
+## 12.1: la bolsa la sostiene la mano izquierda en la esquina inferior izquierda
+## (la boca y el cuerpo de la bolsa, como se dibuja en TheftView).
+static func bag_rect(height: float) -> Rect2:
+	return Rect2(16.0, height - 180.0, 150.0, 176.0)
+
+
 ## La pantalla cambió de tamaño en pleno juego: todo se reescala.
 func rescale(nw: float, nh: float) -> void:
 	if nw <= 0.0 or nh <= 0.0 or (is_equal_approx(nw, w) and is_equal_approx(nh, h)):
@@ -437,7 +466,7 @@ func rescale(nw: float, nh: float) -> void:
 	shelf_y = h * 0.27
 	floor_top = shelf_y + REACH + 20.0
 	floor_bottom = h - 140.0
-	bag = Rect2(w * 0.5 - 62.0, h - 124.0, 124.0, 112.0)
+	bag = bag_rect(h)
 
 
 func escaped_count() -> int:

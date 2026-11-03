@@ -22,6 +22,7 @@ var _bg: TextureRect
 var _bus: Sprite2D
 var _bus_t := 1.5
 var _bus_line := 0
+var _bus_x := 0.0
 var _anim := 0.0
 var _logo_box: Control
 var _menu: VBoxContainer
@@ -233,8 +234,10 @@ func _process(delta: float) -> void:
 			_bus_line = randi() % BusinessScene.BUS_LINES
 			# El sprite mira a la derecha; con flip_h mira a la izquierda.
 			_bus.position = Vector2(-126 if not _bus.flip_h else BG_W + 4, ROAD_Y - 22)
+			_bus_x = _bus.position.x
 		return
-	_bus.position.x = round(_bus.position.x + (-70.0 if _bus.flip_h else 70.0) * delta)
+	_bus_x += (-70.0 if _bus.flip_h else 70.0) * delta   # posición exacta aparte (redondear cada cuadro lo frenaba a muchos fps)
+	_bus.position.x = round(_bus_x)
 	_bus.frame = _bus_line * _bus.hframes + int(_anim * 6.0) % 2
 	if _bus.position.x < -130 or _bus.position.x > BG_W + 10:
 		_bus.visible = false

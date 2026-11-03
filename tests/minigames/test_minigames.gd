@@ -361,13 +361,13 @@ func test_asalto_soltar_afuera_y_reescalar() -> void:
 	var g := TheftGame.new(12, 0.3)
 	var l: Dictionary = g.loot[0]
 	l["state"] = "drag"
-	g.drag_end(0, Vector2(-300, 5000))
+	g.drag_end(0, Vector2(5000, -300))     # lejos de la bolsa (abajo a la izquierda)
 	eq(l["state"], "floor", "vuelve al piso")
 	check((l["pos"] as Vector2).x >= 0.0 and (l["pos"] as Vector2).y <= g.h, "dentro del campo")
 	eq(g.drag_start(l["pos"]), 0, "se puede volver a agarrar")
 	g.drag_end(0, l["pos"])
 	g.rescale(720.0, 1120.0)
-	near(g.bag.get_center().x, 360.0, 0.01, "la bolsa sigue centrada")
+	near(g.bag.end.y, 1120.0 - 4.0, 0.01, "la bolsa sigue abajo a la izquierda")
 	check((l["pos"] as Vector2).x > 24.0, "las cajas se reescalan")
 
 

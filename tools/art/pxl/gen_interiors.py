@@ -2,8 +2,20 @@
 """Genera los interiores de los 24 negocios provinciales (10.0) x 5 niveles.
 
 Escribe:
-  tools/art/pxl/interiors.px.js  -> escenas PXL (capas "back" y "front")
+  tools/art/pxl/interiors.px.js  -> escenas PXL: sólo la habitación (pared, piso, ventana)
+  tools/art/pxl/out/layout.json  -> la utilería de cada nivel (la estampa compose_interiors.py,
+                                    12.1: piezas "símil 3D" de tools/art/props_art.py)
   data/interiors.json            -> puestos de trabajo, fila de clientes y animaciones
+
+12.1, reglas de profundidad (los personajes no se paran "encima" de los muebles):
+  - la utilería del piso se ordena por la fila donde apoya (lo de adelante tapa);
+  - un empleado nunca queda detrás de un mueble que está más adelante que él
+    (se dibuja encima de la capa "back"): si pasa, el puesto se corre al hueco libre
+    más cercano; si no hay, falla la generación;
+  - los muebles del piso no se encastran entre sí (misma fila y superpuestos = error);
+  - los clientes caminan con los pies en y >= 162: siempre delante de todo; donde
+    se paran a hacer fila no puede haber ningún mueble del piso detrás de su cuerpo
+    (no parecen subidos a una cinta o a un cajón).
 
 Lienzo 400x170 (1 m = 24 px). Pared 0..110, piso 110..170.
 Los mostradores van en la capa "front" (tapan las piernas de quien atiende).
@@ -105,32 +117,32 @@ PROVINCES = {
         (3, "_machine", 150, M), ("station", 3, 180, 128), (4, "_bales", 330, F), (4, "_clock", 200, "wall:18")]),
     "papas_andinas": ("adobe", "cemento", "_counter_wood", 220, "_scale", [
         (0, "_potato_bins", 30, M), (0, "_sacks", 90, F), (1, "_potato_bins", 100, N), (1, "_mate_set", 280, "wall:70"),
-        (2, "_shelf_wood", 140, F), (2, "_pennant", 30, "wall:12"), (3, "_crate", 330, F), (3, "_crate", 352, F),
+        (2, "_shelf_wood", 140, F), (2, "_pennant", 30, "wall:12"), (3, "_crate", 318, F), (3, "_crate", 340, F),
         (3, "_poster", 300, "wall:24"), (4, "_potato_bins", 320, N), (4, "_plant", 370, F)]),
     "almazara": ("cal", "ceramica", "_counter_glass", 270, "_register", [
-        (0, "_olive_press", 30, M), (0, "_crate", 100, F), (1, "_steel_tank", 100, F), (1, "_shelf_wood", 140, F),
+        (0, "_olive_press", 30, M), (0, "_crate", 60, F), (1, "_steel_tank", 100, F), (1, "_shelf_wood", 172, F),
         ("station", 1, 70, 132), (2, "_steel_tank", 136, F), (3, "_machine", 180, M), ("station", 3, 210, 126),
         (3, "_clock", 300, "wall:18"), (4, "_steel_tank", 350, F), (4, "_plant", 20, F)]),
     "olivar": ("cal", "cemento", "_counter_wood", 260, "_scale", [
         (0, "_crate", 30, F), (0, "_crate", 54, F), (0, "_sacks", 90, F), (1, "_olive_press", 120, M),
-        (2, "_shelf_wood", 30, F), (2, "_wine_rack", 190, F), (3, "_steel_tank", 340, F), (3, "_pennant", 140, "wall:12"),
+        (2, "_shelf_wood", 136, F), (2, "_wine_rack", 190, F), (3, "_steel_tank", 340, F), (3, "_pennant", 140, "wall:12"),
         (4, "_conveyor", 30, N), ("fx", 4, "fx_conveyor", 31, 128)]),
     "bodega_torrontes": ("cal", "madera", "_counter_wood", 240, "_register", [
         (0, "_barrels_wood", 30, F), (0, "_wine_rack", 100, F), (1, "_barrels_wood", 140, M), (1, "_cafe_table", 330, N),
         (2, "_steel_tank", 180, F), (2, "_lamp_hanging", 300, "wall:4"), (3, "_wine_rack", 360, F), (3, "_barrels_wood", 30, N),
         (4, "_chalkboard", 290, "wall:30"), (4, "_cafe_table", 150, N)]),
     "citricola": ("cal", "cemento", "_counter_metal", 290, "_scale", [
-        (0, "_citrus_crates", 30, F), (0, "_citrus_crates", 80, M), (1, "_citrus_crates", 130, F), (1, "_prep_table", 180, M),
+        (0, "_citrus_crates", 30, F), (0, "_citrus_crates", 80, M), (1, "_citrus_crates", 76, F), (1, "_prep_table", 180, M),
         ("station", 1, 205, 130), (2, "_conveyor", 40, N), ("fx", 2, "fx_conveyor", 41, 128), (3, "_steel_tank", 220, F),
-        (3, "_machine", 150, F), (4, "_forklift", 330, N), (4, "_citrus_crates", 250, N)]),
+        (3, "_machine", 150, F), (4, "_forklift", 196, N), (4, "_citrus_crates", 250, N)]),
     "bananal": ("madera_rustica", "cemento", "_counter_wood", 250, "_scale", [
         (0, "_banana_hooks", 30, "wall:30"), (0, "_crate", 40, F), (1, "_banana_hooks", 90, "wall:30"), (1, "_prep_table", 120, M),
-        ("station", 1, 146, 130), (2, "_citrus_crates", 30, N), (3, "_banana_hooks", 160, "wall:30"), (3, "_cooler", 330, F),
+        ("station", 1, 146, 130), (2, "_citrus_crates", 200, F), (3, "_banana_hooks", 160, "wall:30"), (3, "_cooler", 330, F),
         (4, "_conveyor", 60, N), ("fx", 4, "fx_conveyor", 61, 128)]),
     "desmotadora": ("chapa", "cemento", "_counter_metal", 300, "_register", [
-        (0, "_bales", 30, F), (0, "_machine", 90, F), ("station", 0, 120, 128), (1, "_bales", 150, M), (1, "_conveyor", 20, N),
+        (0, "_bales", 30, F), (0, "_machine", 90, F), ("station", 0, 142, 128), (1, "_bales", 156, M), (1, "_conveyor", 20, N),
         ("fx", 1, "fx_conveyor", 21, 128), (2, "_machine", 200, F), ("station", 2, 230, 128), (3, "_pallet_rack", 210, N),
-        (4, "_forklift", 140, N), (4, "_clock", 300, "wall:18")]),
+        (4, "_pallet_boxes", 260, F), (4, "_clock", 300, "wall:18")]),
     "arrocera": ("madera_rustica", "cemento", "_counter_wood", 260, "_scale", [
         (0, "_sacks", 30, F), (0, "_sacks", 70, F), (1, "_sacks", 120, M), (1, "_mate_set", 300, "wall:70"), (2, "_machine", 150, F),
         ("station", 2, 180, 128), (3, "_pallet_boxes", 30, N), (3, "_pennant", 40, "wall:12"), (4, "_forklift", 200, N)]),
@@ -146,7 +158,7 @@ PROVINCES = {
         (2, "_cheese_shelf", 150, F), (2, "_prep_table", 100, N), ("station", 2, 124, 140), (3, "_freezer", 200, M),
         (4, "_steel_tank", 330, F), (4, "_clock", 210, "wall:4")]),
     "pasas": ("adobe", "cemento", "_counter_wood", 260, "_scale", [
-        (0, "_drying_rack", 30, F), (1, "_drying_rack", 100, F), (1, "_crate", 30, N), (2, "_wine_rack", 170, F),
+        (0, "_drying_rack", 30, F), (1, "_drying_rack", 100, F), (1, "_crate", 30, M), (2, "_wine_rack", 170, F),
         (2, "_sacks", 200, M), (3, "_barrels_wood", 330, F), (3, "_pennant", 30, "wall:10"), (4, "_conveyor", 40, N),
         ("fx", 4, "fx_conveyor", 41, 128)]),
     "bodega_malbec": ("ladrillo", "madera", "_counter_wood", 250, "_register", [
@@ -158,16 +170,16 @@ PROVINCES = {
         (2, "_freezer", 150, F), (2, "_pennant", 30, "wall:10"), (3, "_bales", 340, F), (3, "_poster", 200, "wall:24"),
         (4, "_cafe_table", 150, N)]),
     "lanera": ("chapa", "cemento", "_counter_metal", 300, "_register", [
-        (0, "_bales", 30, F), (0, "_machine", 90, F), ("station", 0, 120, 128), (1, "_bales", 150, M), (2, "_conveyor", 20, N),
+        (0, "_bales", 30, F), (0, "_machine", 90, F), ("station", 0, 142, 128), (1, "_bales", 156, M), (2, "_conveyor", 20, N),
         ("fx", 2, "fx_conveyor", 21, 128), (2, "_machine", 200, F), ("station", 2, 230, 128), (3, "_pallet_rack", 200, N),
         (4, "_forklift", 130, N)]),
     "chacra_peras": ("madera_rustica", "cemento", "_counter_wood", 260, "_scale", [
-        (0, "_apple_bins", 30, M), (0, "_crate", 100, F), (1, "_apple_bins", 90, F), (1, "_prep_table", 150, M),
+        (0, "_apple_bins", 30, M), (0, "_crate", 140, F), (1, "_apple_bins", 90, F), (1, "_prep_table", 150, M),
         ("station", 1, 176, 130), (2, "_citrus_crates", 30, F), (3, "_cooler", 340, F), (3, "_pennant", 140, "wall:10"),
         (4, "_conveyor", 40, N), ("fx", 4, "fx_conveyor", 41, 128)]),
     "manzanas": ("chapa", "cemento", "_counter_metal", 300, "_scale", [
         (0, "_apple_bins", 30, F), (0, "_apple_bins", 90, M), (1, "_conveyor", 20, N), ("fx", 1, "fx_conveyor", 21, 128),
-        (2, "_machine", 150, F), ("station", 2, 180, 128), (3, "_pallet_rack", 210, N), (4, "_forklift", 140, N),
+        (2, "_machine", 150, F), ("station", 2, 180, 128), (3, "_pallet_rack", 210, N), (4, "_pallet_boxes", 252, F),
         (4, "_clock", 300, "wall:18")]),
     "electronica": ("pintura_celeste", "goma", "_counter_metal", 300, "_register", [
         (0, "_electronics_bench", 30, M), ("station", 0, 60, 132), (1, "_electronics_bench", 120, M), ("station", 1, 150, 132),
@@ -180,14 +192,14 @@ PROVINCES = {
     "salames": ("ladrillo", "ceramica", "_counter_glass", 260, "_slicer", [
         (0, "_salames", 40, "wall:30"), (0, "_crate", 40, M), (1, "_salames", 90, "wall:30"), (1, "_prep_table", 100, M),
         ("station", 1, 124, 130), (2, "_cheese_shelf", 170, F), (3, "_salames", 330, "wall:30"), (3, "_freezer", 330, M),
-        (4, "_machine", 210, F), (4, "_fileteado_sign", 30, "wall:6")]),
+        (4, "_machine", 230, F), (4, "_fileteado_sign", 30, "wall:6")]),
     "usina_lactea": ("azulejo", "ceramica", "_counter_glass", 270, "_register", [
         (0, "_cheese_shelf", 30, F), (0, "_freezer", 90, M), (1, "_steel_tank", 100, F), (1, "_steel_tank", 134, F),
         (2, "_machine", 170, F), ("station", 2, 200, 126), (3, "_conveyor", 20, N), ("fx", 3, "fx_conveyor", 21, 128),
         (4, "_steel_tank", 350, F), (4, "_clock", 220, "wall:18")]),
     "molino_harinero": ("cal", "cemento", "_counter_metal", 300, "_scale", [
         (0, "_sacks", 30, F), (0, "_sacks", 70, M), (1, "_machine", 110, F), ("station", 1, 140, 128), (2, "_sacks", 170, M),
-        (2, "_conveyor", 20, N), ("fx", 2, "fx_conveyor", 21, 128), (3, "_pallet_rack", 200, N), (4, "_forklift", 300, N)]),
+        (2, "_conveyor", 20, N), ("fx", 2, "fx_conveyor", 21, 128), (3, "_pallet_rack", 200, N), (4, "_forklift", 140, N)]),
     "panaderia": ("madera_pared", "damero", "_counter_glass", 230, "_register", [
         (0, "_oven", 30, F), (0, "_pastry_case", 100, M), (1, "_coffee_machine", 236, "on1"), (1, "_cafe_table", 340, N),
         (2, "_shelf_wood", 150, F), (2, "_chalkboard", 290, "wall:30"), (3, "_cafe_table", 30, N), (3, "_fileteado_sign", 160, "wall:6"),
@@ -278,6 +290,80 @@ def check_text_items(name, L):
     return errs
 
 
+# ---------------------------------------------------------------- 12.1 profundidad
+CUSTOMER_LANE = 160          # ningún mueble del fondo apoya más abajo que esto
+QUEUE_REACH = 21             # el cliente frena a ±10 px del lugar y mide ±11 px
+BODY = (11, 44)              # medio ancho y alto del cuerpo de un personaje (sin el aire del sprite)
+
+
+def _floor_items(L):
+    """Utilería apoyada en el piso de la capa back: (pieza, x, y, w, h, base)."""
+    out = []
+    for p, x, y in L.back:
+        w, h = SZ[p]
+        base = y + h
+        if base >= WALL:                     # lo colgado en la pared termina más arriba
+            out.append((p, x, y, w, h, base))
+    return out
+
+
+def _hits(sx, sy, x, y, w, h, pad=2):
+    bx0, by0, bx1, by1 = sx - BODY[0], sy - BODY[1], sx + BODY[0], sy
+    return bx0 < x + w - pad and bx1 > x + pad and by0 < y + h - pad and by1 > y + pad
+
+
+def fix_depth(name, L):
+    """Corrige puestos tapados mal y valida la utilería. Devuelve errores."""
+    errs = []
+    items = _floor_items(L)
+    for st in L.stations:
+        bad = [it for it in items if it[5] > st["y"] + 1 and _hits(st["x"], st["y"], *it[1:5])]
+        if not bad:
+            continue
+        if st["kind"] == "counter":
+            errs.append(f"{name}: el que atiende en x={st['x']} queda detrás de {bad[0][0]}")
+            continue
+        x0 = st["x"]
+        moved = False
+        for d in range(4, 160, 4):
+            for nx in (x0 - d, x0 + d):
+                if not 24 <= nx <= W - 24:
+                    continue
+                if any(it[5] > st["y"] + 1 and _hits(nx, st["y"], *it[1:5]) for it in items):
+                    continue
+                if any(o is not st and abs(o["x"] - nx) < 22 and abs(o["y"] - st["y"]) < 10 for o in L.stations):
+                    continue
+                st["x"] = nx
+                moved = True
+                break
+            if moved:
+                break
+        if not moved:
+            errs.append(f"{name}: no hay lugar libre para el puesto de x={x0}")
+    for i, a in enumerate(items):
+        if a[5] > CUSTOMER_LANE:
+            errs.append(f"{name}: {a[0]} en x={a[1]} invade el pasillo de los clientes (apoya en {a[5]})")
+        for b in items[i + 1:]:
+            ox = min(a[1] + a[3], b[1] + b[3]) - max(a[1], b[1])
+            oy = min(a[2] + a[4], b[2] + b[4]) - max(a[2], b[2])
+            if ox > 3 and oy > 3 and abs(a[5] - b[5]) < 6:
+                errs.append(f"{name}: {a[0]} (x={a[1]}) y {b[0]} (x={b[1]}) se encastran")
+    for q in L.queue:
+        for it in items:
+            if it[1] < q[0] + QUEUE_REACH and it[1] + it[3] > q[0] - QUEUE_REACH and it[5] > QUEUE_Y - BODY[1]:
+                errs.append(f"{name}: la fila en x={q[0]} queda delante de {it[0]} (x={it[1]})")
+    return errs
+
+
+def depth_sorted(L):
+    """Lo de la pared primero; lo del piso de atrás hacia adelante."""
+    def key(it):
+        p, x, y = it
+        w, h = SZ[p]
+        return (0 if y + h < WALL else 1, y + h, x)
+    return sorted(L.back, key=key)
+
+
 def js_items(items):
     return ", ".join(f'stamp("{p}", {x}, {y})' for p, x, y in items)
 
@@ -287,6 +373,7 @@ def main():
     meta = {"_doc": "Generado por tools/art/pxl/gen_interiors.py. Coordenadas en píxeles del lienzo 400x170 de cada interior.",
             "size": [W, H], "behind_y": BEHIND, "queue_y": QUEUE_Y, "businesses": {}}
     errors = []
+    layout = {}
     for bid, fn in BUSINESSES.items():
         tiers = []
         for t in range(5):
@@ -295,9 +382,12 @@ def main():
                 add_wall_shelves(L, 1 if t < 2 else 2)
             name = f"int_{bid}_{t}"
             errors += check_text_items(name, L)
+            errors += fix_depth(name, L)
+            # 12.1: PXL pinta sólo la habitación; la utilería la estampa compose_interiors.py.
             js.append(f'scene("{name}", {{ w: {W}, h: {H}, bg: "u", layers: true }},')
-            js.append(f'  layer("back", room("{L.wall}", "{L.floor}", {str(L.outdoor).lower()}, {t}), {js_items(L.back) or "px(0, 0, \".\")"}),')
-            js.append(f'  layer("front", {js_items(L.front) or "px(0, 0, \".\")"}))')
+            js.append(f'  layer("back", room("{L.wall}", "{L.floor}", {str(L.outdoor).lower()}, {t})),')
+            js.append('  layer("front", px(0, 0, ".")))')
+            layout[name] = {"back": [list(i) for i in depth_sorted(L)], "front": [list(i) for i in L.front]}
             if not L.queue:
                 L.queue.append([W // 2, QUEUE_Y])
             if not L.stations:
@@ -308,8 +398,11 @@ def main():
     open(os.path.join(HERE, "interiors.px.js"), "w", encoding="utf-8", newline="\n").write("\n".join(js) + "\n")
     with open(os.path.join(ROOT, "data", "interiors.json"), "w", encoding="utf-8", newline="\n") as f:
         json.dump(meta, f, ensure_ascii=False, indent=1)
+    os.makedirs(os.path.join(HERE, "out"), exist_ok=True)
+    with open(os.path.join(HERE, "out", "layout.json"), "w", encoding="utf-8", newline="\n") as f:
+        json.dump({"size": SZ, "wall": WALL, "scenes": layout}, f)
     if errors:
-        sys.exit("Carteles fuera de lugar:\n  " + "\n  ".join(errors))
+        sys.exit("Interiores con problemas:\n  " + "\n  ".join(errors))
     print("ok:", len(BUSINESSES) * 5, "interiores")
 
 

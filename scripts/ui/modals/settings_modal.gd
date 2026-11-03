@@ -33,6 +33,25 @@ static func open() -> void:
 	else:
 		body.add_child(U.stat_row("Modo de juego", "Normal"))
 	body.add_child(U.para("Se elige al empezar la cuenta. El modo bien argentino trae inflación, juicios laborales y robos, a cambio de más ingresos.", U.SIZE_SMALL, U.TEXT_SOFT))
+	# Beta: practicar los minijuegos sin consecuencias, para todos los jugadores.
+	# Sacarlo al lanzar: project.godot → application/config/minigame_practice = false.
+	if MinigameHost.practice_enabled():
+		body.add_child(_section("Practicar minijuegos", "estrella"))
+		body.add_child(U.para("Jugá el asalto o la coima cuando quieras. Es de práctica: no perdés mercadería, no se cobra la coima ni hay multa.", U.SIZE_SMALL, U.TEXT_SOFT))
+		var prow := U.hbox(6)
+		var pt := U.button("Practicar asalto", "rojo", "", 36, U.SIZE_SMALL)
+		pt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		U.on_press(pt, func() -> void:
+			Main.instance.modal_host.close_all()
+			MinigameHost.practice_theft(Game.m))
+		prow.add_child(pt)
+		var pb := U.button("Practicar coima", "celeste", "", 36, U.SIZE_SMALL)
+		pb.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		U.on_press(pb, func() -> void:
+			Main.instance.modal_host.close_all()
+			MinigameHost.practice_bribe(Game.m))
+		prow.add_child(pb)
+		body.add_child(prow)
 	# Sólo para desarrollo (project.godot → application/config/dev_tools = true):
 	# probar los minijuegos sin esperar. Los releases se exportan en modo debug,
 	# así que no alcanza con OS.is_debug_build().

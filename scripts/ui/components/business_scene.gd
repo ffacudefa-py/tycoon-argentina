@@ -31,6 +31,11 @@ const INT_W := 400
 const CHAR_W := 32
 const CHAR_FEET := 46
 const MAX_WALKERS := [2, 6, 10]
+## 12.1: ningún cliente se queda trabado: a los WALKER_MAX_T segundos se va sí o sí,
+## y si en STUCK_T segundos no avanzó (por ejemplo, la escena cambió de tamaño) se quita.
+const WALKER_MAX_T := 18.0
+const STUCK_T := 4.0
+const QUEUE_GAP := 22.0
 
 static var _interiors := {}
 
@@ -53,6 +58,7 @@ var _fx: Array = []               ## [{sprite, durations, t}]
 var _bus: Sprite2D
 var _bus_t := 12.0
 var _bus_line := 0
+var _bus_x := 0.0
 var _spawn_t := 0.0
 var _anim_t := 0.0
 var _happy_until := 0.0   ## personajes 11: empleados felices tras una venta
@@ -374,12 +380,18 @@ func _spawn_walker() -> void:
 		var spot: Array = q[randi() % q.size()]
 		y = float(spot[1]) - CHAR_FEET + randi() % 3
 		stop_x = _origin_x() + float(spot[0]) - CHAR_W / 2 + randf_range(-10, 10)
+		# Si ya hay alguien comprando ahí, hace fila detrás (no se encima).
+		for o in _walkers:
+			if o["state"] == "shop" and absf(float(o["sprite"].position.x) - stop_x) < QUEUE_GAP:
+				stop_x -= float(dir) * QUEUE_GAP
 	else:
 		y = WALK_Y - CHAR_FEET + randi() % 3
 		stop_x = floor(w / 2.0) + randf_range(-30, 30) - CHAR_W / 2
+	stop_x = clampf(stop_x, 4.0, w - CHAR_W - 4.0)          # siempre dentro de la pantalla
 	sp.position = Vector2(-float(CHAR_W) if dir > 0 else w, y)
 	sp.flip_h = dir < 0
-	_walkers.append({"sprite": sp, "dir": dir, "speed": randf_range(26, 40), "state": "walk", "stop_x": stop_x, "t": 0.0, "shop": randf() < 0.8})
+	_walkers.append({"sprite": sp, "dir": dir, "speed": randf_range(26, 40), "state": "walk", "stop_x": stop_x, "t": 0.0,
+		"shop": randf() < 0.8, "age": 0.0, "last_x": sp.position.x, "still": 0.0, "fx": sp.position.x})
 
 
 func _update_walkers(delta: float) -> void:
@@ -388,9 +400,15 @@ func _update_walkers(delta: float) -> void:
 		var wk: Dictionary = _walkers[i]
 		var sp: Sprite2D = wk["sprite"]
 		wk["t"] = float(wk["t"]) + delta
+		wk["age"] = float(wk.get("age", 0.0)) + delta
+		if float(wk["age"]) > WALKER_MAX_T and wk["state"] != "leave":
+			wk["state"] = "leave"                     # nunca se queda para siempre
+			wk["shop"] = false
+			wk["t"] = 0.0
+			sp.flip_h = float(wk["dir"]) < 0
 		match wk["state"]:
 			"walk":
-				sp.position.x += float(wk["dir"]) * float(wk["speed"]) * delta
+				wk["fx"] = float(wk.get("fx", sp.position.x)) + float(wk["dir"]) * float(wk["speed"]) * delta
 				sp.frame = int(float(wk["t"]) * 8.0) % 4
 				var passed: bool = (wk["dir"] > 0 and sp.position.x >= wk["stop_x"]) or (wk["dir"] < 0 and sp.position.x <= wk["stop_x"])
 				if wk["shop"] and passed:
@@ -404,10 +422,20 @@ func _update_walkers(delta: float) -> void:
 					wk["shop"] = false
 					sp.flip_h = float(wk["dir"]) < 0
 			"leave":
-				sp.position.x += float(wk["dir"]) * float(wk["speed"]) * delta
+				wk["fx"] = float(wk.get("fx", sp.position.x)) + float(wk["dir"]) * float(wk["speed"]) * delta
 				sp.frame = int(float(wk["t"]) * 8.0) % 4
-		sp.position.x = round(sp.position.x)
-		if sp.position.x < -CHAR_W - 4 or sp.position.x > w + 4:
+		# 12.1: la posición exacta vive en "fx"; antes se redondeaba la del sprite en
+		# cada cuadro y a 60 fps los que caminan a <30 px/s avanzaban <0,5 px, volvían
+		# al mismo píxel y quedaban caminando en el lugar para siempre.
+		sp.position.x = round(float(wk.get("fx", sp.position.x)))
+		# Caminando sin avanzar = trabado: se quita (no queda "caminando en el lugar").
+		if wk["state"] != "shop":
+			if absf(sp.position.x - float(wk.get("last_x", sp.position.x))) < 0.5:
+				wk["still"] = float(wk.get("still", 0.0)) + delta
+			else:
+				wk["still"] = 0.0
+			wk["last_x"] = sp.position.x
+		if sp.position.x < -CHAR_W - 4 or sp.position.x > w + 4 or float(wk.get("still", 0.0)) > STUCK_T or float(wk["age"]) > WALKER_MAX_T * 2.0:
 			sp.queue_free()
 			_walkers.remove_at(i)
 
@@ -428,8 +456,10 @@ func _update_bus(delta: float, anim_on: bool) -> void:
 			_bus.visible = true
 			_bus_line = randi() % BUS_LINES
 			_bus.position = Vector2(-frame_w - 10, ROAD_Y - _bus.texture.get_height() / _bus.vframes)
+			_bus_x = _bus.position.x
 		return
-	_bus.position.x = round(_bus.position.x + BUS_SPEED * delta)
+	_bus_x += BUS_SPEED * delta                  # posición exacta aparte (redondear cada cuadro lo frenaba a muchos fps)
+	_bus.position.x = round(_bus_x)
 	_bus.frame = _bus_line * _bus.hframes + int(_anim_t * 6.0) % 2
 	if _bus.position.x > size.x + 10:
 		_bus.visible = false

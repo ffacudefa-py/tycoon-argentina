@@ -102,3 +102,18 @@ Salida (`assets/pixel_art/`): `interiors/<negocio>_<nivel>_{back,front}.png`,
 - **Sin interior:** la mesita, el carrito y el lavadero a cielo abierto (niveles 1–3)
   tienen `has_interior: false`: se ven siempre desde la calle y no aparece el botón
   de vista.
+
+## Utilería de los interiores (12.1)
+
+- Los muebles y objetos que aparecen al subir de nivel se dibujan en `tools/art/props_art.py`
+  (46 piezas "símil 3D": tapa, frente y costado, cilindros, biseles, oclusión) con las
+  primitivas de volumen de `tools/art/hands_art.py`. Miden lo mismo que `gen_interiors.SZ`.
+- `tools/art/pxl/gen_interiors.py` arma el layout y valida la profundidad: ningún empleado
+  queda detrás de un mueble que está más adelante (el puesto se corre solo), los muebles no se
+  encastran y donde los clientes hacen fila no hay nada detrás de su cuerpo.
+- PXL pinta sólo la habitación; `tools/art/pxl/compose_interiors.py` re-estiliza la habitación
+  (paleta 11) y estampa la utilería ordenada por profundidad con su sombra de contacto, en
+  `assets/pixel_art/interiors` y `assets/escenarios/interiors` (lo que carga el juego).
+  `restyle11.py` ya no toca los interiores.
+- Regenerar: `python tools/art/pxl/build.py` (o `gen_interiors.py` + PXL de `interiors.px.js` +
+  `compose_interiors.py`).

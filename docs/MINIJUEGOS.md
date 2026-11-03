@@ -15,7 +15,7 @@ explicación se saltea tocando la pantalla.
 | Lógica de la coima | `scripts/minigames/bribe_game.gd` |
 | Pantallas (todo en `_draw`) | `scripts/minigames/theft_view.gd`, `bribe_view.gd` |
 | Capa que tapa todo menos la barra superior | `scripts/minigames/minigame_host.gd` |
-| Arte (pixel art, paleta 11) | `tools/art/minigames_art.py` → `assets/pixel_art/minigames/` |
+| Arte (pixel art, paleta 11) | `tools/art/minigames_art.py` y luego `tools/art/minigames_art2.py` (12.1, pisa trituradora y carpeta) → `assets/pixel_art/minigames/` |
 | Sonidos | `tools/sfx.py` (shot, hit, ricochet, empty, reload, bag, alarm, siren, swipe, shred, stamp, buzzer, tick) |
 | Balance | `data/progression.json → balance.security` |
 
@@ -50,6 +50,26 @@ explicación se saltea tocando la pantalla.
 - Éxito: 30 min de seguridad en la provincia. Error o demora: **multa**, los
   ingresos bajan 20 % por 5 min (`Security.income_mult`). Una coima a medias (se
   cerró la app) cuenta como multa a los 2 min.
+
+## Aspecto 12.1
+
+- **Asalto en primera persona**: abajo a la derecha la mano con guante tejido sin dedos y
+  la pistola (basada en la referencia arma.jpg): apunta hacia el toque, retrocede con la
+  corredera atrás, fogonazo con luz, destello de pantalla, trazo de la bala, vaina servida,
+  humo, impacto con onda de choque y esquirlas de baldosa. Sin balas queda la corredera
+  trabada; recargar baja la pistola, cae el cargador y entra uno nuevo. Abajo a la
+  izquierda la otra mano sostiene la bolsa por el cuello atado (como bolsa.jpg); las cajas
+  se arrastran a su boca (`TheftGame.bag_rect`).
+- Fondo del asalto horneado a la grilla del arte (x2): baldosas calcáreas, alfombra con
+  guarda pampa, zócalo, maceta y cajas, sombra bajo la pared, luces de techo y viñeta con
+  tramado Bayer; balizas de alarma en la pared y polvo en el aire.
+- **Comisaría**: pared de yeso con friso azul, placa de bronce, reloj con la hora real,
+  cuadro con el escudo y bandera; escritorio de madera con carpeta de cuero, lámpara, taza,
+  teléfono y sello. Por la ventana (persiana, parante, reflejo) se ve la calle de enfrente;
+  el patrullero llega frenando (ruedas que giran, luces de freno, rebote de suspensión),
+  queda en marcha con humo del escape y balizas que tiñen el vidrio; si la coima sale bien
+  se va acelerando. Papeles con 3 modelos por color (formulario, factura con tabla y código
+  de barras, certificado con sello y cinta).
 
 ## Pruebas
 

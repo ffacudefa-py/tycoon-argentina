@@ -8,6 +8,13 @@ extends Control
 ## arriba se da vuelta y hay que deslizarlo antes de que se acabe su barra.
 ## Fases: intro (patrullero con sirena, cartel, reglas y 3-2-1), juego y
 ## resultado (sello APROBADO o la multa).
+## 12.1: comisaría pintada en pixel art a la grilla de los sprites (pared de yeso
+## con friso azul, placa de bronce, reloj que anda, cuadro con el escudo), ventana
+## con persiana y la calle de enfrente. El patrullero llega frenando (ruedas que
+## giran, luces de freno, cabeceo de la suspensión), queda en marcha con humo del
+## caño de escape y balizas que tiñen el vidrio y la pared; si la coima sale bien
+## se va acelerando. Escritorio de madera con carpeta de cuero, lámpara, taza,
+## teléfono y sello; papeles con membrete, formularios, tablas y sellos (3 modelos).
 
 signal finished(success: bool)      ## al terminar el juego (se aplica en el modelo)
 signal dismissed                    ## al tocar SEGUIR
@@ -30,6 +37,7 @@ var game: BribeGame
 var zid := ""
 var zone_name := ""
 var company := ""
+var practice := false                ## práctica (Ajustes): el resultado no se aplica
 
 var phase := "intro"
 var pt := 0.0
@@ -58,6 +66,8 @@ var _last_tick := -1
 var _font: Font
 var _rng := RandomNumberGenerator.new()
 var _tex := {}
+var _puff_t := 0.0
+var _puffs: Array = []               ## humo del caño de escape {pos, t, dur}
 
 
 func setup(model: GameModel, zone_id: String) -> void:
@@ -74,8 +84,12 @@ func _ready() -> void:
 	_font = get_theme_default_font()
 	_rm = bool(Settings.get_value("reduce_motion"))
 	_first_time = not bool(m.hard.get("seen_bribe", false))
-	for k in ["cop", "patrol", "doc_white", "doc_red", "stamp", "label", "shredder", "folder", "siren"]:
+	for k in ["cop", "stamp", "label", "shredder", "folder", "siren", "office_wall", "street", "window", "patrol_body",
+			"wheel", "desk", "blotter", "lamp", "phone", "mug", "stamp_pad", "smoke"]:
 		_tex[k] = U.tex("minigames/%s.png" % k)
+	for i in 3:
+		_tex["doc_white_%d" % i] = U.tex("minigames/doc_white_%d.png" % i)
+		_tex["doc_red_%d" % i] = U.tex("minigames/doc_red_%d.png" % i)
 	_rng.seed = int(m.now()) ^ hash(zid)
 	grab_focus.call_deferred()
 
@@ -137,6 +151,13 @@ func _process(dt: float) -> void:
 			else:
 				Sfx.play("stamp")
 				_folder_bump = 1.0
+	_puff_t -= dt
+	if _puff_t <= 0.0 and not _rm:
+		_puff_t = 0.3
+		_puffs.append({"pos": _car_origin() + Vector2(150, 46), "t": 0.0, "dur": 0.9})
+	for pf in _puffs:
+		pf["pos"] = (pf["pos"] as Vector2) + Vector2(18, -10) * dt
+	TheftView._age(_puffs, dt, -1.0)
 	TheftView._age(_flying, 0.0, 0.3)
 	TheftView._age(_fx, dt, -1.0)
 	queue_redraw()
@@ -289,25 +310,92 @@ func _draw() -> void:
 		_draw_result()
 
 
+const WIN := Rect2(8, 4, 200, 120)          ## ventana (marco) en la pared
+const GLASS := Rect2(16, 12, 184, 104)      ## vidrio = la calle (92x52 a x2)
+
+
+## Patrullero en la calle (en píxeles del arte): llega frenando, queda en marcha
+## y, si la coima salió bien, se va acelerando. Devuelve [x, cabeceo, frenando].
+func _car_state() -> Array:
+	var park := 8.0
+	var x := park
+	var dy := 0.0
+	var braking := false
+	if phase == "intro":
+		var k := clampf(pt / 1.2, 0.0, 1.0)
+		x = lerpf(110.0, park, _ease_out(k))
+		braking = k > 0.25 and k < 1.0
+		if k > 0.5 and k < 1.0:
+			dy = 1.0                                         # trompa abajo al frenar
+		var s := pt - 1.2
+		if s > 0.0:
+			dy = roundf(sin(s * 16.0) * exp(-s * 5.0) * 2.0)  # rebote de la suspensión
+	elif phase == "result" and bool(get_meta("ok", false)) and pt > 0.9:
+		var g := (pt - 0.9) / 1.4
+		x = park - 170.0 * g * g
+		dy = -1.0 if g < 0.15 else 0.0                       # arranca y levanta la trompa
+	elif not _rm:
+		dy = float(int(Time.get_ticks_msec() / 90) % 2) * 0.5   # motor en marcha
+	return [x, dy, braking]
+
+
+## Esquina superior izquierda del auto en pantalla (sin cabeceo).
+func _car_origin() -> Vector2:
+	return GLASS.position + Vector2(float(_car_state()[0]), 19) * 2.0
+
+
+## Región de textura a escala s recortada a clip (lo que se ve por la ventana).
+func _blit_clip(tex: Texture2D, src: Rect2, pos: Vector2, s: float, clip: Rect2, mod := Color.WHITE) -> void:
+	var dst := Rect2(pos.round(), src.size * s)
+	var inter := dst.intersection(clip)
+	if inter.size.x <= 0.5 or inter.size.y <= 0.5:
+		return
+	var sub := Rect2(src.position + (inter.position - dst.position) / s, inter.size / s)
+	draw_texture_rect_region(tex, inter, sub, mod)
+
+
 func _draw_office() -> void:
 	var w := size.x
-	var h := size.y
 	var wall_h := 170.0
 	if _office == null or _office_size != size:
 		_bake_office()
 	draw_texture(_office, Vector2.ZERO)
-	# Ventana con la calle y el patrullero.
-	var win := Rect2(16, 14, 176, 96)
-	var car_x := win.position.x + 22.0
-	if phase == "intro":
-		car_x = lerpf(win.end.x + 40, win.position.x + 22.0, _ease_out(clampf(pt / 1.0, 0.0, 1.0)))
-	var blink := 0 if _rm else int(Time.get_ticks_msec() / 400) % 2
-	draw_texture_rect_region(_tex["patrol"], Rect2(Vector2(car_x, win.end.y - 62).round(), Vector2(128, 60)), Rect2(blink * 128, 0, 128, 60))
-	var glow: Texture2D = _tex["siren"]
-	draw_texture_rect(glow, Rect2(car_x + 30, win.end.y - 92, 60, 60), false, Color(1, 0.2, 0.25, 0.3) if blink == 0 else Color(0.3, 0.5, 1, 0.3))
-	draw_rect(Rect2(win.position.x + win.size.x / 2 - 2, win.position.y, 4, win.size.y), Color("94552a"))
-	_text("COMISARÍA", Vector2(212 + (w - 228) / 2.0, 37), 18, CREAM, 3)
-	# Policía con la mano estirada.
+	# --- La calle por la ventana, con el patrullero.
+	draw_texture_rect(_tex["street"], GLASS, false)
+	var st := _car_state()
+	var cx := float(st[0])
+	var o := GLASS.position + Vector2(cx, 19) * 2.0
+	var fast := phase == "result" and not bool(get_meta("ok", true))
+	var lights := 0 if _rm else int(Time.get_ticks_msec() / (110 if fast else 180)) % 2
+	_blit_clip(_tex["patrol_body"], Rect2(lights * 76, 0, 76, 30), o + Vector2(0, float(st[1]) * 2.0), 2.0, GLASS)
+	var wf := posmod(int(cx / 6.0 / (TAU / 20.0)), 4)           # la rueda gira lo que avanza
+	for wx in [15.0, 61.0]:
+		_blit_clip(_tex["wheel"], Rect2(wf * 13, 0, 13, 13), o + Vector2(wx - 6.0, 19.0) * 2.0, 2.0, GLASS)
+	if bool(st[2]):                                              # luces de freno
+		_blit_clip(_tex["siren"], Rect2(0, 0, 64, 64), o + Vector2(64, 6) * 2.0, 0.5, GLASS, Color(1, 0.15, 0.2, 1))
+	for pf in _puffs:
+		var k := float(pf["t"]) / float(pf["dur"])
+		var p: Vector2 = pf["pos"]
+		_blit_clip(_tex["smoke"], Rect2(mini(4, int(k * 5.0)) * 16, 0, 16, 16), p - Vector2(8, 8) * (1.0 + k), 1.0 + k, GLASS, Color(1, 1, 1, 0.75))
+	# Balizas: tiñen el vidrio y derraman luz sobre la pared.
+	var col := Color(1, 0.2, 0.25) if lights == 0 else Color(0.3, 0.5, 1)
+	var bar := o + Vector2(38, 3) * 2.0
+	if GLASS.grow(16).has_point(bar):
+		draw_rect(GLASS, Color(col, 0.08))
+		draw_texture_rect(_tex["siren"], Rect2(bar - Vector2(100, 100), Vector2(200, 200)), false, Color(col, 0.3))
+		_blit_clip(_tex["siren"], Rect2(0, 0, 64, 64), bar - Vector2(24, 24), 0.75, GLASS, Color(col, 0.9))
+	draw_texture_rect(_tex["window"], WIN, false)
+	# --- Placa de bronce y reloj de pared.
+	var pl := Rect2(218, 14, maxf(60.0, w - 230), 28)
+	draw_rect(pl.grow(2), Color("7a4a12"))
+	draw_rect(pl, Color("c99a2e"))
+	draw_rect(Rect2(pl.position, Vector2(pl.size.x, 2)), Color("ffe07a"))
+	draw_rect(Rect2(pl.position + Vector2(0, pl.size.y - 2), Vector2(pl.size.x, 2)), Color("a8781a"))
+	for sx in [pl.position.x + 4, pl.end.x - 6]:
+		draw_rect(Rect2(sx, pl.position.y + 13, 2, 2), Color("7a4a12"))
+	_text("COMISARÍA", pl.get_center() + Vector2(0, 1), 18, Color("4a2717"), 0)
+	_draw_clock(Vector2(230, 74), 14.0)
+	# --- Policía con la mano estirada.
 	var frame := int(pt * 2.0) % 2
 	if _cop_mood < 0.0:
 		frame = 3
@@ -324,30 +412,81 @@ func _draw_office() -> void:
 		draw_texture_rect_region(_tex["cop"], Rect2(Vector2(w - 110, top).round(), Vector2(64, vis)), Rect2(frame * 32, 0, 32, vis / 2.0))
 
 
-## Hornea lo que no se mueve de la comisaría (antes, ~60 rectángulos por cuadro).
+## Reloj de pared con la hora real.
+func _draw_clock(c: Vector2, r: float) -> void:
+	draw_circle(c + Vector2(2, 2), r + 2, Color(0.24, 0.1, 0.04, 0.25))
+	draw_circle(c, r + 2, Color("6d3a20"))
+	draw_circle(c, r, Color("fff6e6"))
+	for i in 12:
+		var a := i * TAU / 12.0
+		var p := c + Vector2(cos(a), sin(a)) * (r - 3)
+		draw_rect(Rect2(p.round() - Vector2(1, 1), Vector2(2, 2)), Color("4a2717") if i % 3 == 0 else Color("c9bfb0"))
+	var tm := Time.get_time_dict_from_system()
+	var mi := float(tm["minute"]) + float(tm["second"]) / 60.0
+	var hr := float(int(tm["hour"]) % 12) + mi / 60.0
+	draw_line(c, c + Vector2.from_angle(hr / 12.0 * TAU - PI / 2) * (r * 0.5), Color("3d1b0b"), 2.0)
+	draw_line(c, c + Vector2.from_angle(mi / 60.0 * TAU - PI / 2) * (r * 0.78), Color("3d1b0b"), 2.0)
+	draw_line(c, c + Vector2.from_angle(float(tm["second"]) / 60.0 * TAU - PI / 2) * (r * 0.82), Color("d5576e"), 1.0)
+	draw_rect(Rect2(c - Vector2(1, 1), Vector2(2, 2)), Color("c99a2e"))
+
+
+## Hornea lo que no se mueve, a la mitad de resolución (la grilla del arte) y x2:
+## pared, escritorio de madera con su canto, carpeta de cuero bajo los papeles,
+## lámpara, taza, teléfono y sello, luz de la lámpara y viñeta tramada (Bayer).
 func _bake_office() -> void:
 	_office_size = size
-	var w := maxi(1, int(size.x))
-	var h := maxi(1, int(size.y))
-	var wall_h := 170
-	var img := Image.create(w, h, false, Image.FORMAT_RGBA8)
-	img.fill_rect(Rect2i(0, 0, w, wall_h), Color("c9bfb0"))
-	for x in range(0, w, 24):
-		img.fill_rect(Rect2i(x, 0, 1, wall_h - 40), Color("b5ab9c"))
-	img.fill_rect(Rect2i(0, wall_h - 40, w, 40), Color("4e8fd8"))
-	img.fill_rect(Rect2i(0, wall_h - 40, w, 3), Color("8fc4ff"))
-	var win := Rect2i(16, 14, 176, 96)
-	img.fill_rect(win.grow(5), Color("94552a"))
-	img.fill_rect(win, Color("60cafe"))
-	img.fill_rect(Rect2i(win.position.x, win.end.y - 26, win.size.x, 26), Color("8a8a9a"))
-	img.fill_rect(Rect2i(212, 22, w - 228, 30), Color("2f5fa0"))
-	img.fill_rect(Rect2i(212, 22, w - 228, 3), Color("8fc4ff"))
-	img.fill_rect(Rect2i(0, wall_h, w, h - wall_h), Color("a96a40"))
-	img.fill_rect(Rect2i(0, wall_h, w, 4), Color("e4ad69"))
-	for y in range(wall_h + 14, h, 22):
-		img.fill_rect(Rect2i(0, y, w, 1), Color("9a5c34"))
-		img.fill_rect(Rect2i((y * 37) % w, y + 6, 60, 1), Color("b67a4c"))
-	img.fill_rect(Rect2i(0, wall_h + 4, w, 8), Color("8a5130"))
+	var w := maxi(2, int(size.x))
+	var h := maxi(2, int(size.y))
+	var aw := int(ceil(w / 2.0))
+	var ah := int(ceil(h / 2.0))
+	var img := Image.create(aw, ah, false, Image.FORMAT_RGBA8)
+	img.fill(Color("6d3a20"))
+	var wall := TheftView._image(_tex["office_wall"])
+	if wall:
+		var x := 0
+		while x < aw:
+			img.blit_rect(wall, Rect2i(0, 1, 240, 85), Vector2i(x, 0))
+			x += 240
+	var dy := 85
+	var desk := TheftView._image(_tex["desk"])
+	if desk:
+		var yy := dy
+		while yy < ah:
+			var xx := 0
+			while xx < aw:
+				img.blit_rect(desk, Rect2i(0, 0, 64, 48), Vector2i(xx, yy))
+				xx += 64
+			yy += 48
+	# Canto del escritorio.
+	img.fill_rect(Rect2i(0, dy, aw, 1), Color("3d1b0b"))
+	img.fill_rect(Rect2i(0, dy + 1, aw, 1), Color("c2804e"))
+	img.fill_rect(Rect2i(0, dy + 2, aw, 2), Color("8e4e2a"))
+	img.fill_rect(Rect2i(0, dy + 4, aw, 1), Color("4a2717"))
+	var c := _stack_center() / 2.0
+	var props := [["blotter", Vector2i(int(c.x) - 58, int(c.y) - 68)], ["lamp", Vector2i(3, dy + 2)],
+		["mug", Vector2i(36, dy + 18)], ["phone", Vector2i(aw - 32, dy + 8)], ["stamp_pad", Vector2i(aw - 30, dy + 30)]]
+	for pr in props:
+		var im := TheftView._image(_tex[pr[0]])
+		if im:
+			img.blend_rect(im, Rect2i(0, 0, im.get_width(), im.get_height()), pr[1])
+	const BAYER := [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5]
+	var lamp_c := Vector2(18, dy + 26)
+	var cen := Vector2(aw * 0.5, (dy + ah) * 0.5)
+	for py in range(dy + 5, ah):
+		for px in aw:
+			var th := (float(BAYER[(py % 4) * 4 + px % 4]) + 0.5) / 16.0
+			var lit := clampf(1.0 - Vector2(px, py).distance_to(lamp_c) / 44.0, 0.0, 1.0) * 0.18
+			var vx := (px - cen.x) / (aw * 0.6)
+			var vy := (py - cen.y) / ((ah - dy) * 0.6)
+			var shade := clampf((sqrt(vx * vx + vy * vy) - 0.7) / 0.5, 0.0, 1.0) * 0.35
+			if py - dy < 10:
+				shade += 0.25 * (1.0 - float(py - dy) / 10.0)
+			var s_q := floorf(shade / 0.08 + th) * 0.08
+			var l_q := floorf(lit / 0.06 + th) * 0.06
+			if s_q <= 0.0 and l_q <= 0.0:
+				continue
+			img.set_pixel(px, py, img.get_pixel(px, py).darkened(s_q).lerp(Color(1, 0.86, 0.5), l_q))
+	img.resize(aw * 2, ah * 2, Image.INTERPOLATE_NEAREST)
 	_office = ImageTexture.create_from_image(img)
 
 
@@ -374,7 +513,7 @@ func _draw_bins() -> void:
 
 
 func _doc_tex(d: Dictionary) -> Texture2D:
-	return _tex["doc_red"] if d["red"] else _tex["doc_white"]
+	return _tex[("doc_red_%d" if d["red"] else "doc_white_%d") % (int(d.get("kind", 0)) % 3)]
 
 
 ## Un documento centrado en c (escala k, rotación rot, ancho visible flip 0..1).
@@ -383,8 +522,15 @@ func _draw_doc(d: Dictionary, c: Vector2, k: float, rot: float, flip := 1.0, fac
 	draw_set_transform(c.round() + _sh, rot, Vector2(maxf(0.02, flip), 1.0))
 	draw_rect(Rect2(-sz / 2.0 + Vector2(6, 8), sz), Color(0.24, 0.1, 0.04, 0.25 * mod.a))
 	if not face:
-		draw_rect(Rect2(-sz / 2.0, sz), Color("e4ad69") * mod)       # dorso de carpeta madera
-		draw_rect(Rect2(-sz / 2.0, Vector2(sz.x, 4)), Color("f2d173") * mod)
+		# Dorso: papel madera con renglones que se transparentan y un sello de agua.
+		draw_rect(Rect2(-sz / 2.0, sz), Color("e4c89a") * mod)
+		draw_rect(Rect2(-sz / 2.0, Vector2(sz.x, 4)), Color("f6e6c4") * mod)
+		draw_rect(Rect2(-sz / 2.0 + Vector2(0, sz.y - 4), Vector2(sz.x, 4)), Color("c9a878") * mod)
+		var ly := -sz.y / 2.0 + 0.25 * sz.y
+		while ly < sz.y / 2.0 - 0.12 * sz.y:
+			draw_rect(Rect2(-sz.x / 2.0 + 0.1 * sz.x, ly, sz.x * 0.8, 2), Color(0.79, 0.66, 0.47, 0.5 * mod.a))
+			ly += maxf(4.0, 0.06 * sz.y)
+		draw_circle(Vector2.ZERO, 0.11 * sz.x, Color(0.79, 0.66, 0.47, 0.45 * mod.a))
 		draw_rect(Rect2(-sz / 2.0, sz), OUTLINE * mod, false, 2.0)
 		draw_set_transform(_sh)
 		return
@@ -484,11 +630,11 @@ func _draw_fx() -> void:
 
 func _draw_hud() -> void:
 	var w := size.x
-	draw_rect(Rect2(16, 122, 176, 28), Color(0.24, 0.1, 0.04, 0.85))
+	draw_rect(Rect2(16, 134, 176, 28), Color(0.24, 0.1, 0.04, 0.85))
 	var label := "PAPELES %d/%d" % [mini(game.idx + 1, game.docs.size()), game.docs.size()]
 	if game.streak >= 3:
 		label += "  ·  x%d" % game.streak
-	_text(label, Vector2(104, 136), 20, GOLD, 2)
+	_text(label, Vector2(104, 148), 20, GOLD, 2)
 
 
 func _draw_intro() -> void:
@@ -557,6 +703,8 @@ func _draw_result() -> void:
 		lines = ["Nadie te roba en %s" % zone_name, "por %d minutos." % int(Security.cfg(m).get("bribe_minutes", 30)), "Papeles en regla: %d" % game.docs.size()]
 	else:
 		lines = [String(get_meta("reason", "")), "Tus ingresos bajan %d %%" % int(round(Security.fine_income(m) * 100)), "por %d minutos." % int(Security.cfg(m).get("fine_minutes", 5))]
+	if practice:
+		lines = [String(get_meta("reason", "")) if not ok else "¡Le ganaste a la comisaría!", "Papeles: %d de %d" % [mini(game.idx, game.docs.size()), game.docs.size()], "Práctica: no se cobra ni se aplica nada."]
 	var pa := clampf((pt - 0.6) * 4.0, 0.0, 1.0)
 	var panel := Rect2(24, h * 0.45 - 26, w - 48, 150)
 	draw_rect(panel, Color(0.24, 0.1, 0.04, 0.9 * pa))
@@ -567,7 +715,8 @@ func _draw_result() -> void:
 		var c := CREAM
 		c.a = la
 		_text(lines[i], Vector2(w / 2, h * 0.45 + i * 30), 22, c)
-	_text("Te quedan %d de %d coimas hoy" % [Security.bribes_left_today(m), Security.bribe_daily(m)], Vector2(w / 2, h * 0.45 + 108), 16, Color(1, 0.86, 0.45, clampf((pt - 1.2) * 4.0, 0.0, 1.0)))
+	if not practice:
+		_text("Te quedan %d de %d coimas hoy" % [Security.bribes_left_today(m), Security.bribe_daily(m)], Vector2(w / 2, h * 0.45 + 108), 16, Color(1, 0.86, 0.45, clampf((pt - 1.2) * 4.0, 0.0, 1.0)))
 
 
 func _text(s: String, center: Vector2, sz: int, c: Color, outline := 4) -> void:

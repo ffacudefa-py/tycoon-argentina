@@ -32,7 +32,9 @@ MAP = {
     "#F3E1BC": "#F7E7C4", "#D8BD8C": "#E4C890", "#E0802F": "#E8823A",
     "#4E3A7A": "#6A4596", "#7B5BB5": "#8A63C2",
 }
-SCENES = ["businesses", "locations", "interiors", "backgrounds", "map", "effects", "buildings"]
+# 12.1: "interiors" ya no pasa por acá: compose_interiors.py re-estiliza sólo la habitación
+# y estampa encima la utilería nueva (si se re-estilizara entera se correrían sus colores).
+SCENES = ["businesses", "locations", "backgrounds", "map", "effects", "buildings"]
 ICONS = ["icons", "icons32", "particles", "avatars", "ui", "logo", "products"]
 
 
