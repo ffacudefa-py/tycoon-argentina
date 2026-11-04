@@ -20,6 +20,7 @@ signal dismissed                                ## al tocar SEGUIR (cierra la pa
 const INTRO := 3.4
 const SPR := 2.0                     ## escala de cajas, bolsa y efectos
 const CHAR := 3.0                    ## escala de ladrones y clientes
+const GUN := 2.5                     ## 12.2: escala de la mano con la pistola (antes SPR = 2)
 const OUTLINE := Color("3d1b0b")
 const GOLD := Color("f2d173")
 const CREAM := Color("fff6e6")
@@ -106,7 +107,10 @@ func _ready() -> void:
 	for i in 14:
 		_motes.append({"pos": Vector2(_rng.randf(), _rng.randf()), "vel": Vector2(_rng.randf_range(-6, 6), _rng.randf_range(-4, 2)), "ph": _rng.randf() * TAU})
 	var tier := int(m.derive(bid)["tier"]) if m.biz[bid]["owned"] else 0
-	_tex["back"] = U.tex("interiors/%s_%d_back.png" % [bid, tier])
+	# 12.2: la pared sin ventana ni cosas colgadas (no quedan debajo del HUD)
+	_tex["back"] = U.tex("interiors/%s_%d_wall.png" % [bid, tier])
+	if _tex["back"] == null:
+		_tex["back"] = U.tex("interiors/%s_%d_back.png" % [bid, tier])
 	for p in m.data.business_by_id[bid]["products"]:
 		var t := U.icon32_tex(p["icon"])
 		_icons.append(t if t else U.icon_tex(p["icon"]))
@@ -348,7 +352,7 @@ func _dismiss() -> void:
 
 ## Zona de la pistola (abajo a la derecha): tocarla recarga.
 func _gun_rect() -> Rect2:
-	return Rect2(size.x - 176, size.y - 150, 176, 150)
+	return Rect2(size.x - 210, size.y - 180, 210, 180)
 
 
 ## Pose de la mano con la pistola: [pivote de la muñeca en pantalla, rotación].
@@ -383,7 +387,7 @@ func _gun_pose() -> Array:
 ## Punto del cuadro de la pistola (en píxeles del arte) llevado a la pantalla.
 func _gun_point(art: Vector2) -> Vector2:
 	var pose := _gun_pose()
-	return (pose[0] as Vector2) + ((art - Vector2(80, 80)) * SPR).rotated(float(pose[1]))
+	return (pose[0] as Vector2) + ((art - Vector2(80, 80)) * GUN).rotated(float(pose[1]))
 
 
 ## Boca de la bolsa (ahí caen las cajas).
@@ -581,10 +585,10 @@ func _bake_room() -> void:
 	# Utilería contra la pared (fuera del camino de la mercadería).
 	var plant := _image(_tex["plant"])
 	if plant:
-		img.blend_rect(plant, Rect2i(0, 0, 22, 34), Vector2i(2, wb + 10 - 34))
+		img.blend_rect(plant, Rect2i(0, 0, 22, 34), Vector2i(10, wb + 10 - 34))
 	var boxes := _image(_tex["boxes"])
 	if boxes:
-		img.blend_rect(boxes, Rect2i(0, 0, 30, 30), Vector2i(aw - 32, wb + 9 - 30))
+		img.blend_rect(boxes, Rect2i(0, 0, 30, 30), Vector2i(aw - 40, wb + 9 - 30))
 	# Luz: sombra de contacto, charcos de luz del techo y viñeta, cuantizados con Bayer.
 	const BAYER := [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5]
 	var l1 := Vector2(aw * 0.3, wb + floor_h * 0.32)
@@ -681,15 +685,18 @@ func _shake_off() -> Vector2:
 
 
 ## Sprite de una hoja horizontal con los pies (abajo-centro) en feet.
-func _spr(tex: Texture2D, frame: int, fw: int, fh: int, feet: Vector2, flip: bool, mod := Color.WHITE, s := SPR) -> void:
+## 12.2: el espejado se hace con la transformación (escala -1 en x). Antes se
+## pasaba un Rect2 de ancho negativo, que Godot 4.7 NO espeja: lo corría un ancho
+## entero a la derecha, y los ladrones que corrían hacia la izquierda quedaban
+## lejos de su sombra (o fuera de la pantalla) y parecían invisibles.
+func _spr(tex: Texture2D, frame: int, fw: int, fh: int, feet: Vector2, flip: bool, mod := Color.WHITE, s := SPR, sx := 1.0, sy := 1.0) -> void:
 	if tex == null:
 		return
 	var sz := Vector2(fw, fh) * s
 	var src := Rect2(frame * fw, 0, fw, fh)
-	if flip:
-		draw_texture_rect_region(tex, Rect2((feet + Vector2(sz.x / 2.0, -sz.y)).round(), Vector2(-sz.x, sz.y)), src, mod)
-	else:
-		draw_texture_rect_region(tex, Rect2((feet - Vector2(sz.x / 2.0, sz.y)).round(), sz), src, mod)
+	draw_set_transform(feet.round() + _sh, 0.0, Vector2(-sx if flip else sx, sy))
+	draw_texture_rect_region(tex, Rect2(Vector2(-sz.x / 2.0, -sz.y).round(), sz), src, mod)
+	draw_set_transform(_sh)
 
 
 func _shadow(p: Vector2, rx: float, a := 0.3) -> void:
@@ -769,10 +776,8 @@ func _draw_thief(th: Dictionary) -> void:
 	if float(th["flash"]) > 0.0 and th["state"] != "down":
 		mod = Color(2.0, 2.0, 2.0, 1.0)
 	if squash != 1.0:
-		var feet := pos + Vector2(0, 6) + _sh
-		draw_set_transform(feet, 0.0, Vector2(2.0 - squash, squash))
-		_spr(tex, frame, 48, 48, Vector2(0, bob), flip, mod, CHAR)
-		draw_set_transform(_sh)
+		# Aplastado en la pisada, desde los pies.
+		_spr(tex, frame, 48, 48, pos + Vector2(0, 6 + bob * squash), flip, mod, CHAR, 2.0 - squash, squash)
 	else:
 		_spr(tex, frame, 48, 48, pos + Vector2(0, 6 + bob), flip, mod, CHAR)
 
@@ -870,14 +875,14 @@ func _draw_gun() -> void:
 	if game != null and game.stun_t > 0.0:
 		mod = Color(0.62, 0.6, 0.66)
 	draw_set_transform(piv, rot)
-	draw_texture_rect_region(_tex["pistol_hand"], Rect2(-Vector2(80, 80) * SPR, Vector2(96, 96) * SPR), Rect2(frame * 96, 0, 96, 96), mod)
+	draw_texture_rect_region(_tex["pistol_hand"], Rect2(-Vector2(80, 80) * GUN, Vector2(96, 96) * GUN), Rect2(frame * 96, 0, 96, 96), mod)
 	# Recarga: el cargador nuevo entra por la empuñadura en la segunda mitad.
 	if game != null and game.reload_t > 0.0:
 		var r := 1.0 - game.reload_t / TheftGame.RELOAD_TIME
 		if r > 0.45:
 			var k := clampf((r - 0.45) / 0.4, 0.0, 1.0)
-			var mp := (Vector2(54, 64) + Vector2(-6, 30) * (1.0 - k) - Vector2(80, 80)) * SPR
-			draw_texture_rect(_tex["mag"], Rect2(mp, Vector2(10, 18) * SPR), false)
+			var mp := (Vector2(54, 64) + Vector2(-6, 30) * (1.0 - k) - Vector2(80, 80)) * GUN
+			draw_texture_rect(_tex["mag"], Rect2(mp, Vector2(10, 18) * GUN), false)
 	draw_set_transform(Vector2.ZERO)
 
 

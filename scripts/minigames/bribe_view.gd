@@ -282,11 +282,11 @@ func _stack_center() -> Vector2:
 
 
 func _shredder_mouth() -> Vector2:
-	return Vector2(70, size.y - 110)
+	return Vector2(70, size.y - 122)
 
 
 func _folder_mouth() -> Vector2:
-	return Vector2(size.x - 70, size.y - 100)
+	return Vector2(size.x - 70, size.y - 112)
 
 
 func _draw() -> void:
@@ -448,29 +448,35 @@ func _bake_office() -> void:
 			img.blit_rect(wall, Rect2i(0, 1, 240, 85), Vector2i(x, 0))
 			x += 240
 	var dy := 85
+	# 12.2: la madera mide 256x192 (cubre el ancho sin repetirse en x).
 	var desk := TheftView._image(_tex["desk"])
 	if desk:
+		var dw := desk.get_width()
+		var dh := desk.get_height()
 		var yy := dy
 		while yy < ah:
 			var xx := 0
 			while xx < aw:
-				img.blit_rect(desk, Rect2i(0, 0, 64, 48), Vector2i(xx, yy))
-				xx += 64
-			yy += 48
+				img.blit_rect(desk, Rect2i(0, 0, dw, dh), Vector2i(xx, yy))
+				xx += dw
+			yy += dh
 	# Canto del escritorio.
 	img.fill_rect(Rect2i(0, dy, aw, 1), Color("3d1b0b"))
 	img.fill_rect(Rect2i(0, dy + 1, aw, 1), Color("c2804e"))
 	img.fill_rect(Rect2i(0, dy + 2, aw, 2), Color("8e4e2a"))
 	img.fill_rect(Rect2i(0, dy + 4, aw, 1), Color("4a2717"))
 	var c := _stack_center() / 2.0
-	var props := [["blotter", Vector2i(int(c.x) - 58, int(c.y) - 68)], ["lamp", Vector2i(3, dy + 2)],
-		["mug", Vector2i(36, dy + 18)], ["phone", Vector2i(aw - 32, dy + 8)], ["stamp_pad", Vector2i(aw - 30, dy + 30)]]
+	# 12.2: objetos más grandes y con sombra de contacto; ninguno se toca entre sí
+	# ni con la carpeta ni con los bordes (lámpara y taza a la izquierda, teléfono
+	# y sello a la derecha, todos dentro de la pantalla).
+	var props := [["blotter", Vector2i(int(c.x) - 58, int(c.y) - 68)], ["lamp", Vector2i(2, dy + 1)],
+		["mug", Vector2i(44, dy + 18)], ["phone", Vector2i(aw - 52, dy + 3)], ["stamp_pad", Vector2i(aw - 46, dy + 38)]]
 	for pr in props:
 		var im := TheftView._image(_tex[pr[0]])
 		if im:
 			img.blend_rect(im, Rect2i(0, 0, im.get_width(), im.get_height()), pr[1])
 	const BAYER := [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5]
-	var lamp_c := Vector2(18, dy + 26)
+	var lamp_c := Vector2(23, dy + 28)
 	var cen := Vector2(aw * 0.5, (dy + ah) * 0.5)
 	for py in range(dy + 5, ah):
 		for px in aw:
@@ -500,12 +506,13 @@ func _draw_bins() -> void:
 		draw_circle(_shredder_mouth() + Vector2(0, 40), 70, Color(0.84, 0.34, 0.43, 0.3 * -lean))
 	if lean > 0.1:
 		draw_circle(_folder_mouth() + Vector2(0, 30), 70, Color(0.31, 0.56, 0.85, 0.3 * lean))
-	draw_set_transform(Vector2(70, h - 6) + _sh, 0.0, Vector2(sl, 2.0 - sl))
+	# 12.2: más arriba (antes las ruedas quedaban contra el borde de la pantalla)
+	draw_set_transform(Vector2(70, h - 18) + _sh, 0.0, Vector2(sl, 2.0 - sl))
 	draw_texture_rect(_tex["shredder"], Rect2(-64, -120, 128, 120), false)
-	draw_set_transform(Vector2(size.x - 70, h - 6) + _sh, 0.0, Vector2(fl, 2.0 - fl))
+	draw_set_transform(Vector2(size.x - 70, h - 18) + _sh, 0.0, Vector2(fl, 2.0 - fl))
 	draw_texture_rect(_tex["folder"], Rect2(-64, -112, 128, 112), false)
 	draw_set_transform(_sh)
-	var ly := h - 140
+	var ly := h - 152
 	draw_rect(Rect2(10, ly - 13, 120, 26), Color(0.24, 0.1, 0.04, 0.85))
 	draw_rect(Rect2(size.x - 130, ly - 13, 120, 26), Color(0.24, 0.1, 0.04, 0.85))
 	_text("← ROJOS", Vector2(70, ly), 20, Color("ffc4c4"), 2)

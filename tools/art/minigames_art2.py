@@ -55,6 +55,8 @@ def hx(c):
 OUTL = "#3D1B0B"          # contorno de la guía de estilo
 OUT_DK = "#1E1626"        # contorno de objetos oscuros (metal, guante)
 STEEL = ["#262433", "#363347", "#4B4862", "#666283", "#8D89A8", "#C3C0D8", "#EEEDF7"]
+# 12.2: la pistola en gris azulado más claro: se separa del guante de cuero oscuro
+GUN = ["#2A3240", "#3B4656", "#52607A", "#6C7C98", "#8E9EB8", "#BAC7DA", "#E8EEF6"]
 GLOVE = ["#1F1B26", "#2A2533", "#363044", "#463F57", "#5C546F", "#7A7290"]
 SKIN = ["#8A4E3C", "#B87259", "#E3A988", "#F3D2B6"]
 SLEEVE = ["#1A1720", "#25212D", "#322C3D", "#433C52"]
@@ -206,111 +208,75 @@ def finger(cv, x0, y0, x1, y1, th, tip_len, glove=GLOVE, skin=SKIN):
 
 def _gun(cv, frame):
     """Pistola (corredera, armazón, guardamonte, miras) apuntando a la izquierda."""
-    back = 5 if frame in (1, 2) else 0
+    back = {1: 3, 2: 5}.get(frame, 0)
     fx = 12
-    shade_poly(cv, [(16, 41), (50, 40), (52, 46), (16, 46)], STEEL, 2)   # armazón
+    shade_poly(cv, [(16, 41), (50, 40), (52, 46), (16, 46)], GUN, 1)   # armazón (más oscuro que la corredera)
     for x in range(20, 32, 3):                                            # riel
-        cv.put(x, 44, STEEL[0])
-    cv.line([(30, 46), (30, 50), (33, 54), (44, 54), (47, 50)], STEEL[1], 2)   # guardamonte
-    cv.line([(31, 50), (34, 53), (43, 53)], STEEL[4])
-    cv.line([(40, 47), (39, 51)], STEEL[0], 2)                                # cola del disparador
+        cv.put(x, 44, GUN[0])
+    cv.line([(30, 46), (30, 50), (33, 54), (44, 54), (47, 50)], GUN[1], 2)   # guardamonte
+    cv.line([(31, 50), (34, 53), (43, 53)], GUN[4])
+    cv.line([(40, 47), (39, 51)], GUN[0], 2)                                # cola del disparador
     if back:
-        cv.rect(fx, 34, back + 4, 5, BRASS[1])                              # caño a la vista
-        cv.line([(fx, 34), (fx + back + 3, 34)], BRASS[3])
-        cv.line([(fx, 38), (fx + back + 3, 38)], BRASS[0])
+        cv.rect(fx, 34, back + 4, 5, GUN[3])                                # caño de acero a la vista
+        cv.line([(fx, 34), (fx + back + 3, 34)], GUN[5])
+        cv.line([(fx, 38), (fx + back + 3, 38)], GUN[1])
     sx0 = fx + back
-    shade_poly(cv, [(sx0, 31), (66 + back, 27), (67 + back, 40), (sx0, 41)], STEEL, 3)
-    shade_poly(cv, [(sx0 + 2, 28), (68 + back, 24), (66 + back, 27), (sx0, 31)], STEEL, 5)
-    cv.poly([(66 + back, 27), (69 + back, 25), (70 + back, 38), (67 + back, 40)], STEEL[1])
+    shade_poly(cv, [(sx0, 31), (66 + back, 27), (67 + back, 40), (sx0, 41)], GUN, 3)
+    shade_poly(cv, [(sx0 + 2, 28), (68 + back, 24), (66 + back, 27), (sx0, 31)], GUN, 5)
+    cv.poly([(66 + back, 27), (69 + back, 25), (70 + back, 38), (67 + back, 40)], GUN[1])
     for x in range(55, 64, 2):                                            # estrías
-        cv.line([(x + back, 29), (x + back, 38)], STEEL[1])
-        cv.line([(x + back + 1, 29), (x + back + 1, 38)], STEEL[4])
-    cv.poly([(34 + back, 31), (46 + back, 30), (46 + back, 34), (34 + back, 35)], STEEL[0])   # ventana de expulsión
-    if frame == 0:
-        cv.rect(36 + back, 32, 8, 2, BRASS[2])
-        cv.put(36 + back, 32, BRASS[4])
-    cv.line([(sx0 + 2, 28), (68 + back, 24)], STEEL[6])
-    cv.line([(sx0 + 1, 41), (66 + back, 40)], STEEL[0])
-    cv.rect(sx0 + 3, 26, 3, 2, STEEL[4])                                  # miras
-    cv.put(sx0 + 3, 26, STEEL[6])
-    cv.rect(62 + back, 22, 2, 3, STEEL[3])
-    cv.rect(66 + back, 21, 2, 3, STEEL[3])
+        cv.line([(x + back, 29), (x + back, 38)], GUN[1])
+        cv.line([(x + back + 1, 29), (x + back + 1, 38)], GUN[4])
+    cv.poly([(34 + back, 31), (46 + back, 30), (46 + back, 34), (34 + back, 35)], GUN[0])   # ventana de expulsión
+    # (12.2: con la corredera cerrada no se ve el latón en la ventana)
+    cv.line([(sx0 + 2, 28), (68 + back, 24)], GUN[6])
+    cv.line([(sx0 + 1, 41), (66 + back, 40)], GUN[0])
+    cv.line([(sx0 + 1, 42), (52, 41)], "#141A24")                           # separación corredera / armazón
+    cv.line([(sx0 + 4, 27), (60 + back, 24)], "#FFFFFF")                    # brillo duro en el lomo
+    cv.rect(sx0 + 3, 26, 3, 2, GUN[4])                                  # miras
+    cv.put(sx0 + 3, 26, GUN[6])
+    cv.rect(62 + back, 22, 2, 3, GUN[3])
+    cv.rect(66 + back, 21, 2, 3, GUN[3])
     cv.put(64 + back, 23, "#FFFFFF")
-    cv.rect(sx0, 32, 2, 9, STEEL[2])                                      # frente de la corredera
+    cv.rect(sx0, 32, 2, 9, GUN[2])                                      # frente de la corredera
     cv.rect(sx0, 35, 1, 3, "#120E18")                                     # boca del caño
-    cv.rect(44, 42, 4, 2, STEEL[1])
-    cv.put(44, 42, STEEL[5])
+    cv.rect(44, 42, 4, 2, GUN[1])
+    cv.put(44, 42, GUN[5])
 
 
 def pistol_hand(frame):
     """Mano derecha con guante táctico sin dedos empuñando la pistola, vista del
-    lado derecho: se ve el dorso, el índice estirado sobre el armazón (en el
-    gatillo al disparar) y mayor, anular y meñique envolviendo el frente de la
-    empuñadura, con las puntas de piel al aire. 0 quieta · 1 disparo · 2 sin balas."""
+    lado derecho: dorso con nudillera, índice estirado sobre el armazón (en el
+    gatillo al disparar), mayor, anular y meñique envolviendo el frente de la
+    empuñadura con las yemas al aire, abrojo, puño elástico y manga hasta el
+    borde. 12.2: volúmenes de hands_vol (antes cápsulas planas). 0 quieta ·
+    1 disparo (luz del fogonazo) · 2 sin balas."""
+    import hands_vol as HV
     cv = Cv(96, 96)
-    # --- manga de campera con pliegues
-    shade_poly(cv, [(60, 96), (66, 80), (80, 68), (96, 62), (96, 96)], SLEEVE, 2)
-    for k in range(3):
-        cv.line([(72 + k * 8, 96), (79 + k * 6, 78 + k * 2)], SLEEVE[0])
-        cv.line([(73 + k * 8, 96), (80 + k * 6, 78 + k * 2)], SLEEVE[3])
-    # --- muñeca y puño elastizado del guante
-    H.capsule(cv, (78, 82), (69, 71), 7.5, H.GLOVE, bias=-0.3, r2=6.5)
-    for k in range(5):                                    # elástico acanalado
-        x, y = 70 + k * 3, 82 - k * 2.4
-        cv.line([(x - 4, y - 3), (x + 2, y + 4)], H.GLOVE[1])
-    # correa de abrojo
-    H.capsule(cv, (63, 72), (75, 63), 2.6, H.GLOVE, bias=0.8)
-    cv.line([(66, 69), (72, 65)], H.GLOVE[2])
-
-    # --- empuñadura (asoma el talón del cargador abajo)
-    shade_poly(cv, [(47, 44), (62, 42), (70, 70), (56, 74)], STEEL, 2)
-    cv.poly([(54, 72), (66, 69), (67, 73), (55, 76)], STEEL[1])
-    cv.line([(55, 72), (66, 69)], STEEL[4])
-
-    # --- dorso de la mano: ancho en los nudillos, se angosta hacia la muñeca
-    H.capsule(cv, (61, 52), (69, 69), 13, H.GLOVE, bias=0.3, knit=True, r2=8.5)
-    # eminencia del pulgar / membrana sobre la cola del armazón
-    H.ellipsoid(cv, 61, 42, 6, 4, -0.3, H.GLOVE, bias=0.4)
-    # tendones extensores (de la muñeca a cada nudillo)
-    for kx, ky in ((54, 49), (55, 56), (56, 63)):
-        cv.line([(68, 70), ((kx + 68) / 2 + 1, (ky + 70) / 2)], H.GLOVE[2])
-    H.stitches(cv, [(66, 45), (69, 54), (69, 63)])
-
-    # --- mayor, anular y meñique envolviendo el frente de la empuñadura
-    #     (nudillo -> falange proximal hacia adelante -> la media dobla y asoma la piel)
-    fingers = [
-        ([(58, 64), (51, 66), (47, 68.5)], [2.7, 2.4], 1),            # meñique
-        ([(57, 57.5), (49, 59), (44.5, 61.5)], [3.1, 2.7], 1),        # anular
-        ([(56, 51), (47, 52), (42.5, 54.5)], [3.3, 2.9], 1),          # mayor
-    ]
-    for pts, rad, sk in fingers:
-        H.finger_chain(cv, pts, rad, sk, nail=False)
-    H.knuckles(cv, [(56, 51), (57, 57.5), (58, 64)], 1.5)
-
+    back, front = HV.pistol_hand_layers(frame)
+    # empuñadura (asoma el talón del cargador abajo): detrás de los dedos
+    shade_poly(cv, [(47, 44), (62, 42), (70, 70), (56, 74)], GUN, 2)
+    for k in range(5):                                     # cachas estriadas
+        cv.line([(50 + k * 2, 47 + k), (57 + k * 2, 70)], GUN[1])
+    cv.poly([(54, 72), (66, 69), (67, 73), (55, 76)], GUN[1])
+    cv.line([(55, 72), (66, 69)], GUN[4])
+    cv.paste(back, 0, 0)
     _gun(cv, frame)
-
-    # --- índice: estirado sobre el armazón, o doblado en el gatillo al disparar
+    cv.paste(front, 0, 0)
     if frame == 1:
-        H.finger_chain(cv, [(56, 45), (47, 46.5), (41, 49.5), (39.5, 52)], [3.1, 2.8, 2.4], 2)
-    else:
-        H.finger_chain(cv, [(56, 45), (46, 45.5), (37, 46), (30.5, 46.5)], [3.1, 2.8, 2.5], 2)
-    H.knuckles(cv, [(56, 45)], 1.6)
-
-    if frame == 1:
-        # luz cálida del fogonazo en los filos que miran arriba-izquierda
+        # luz cálida del fogonazo en los filos de la pistola que miran a la boca
         snap = cv.img.copy()
         sp = snap.load()
 
         def warm(x, y, p):
-            if x > 62:
+            if x > 52 or y > 56:
                 return None
             if x > 0 and y > 0 and sp[x - 1, y][3] and sp[x, y - 1][3]:
                 return None
             r, g, b, a = p
-            return (min(255, r + 110), min(255, g + 64), min(255, b + 8), a)
+            return (min(255, r + 90), min(255, g + 52), min(255, b + 6), a)
         cv.recolor_where(warm)
-
-    cv.outline(OUT_DK, "#4B4862")
+    cv.outline("#120C0A", "#52607A")
     return cv
 
 
@@ -427,122 +393,21 @@ def mag():
 
 # ================================================================== BOLSA
 def bag_hand(full):
-    """Mano izquierda (guante tejido) que levanta la bolsa por el cuello atado."""
-    cv = Cv(88, 100)
+    """Mano izquierda (guante de cuero) que levanta la bolsa de arpillera por el
+    cuello. 12.2: bolsa con volumen (vol_art): cuerpo redondo con pliegues que
+    salen del puño, cuello fruncido con la boca cerrada arriba de la mano (el puño
+    la estrangula: no se ve el agujero), soga atada justo debajo del puño; llena,
+    se abomba y marcan las esquinas de las cajas."""
+    import hands_vol as HV
     ox = 44
-    if full:
-        body = [(ox - 28, 98), (ox - 34, 86), (ox - 31, 70), (ox - 21, 56), (ox - 9, 49), (ox + 13, 49),
-                (ox + 26, 56), (ox + 37, 70), (ox + 40, 86), (ox + 34, 98)]
-    else:
-        body = [(ox - 22, 98), (ox - 27, 88), (ox - 23, 74), (ox - 14, 61), (ox - 6, 53), (ox + 10, 53),
-                (ox + 20, 61), (ox + 30, 74), (ox + 33, 88), (ox + 28, 98)]
-    xs = [p[0] for p in body]
-    cx = (min(xs) + max(xs)) / 2
-    half = (max(xs) - min(xs)) / 2
-    for y in range(40, 100):
-        for x in range(0, 88):
-            if not inside(body, x + 0.5, y + 0.5):
-                continue
-            # la mitad izquierda en sombra (como la referencia), luz a la derecha-arriba
-            t = (x - cx) / half
-            i = 4
-            if t < -0.45:
-                i = 2
-            elif t < -0.05:
-                i = 3
-            if t > 0.25 and y < 82:
-                i = 5
-            if t > 0.45 and y < 72:
-                i = 6 if (x + y) % 3 else 5
-            if y > 93:
-                i = max(1, i - 2)
-            elif y > 89:
-                i -= 1
-            if (x * 3 + y * 5) % 11 == 0 and i > 2:
-                i -= 1            # trama de arpillera
-            cv.put(x, y, BAG[max(0, min(6, i))])
-    if full:
-        cv.line([(ox - 2, 56), (ox - 4, 76), (ox - 1, 96)], BAG[2])
-        cv.poly([(ox + 12, 62), (ox + 24, 60), (ox + 28, 70), (ox + 16, 72)], BAG[5])     # esquina de caja
-        cv.line([(ox + 12, 62), (ox + 24, 60), (ox + 28, 70)], BAG[6])
-        cv.poly([(ox - 25, 74), (ox - 15, 70), (ox - 13, 80), (ox - 25, 82)], BAG[2])
-        cv.line([(ox - 25, 74), (ox - 15, 70)], BAG[3])
-    else:
-        cv.line([(ox, 60), (ox - 2, 78), (ox + 1, 96)], BAG[2])
-        for k in range(3):     # pliegues de bolsa vacía
-            cv.line([(ox - 10 + k * 9, 58 + k), (ox - 14 + k * 11, 76 + k * 2)], BAG[3 if k else 2])
-    # parche cosido
-    cv.rect(ox + 8, 80, 12, 9, BAG[3])
-    cv.rect(ox + 8, 80, 12, 1, BAG[5])
-    for x in range(ox + 8, ox + 20, 2):
-        cv.put(x, 81, BAG[6])
-        cv.put(x + 1, 88, BAG[1])
-    # cuello fruncido (largo: el puño lo agarra y la boca queda libre arriba)
-    shade_poly(cv, [(ox - 8, 22), (ox + 10, 22), (ox + 10, 52), (ox - 8, 52)], BAG, 3)
-    for x in range(ox - 6, ox + 9, 3):
-        cv.line([(x, 23), (x + 1, 51)], BAG[1])
-    # boca abierta (acampanada, como la referencia)
-    mw = 16 if full else 14
-    shade_poly(cv, [(ox - mw - 2, 16), (ox - mw + 2, 7), (ox + mw, 7), (ox + mw + 4, 16), (ox + 10, 24), (ox - 8, 24)], BAG, 4)
-    cv.ell(ox + 1, 11, mw - 1, 3.5, BAG[1])
-    cv.ell(ox + 1, 12, mw - 3, 2.5, "#22121A")
-    cv.line([(ox - mw + 2, 7), (ox + mw, 7)], BAG[6])
-    cv.line([(ox - mw - 1, 16), (ox - 8, 23)], BAG[1])
-    if full:
-        # mercadería asomando: una caja y billetes
-        cv.poly([(ox - 9, 12), (ox - 2, 2), (ox + 6, 6), (ox - 1, 15)], "#C2804E")
-        cv.line([(ox - 9, 12), (ox - 2, 2), (ox + 6, 6)], "#E4AD69")
-        cv.line([(ox - 5, 7), (ox + 2, 11)], "#8E4E2A")
-        cv.poly([(ox + 4, 11), (ox + 12, 1), (ox + 16, 4), (ox + 9, 13)], "#67D08E")
-        cv.line([(ox + 4, 11), (ox + 12, 1)], "#B6F0B0")
-        cv.put(ox + 10, 6, "#2E7D4F")
-    # soga con moño debajo del puño
-    ry = 47
-    cv.line([(ox - 9, ry), (ox + 11, ry - 1)], ROPE[1], 3)
-    cv.line([(ox - 9, ry - 1), (ox + 11, ry - 2)], ROPE[3])
-    for side in (-1, 1):
-        lx = ox + 3 + side * 8
-        cv.poly([(ox + 3, ry), (lx, ry - 4), (lx + side * 2, ry + 3)], ROPE[2])
-        cv.line([(ox + 3, ry), (lx, ry - 4)], ROPE[3])
-    cv.line([(ox + 2, ry + 2), (ox - 1, ry + 11)], ROPE[1], 2)
-    cv.line([(ox + 5, ry + 2), (ox + 10, ry + 10)], ROPE[1], 2)
-    cv.put(ox - 1, ry + 11, ROPE[0])
-    cv.put(ox + 10, ry + 10, ROPE[0])
-    cv.ell(ox + 3, ry, 2, 2, ROPE[2])
-    cv.put(ox + 2, ry - 1, ROPE[3])
-
-    # brazo desde la esquina inferior izquierda hasta el puño (detrás de la bolsa)
-    arm = Cv(88, 100)
-    shade_poly(arm, [(0, 58), (12, 40), (26, 46), (12, 76), (0, 84)], SLEEVE, 2)
-    arm.line([(2, 70), (14, 50)], SLEEVE[0])
-    arm.line([(3, 70), (15, 50)], SLEEVE[3])
-    H.capsule(arm, (14, 46), (24, 38), 8, H.GLOVE, bias=-0.3)          # muñeca con puño elastizado
-    for k in range(5):
-        x, y = 12 + k * 3, 48 - k * 2.4
-        arm.line([(x - 3, y - 4), (x + 3, y + 3)], H.GLOVE[1])
-    under = arm.img.copy()
-    under.alpha_composite(cv.img)
-    cv.img = under
+    arm_img, fist_img = HV.bag_fist_layers(ox)
+    bag_img = HV.bag_body(ox, full)
+    cv = Cv(88, 100)
+    cv.img.alpha_composite(arm_img)
+    cv.img.alpha_composite(bag_img)
+    cv.img.alpha_composite(fist_img)
     cv.d = ImageDraw.Draw(cv.img)
     cv.px = cv.img.load()
-    # --- puño izquierdo cerrado sobre el cuello, el dorso hacia el jugador:
-    #     dorso, 4 dedos que cruzan el cuello (la piel de las puntas asoma del
-    #     otro lado del cuello) y el pulgar arriba, cerrando el puño.
-    H.ellipsoid(cv, ox - 13, 34, 10, 9.5, -0.5, H.GLOVE, bias=0.2, knit=True)
-    for ky in (27.5, 32.5, 37.5):
-        cv.line([(ox - 22, ky + 9), (ox - 8, ky + 1)], H.GLOVE[2])          # tendones
-    H.stitches(cv, [(ox - 21, 30), (ox - 14, 26), (ox - 8, 26)])
-    fingers = [
-        ([(ox - 5, 41.5), (ox + 5, 41.5), (ox + 10, 43)], [2.6, 2.3]),     # meñique
-        ([(ox - 5, 37), (ox + 6, 36.5), (ox + 11.5, 38)], [2.9, 2.6]),     # anular
-        ([(ox - 5, 32.5), (ox + 6, 32), (ox + 11.5, 33.5)], [3.0, 2.7]),   # mayor
-        ([(ox - 5, 28), (ox + 5, 27.5), (ox + 10.5, 29)], [2.9, 2.6]),     # índice
-    ]
-    for pts, rad in fingers:
-        H.finger_chain(cv, pts, rad, 1, nail=False)
-    H.knuckles(cv, [(ox - 5, 28), (ox - 5, 32.5), (ox - 5, 37), (ox - 5, 41.5)], 1.4)
-    # pulgar: sale del costado del dorso y se apoya sobre el índice
-    H.finger_chain(cv, [(ox - 16, 28), (ox - 7, 23.5), (ox + 1, 23.5), (ox + 5.5, 25)], [3.2, 2.7, 2.4], 2)
     cv.outline(OUTL, "#8E461F")
     return cv
 
@@ -722,7 +587,7 @@ def office_wall():
     cv.rect(0, 82, 240, 4, blue[0])
     cv.rect(0, 82, 240, 1, blue[3])
     # cuadro con el escudo
-    fx, fy = 162, 30
+    fx, fy = 184, 30                           # 12.2: a la derecha del policía (su gorra lo tapaba)
     cv.rect(fx - 1, fy + 1, 18, 21, plaster[0])   # sombra en la pared
     cv.rect(fx, fy, 16, 20, WOOD[1])
     cv.rect(fx + 1, fy + 1, 14, 18, "#F6EFE2")
@@ -1307,7 +1172,15 @@ def main():
         document(True, k).save("doc_red_%d.png" % k)
     shredder().save("shredder.png")
     folder().save("folder.png")
-    print("arte 12.1 de minijuegos en", os.path.normpath(OUT))
+    # 12.2: el escritorio de la coima y sus objetos, con más detalle (coima_art.py)
+    import coima_art
+    cwd = os.getcwd()
+    try:
+        os.chdir(OUT)
+        coima_art.main()
+    finally:
+        os.chdir(cwd)
+    print("arte 12.2 de minijuegos en", os.path.normpath(OUT))
 
 
 if __name__ == "__main__":

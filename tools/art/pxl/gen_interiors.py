@@ -22,6 +22,7 @@ Los mostradores van en la capa "front" (tapan las piernas de quien atiende).
 Empleados detrás del mostrador: pies en y=134. Clientes: pies en y~164.
 """
 import json
+import zlib
 import os
 import sys
 
@@ -36,22 +37,28 @@ QUEUE_Y = 164
 # Tamaño final de cada pieza (con el contorno de 1 px ya sumado).
 SZ = {
     "_counter_wood": (74, 34), "_counter_glass": (74, 34), "_counter_metal": (66, 32), "_register": (24, 20),
-    "_scale": (20, 16), "_slicer": (24, 18), "_mate_set": (18, 14), "_shelf_wood": (52, 72), "_shelf_metal": (52, 74),
+    "_scale": (20, 16), "_slicer": (24, 18), "_mate_set": (24, 20), "_shelf_wood": (52, 72), "_shelf_metal": (52, 74),
     "_shelf_almacen": (58, 76), "_gondola": (72, 66), "_fridge_drinks": (34, 72), "_freezer": (48, 32), "_grill": (66, 42),
-    "_stove": (62, 48), "_prep_table": (58, 38), "_coffee_machine": (42, 36), "_pastry_case": (62, 36), "_dining_table": (42, 32),
-    "_cafe_table": (36, 30), "_chalkboard": (36, 28), "_wine_rack": (32, 58), "_car": (66, 32), "_car_lift": (86, 66),
+    "_stove": (62, 48), "_prep_table": (58, 38), "_coffee_machine": (34, 32), "_pastry_case": (62, 36), "_dining_table": (42, 32),
+    "_cafe_table": (44, 38), "_chalkboard": (36, 28), "_wine_rack": (32, 58), "_car": (66, 32), "_car_lift": (86, 66),
     "_tool_wall": (62, 42), "_tires": (26, 38), "_drums": (34, 30), "_workbench": (62, 36), "_wash_bay": (98, 62),
     "_vacuum": (18, 36), "_treadmill": (52, 42), "_weight_rack": (48, 48), "_bench_press": (56, 36), "_punching_bag": (20, 52),
     "_mirror": (72, 48), "_desk_pc": (54, 40), "_filing": (24, 48), "_water_cooler": (18, 46), "_parcel_shelf": (62, 68),
-    "_pallet_rack": (82, 82), "_forklift": (52, 44), "_dock_door": (72, 74), "_pallet_boxes": (36, 32), "_scooter": (42, 34),
-    "_clock": (18, 18), "_pennant": (40, 14), "_jersey": (24, 24), "_fileteado_sign": (72, 20), "_plant": (20, 30),
-    "_poster": (22, 28), "_lamp_hanging": (16, 18), "_crate": (22, 16), "_salames": (30, 22), "_checkout": (68, 44),
+    "_pallet_rack": (82, 82), "_forklift": (68, 58), "_dock_door": (72, 74), "_pallet_boxes": (36, 32), "_scooter": (42, 34),
+    "_clock": (18, 18), "_pennant": (72, 18), "_jersey": (24, 24), "_fileteado_sign": (72, 20), "_plant": (20, 30),
+    "_poster": (22, 28), "_lamp_hanging": (16, 18), "_crate": (28, 20), "_salames": (30, 22), "_checkout": (68, 44),
     "_cart": (30, 30), "_conveyor": (112, 38), "_machine": (52, 58), "_stall_table": (82, 36), "_umbrella": (90, 70),
     "_cooler": (32, 24), "_price_board": (20, 32), "_string_lights": (200, 16), "_wall_shelf": (70, 22),
     # 10.0 (furniture_v10.px.js)
-    "_bales": (42, 28), "_sacks": (38, 28), "_barrels_wood": (46, 32), "_steel_tank": (30, 70), "_olive_press": (48, 50),
+    "_bales": (42, 28), "_sacks": (42, 32), "_barrels_wood": (56, 38), "_steel_tank": (30, 70), "_olive_press": (48, 50),
     "_citrus_crates": (42, 30), "_drying_rack": (62, 42), "_oven": (54, 58), "_meat_hooks": (44, 36), "_cheese_shelf": (46, 52),
-    "_electronics_bench": (72, 42), "_potato_bins": (48, 28), "_banana_hooks": (42, 42), "_apple_bins": (48, 30),
+    "_electronics_bench": (72, 42),
+    # 12.2: detalles fijos de pared (que el nivel 0 no quede pelado) y piezas por rubro
+    "_lamp_tube": (32, 12), "_lamp_bronze": (18, 22), "_cold_door": (46, 74), "_counter_pastry": (74, 34),
+    "_poster_uva": (22, 28), "_poster_vaca": (22, 28), "_poster_oveja": (22, 28), "_poster_trigo": (22, 28),
+    "_poster_mate": (22, 28), "_poster_fruta": (22, 28),
+    "_elec_panel": (16, 44), "_calendar": (16, 20), "_outlet": (8, 8),
+    "_machine_press": (52, 58), "_machine_mill": (52, 58), "_machine_mixer": (52, 58), "_bread_rack": (52, 72), "_potato_bins": (48, 28), "_banana_hooks": (42, 42), "_apple_bins": (48, 30),
 }
 FX = {"fx_smoke": (24, 34), "fx_steam": (12, 18), "fx_neon": (48, 16), "fx_tv": (36, 24), "fx_foam": (30, 16), "fx_conveyor": (110, 10)}
 
@@ -83,9 +90,15 @@ class Layout:
         return cx, cy, w, h
 
     def on_counter(self, part, slot=0, idx=-1):
+        """12.2: lo de arriba del mostrador se acomoda de derecha a izquierda
+        sin pisarse (antes iba a 24 px fijos por lugar y una cafetera de 42 px
+        tapaba la caja registradora)."""
         cx, cy, w = self.counters[idx]
         pw, ph = SZ[part]
-        x = cx + w - pw - 4 - slot * 24
+        used = getattr(self, "_on_used", {}).get(idx if idx >= 0 else len(self.counters) + idx, 0)
+        x = cx + w - pw - 4 - used
+        self._on_used = getattr(self, "_on_used", {})
+        self._on_used[idx if idx >= 0 else len(self.counters) + idx] = used + pw + 6
         (self.front).append((part, x, cy - ph + 3))
 
     def station(self, x, y, kind="stand", flip=False):
@@ -207,9 +220,52 @@ PROVINCES = {
 }
 
 
+# 12.2: una máquina propia por rubro (antes el mismo bloque azul en todos lados).
+MACHINE = {"algodonal": "_machine_press", "desmotadora": "_machine_press", "lanera": "_machine_press",
+           "estancia_ovina": "_machine_press", "almazara": "_machine_press", "olivar": "_machine_press",
+           "pasas": "_machine_press", "molino_arrocero": "_machine_mill", "molino_harinero": "_machine_mill",
+           "arrocera": "_machine_mill", "yerbatal": "_machine_mill", "papas_andinas": "_machine_mill",
+           "panaderia": "_machine_mixer", "salames": "_machine_mixer", "usina_lactea": "_machine_mixer",
+           "frigorifico": "_machine_mixer"}
+# y piezas propias del rubro en lugar de las genéricas
+SWAP = {("panaderia", "_shelf_wood"): "_bread_rack", ("frigorifico", "_cheese_shelf"): "_cold_door"}
+COUNTER_SWAP = {"panaderia": "_counter_pastry"}
+# Lámpara del techo según el rubro: tubo fluorescente en lo industrial y lo frío,
+# colgante de bronce en lo tradicional, la verde de galpón en el resto.
+TUBE = {"frigorifico", "usina_lactea", "electronica", "desmotadora", "lanera", "molino_arrocero", "molino_harinero",
+        "citricola", "manzanas", "chacra_peras", "arrocera"}
+BRONZE = {"panaderia", "bodega_malbec", "bodega_torrontes", "salames", "almazara", "olivar", "pasas",
+          "estancia_ovina", "estancia_ganadera", "papas_andinas"}
+LAMP_PARTS = {"_lamp_hanging", "_lamp_tube", "_lamp_bronze"}
+POSTER = {"bodega_malbec": "_poster_uva", "bodega_torrontes": "_poster_uva", "pasas": "_poster_uva",
+          "estancia_ganadera": "_poster_vaca", "frigorifico": "_poster_vaca", "salames": "_poster_vaca",
+          "usina_lactea": "_poster_vaca", "estancia_ovina": "_poster_oveja", "lanera": "_poster_oveja",
+          "molino_harinero": "_poster_trigo", "arrocera": "_poster_trigo", "molino_arrocero": "_poster_trigo",
+          "panaderia": "_poster_trigo", "yerbatal": "_poster_mate", "citricola": "_poster_fruta",
+          "manzanas": "_poster_fruta", "chacra_peras": "_poster_fruta", "bananal": "_poster_fruta",
+          "olivar": "_poster_fruta", "almazara": "_poster_fruta"}
+INDUSTRIAL = {"desmotadora", "lanera", "molino_arrocero", "molino_harinero", "arrocera", "electronica",
+              "usina_lactea", "frigorifico", "citricola", "manzanas"}
+# Detalles de pared propios del rubro desde el nivel 0 (que el local no quede pelado).
+RUBRO_WALL = {
+    "algodonal": [("_tool_wall", 150, 30)], "desmotadora": [("_tool_wall", 120, 30)], "lanera": [("_tool_wall", 120, 30)],
+    "molino_arrocero": [("_tool_wall", 160, 30)], "molino_harinero": [("_tool_wall", 160, 30)],
+    "arrocera": [("_poster", 200, 30)], "yerbatal": [("_poster", 200, 30), ("_wall_shelf", 120, 44)],
+    "papas_andinas": [("_wall_shelf", 200, 44)], "almazara": [("_wall_shelf", 230, 44)], "olivar": [("_poster", 60, 30)],
+    "bodega_torrontes": [("_fileteado_sign", 120, 18)], "bodega_malbec": [("_poster", 60, 30)],
+    "citricola": [("_poster", 90, 30)], "bananal": [("_poster", 230, 30)], "pasas": [("_wall_shelf", 150, 44)],
+    "frigorifico": [("_poster", 220, 30)], "estancia_ovina": [("_poster", 180, 30)],
+    "estancia_ganadera": [("_poster", 250, 30)], "chacra_peras": [("_poster", 230, 30)],
+    "manzanas": [("_tool_wall", 120, 30)], "electronica": [("_poster", 240, 30), ("_wall_shelf", 120, 44)],
+    "salames": [("_poster", 120, 30)], "usina_lactea": [("_poster", 120, 30)],
+    "panaderia": [("_wall_shelf", 120, 44)],
+}
+
+
 def province_layout(bid, t):
     wall_kind, floor, counter, cx, on_top, items = PROVINCES[bid]
     L = Layout(wall_kind, floor)
+    counter = COUNTER_SWAP.get(bid, counter)
     L.counter(counter, cx, 1 + (t >= 3))
     L.on_counter(on_top, 0)
     for it in items:
@@ -226,6 +282,9 @@ def province_layout(bid, t):
         tmin, part, x, base = it
         if t < tmin:
             continue
+        if part == "_machine":
+            part = MACHINE.get(bid, part)
+        part = SWAP.get((bid, part), part)
         if base == "on":
             L.on_counter(part, 1)
         elif base == "on1":
@@ -234,7 +293,31 @@ def province_layout(bid, t):
             L.wall_item(part, x, int(base[5:]))
         else:
             L.put(part, x, base)
-    ceiling_lamps(L, min(4, 2 + t))
+    # 12.2: detalles de pared del rubro desde el nivel 0, el tablero eléctrico sólo
+    # en lo industrial, el almanaque en la mitad de los locales y un enchufe; el
+    # validador los corre a un hueco libre o los saca.
+    h0 = zlib.crc32(bid.encode())
+    for part, x, y in RUBRO_WALL.get(bid, []):
+        L.wall_item(part, x, y)
+    if bid in INDUSTRIAL:
+        L.wall_item("_elec_panel", 30 + h0 % 200, 6)
+    if h0 % 2:
+        L.wall_item("_calendar", 150 + (h0 // 7) % 160, 40)
+    if (h0 // 3) % 2:
+        L.wall_item("_outlet", 60 + (h0 // 13) % 260, 92)
+    # un solo póster por local, con el tema del rubro
+    seen = False
+    keep = []
+    for it in L.back:
+        if it[0] == "_poster":
+            if seen:
+                continue
+            seen = True
+            it = (POSTER.get(bid, "_poster"), it[1], it[2])
+        keep.append(it)
+    L.back = keep
+    L.lamp_part = "_lamp_tube" if bid in TUBE else ("_lamp_bronze" if bid in BRONZE else "_lamp_hanging")
+    ceiling_lamps(L, min(3, 2 + t // 2))
     return L
 
 
@@ -355,6 +438,228 @@ def fix_depth(name, L):
     return errs
 
 
+# ---------------------------------------------------------------- 12.2 pared sin choques
+# Nada se superpone con el fondo ni entre sí: la ventana, lo colgado en la pared y
+# las lámparas del techo se ubican en huecos libres (lo más cerca posible de donde
+# estaban), sin tocar los muebles del piso, los mostradores, lo que va arriba del
+# mostrador ni las animaciones. Un adorno que no entra se saca (y se avisa); una
+# pieza del rubro que no entra es un error.
+sys.path.insert(0, os.path.dirname(HERE))
+import rooms_art  # noqa: E402
+
+DECOR = {"_poster_uva", "_poster_vaca", "_poster_oveja", "_poster_trigo", "_poster_mate", "_poster_fruta",
+         "_tool_wall", "_pennant", "_clock", "_poster", "_mate_set", "_lamp_hanging", "_wall_shelf", "_chalkboard",
+         "_fileteado_sign", "_plant", "_jersey", "_elec_panel", "_calendar", "_outlet"}
+WALL_PAD = 14                # aire entre cosas de la pared (y con la ventana)
+WINDOW_PAD = 12              # nada alto pegado al marco de la ventana
+
+# Vista de la ventana según el rubro (campo, viñedo, huerto o ciudad).
+VIEW = {"bodega_malbec": "vinedo", "bodega_torrontes": "vinedo", "pasas": "vinedo", "olivar": "huerto",
+        "almazara": "huerto", "manzanas": "huerto", "chacra_peras": "huerto", "citricola": "huerto",
+        "bananal": "huerto", "yerbatal": "huerto", "estancia_ovina": "campo", "estancia_ganadera": "campo",
+        "lanera": "campo", "algodonal": "campo", "desmotadora": "campo", "arrocera": "campo",
+        "papas_andinas": "cerros", "molino_arrocero": "campo"}
+PAD = 6
+WALL_X = (28, 372)          # se ve x = 20..380 del lienzo (8 px de margen)
+
+
+def _overlap(a, b, pad=PAD):
+    ax, ay, aw, ah = a
+    bx, by, bw, bh = b
+    return ax < bx + bw + pad and bx < ax + aw + pad and ay < by + bh + pad and by < ay + ah + pad
+
+
+FLOOR_PAD = 6
+
+
+def place_floor(name, L, notes):
+    """12.2: los muebles del piso no se tapan entre sí (ni a los mostradores ni a
+    lo de arriba del mostrador ni a la fila de clientes). Cada pieza, en el orden
+    en que aparece al subir de nivel, se queda en su fila y busca el hueco libre
+    más cercano; si no hay, prueba las otras filas; si tampoco, se omite (y se
+    avisa). Su puesto de trabajo y su animación se mueven con ella."""
+    obst = [(x, y, *SZ[p]) for p, x, y in L.front]
+    for q in L.queue:
+        obst.append((q[0] - QUEUE_REACH, QUEUE_Y - BODY[1] + 4, 2 * QUEUE_REACH, BODY[1]))
+    placed = []
+    keep = []
+    floor = []
+    for it in L.back:
+        p, x, y = it
+        w, h = SZ[p]
+        (floor if y + h >= WALL else keep).append(it)
+    BULKY = {"_forklift", "_pallet_rack", "_conveyor", "_machine", "_machine_press", "_machine_mill", "_machine_mixer",
+             "_steel_tank", "_olive_press", "_shelf_metal", "_parcel_shelf"}
+    counters = [(x, y, *SZ[p]) for p, x, y in L.front if p.startswith("_counter")]
+    for p, x, y in floor:
+        w, h = SZ[p]
+        base = y + h
+        extra = [(cx - 6, WALL - 90, cw + 12, 90 + ch) for cx, cy, cw, ch in counters] if p in BULKY else []
+        tied_st = [st for st in L.stations if st["kind"] != "counter" and x - 8 <= st["x"] <= x + w + 8
+                   and not any(st is t2 for t2 in getattr(L, "_tied", []))]
+        tied_fx = [f for f in L.fx if x - 2 <= f["x"] <= x + w and base - h - 40 <= f["y"] <= base]
+        lo, hi = (28, W - 28)            # 12.2: margen de seguridad dentro de lo visible
+        best = None
+        for b in [base] + [bb for bb in (WALL, 150, 158) if bb != base]:
+            ny = b - h
+            for d in range(0, 400, 2):
+                for nx in ((x - d, x + d) if d else (x,)):
+                    if nx < lo or nx + w > hi:
+                        continue
+                    r = (nx, ny, w, h)
+                    if any(_overlap(r, o, FLOOR_PAD) for o in obst + placed + extra):
+                        continue
+                    best = (nx, ny)
+                    break
+                if best:
+                    break
+            if best:
+                break
+        if not best:
+            notes.append(f"{name}: {p} no entra en el piso sin tapar a otro (se omite)")
+            for st in tied_st:
+                L.stations.remove(st)
+            for f in tied_fx:
+                L.fx.remove(f)
+            continue
+        nx, ny = best
+        dx, dy = nx - x, ny - y
+        if dx or dy:
+            notes.append(f"{name}: {p} ({x},{y}) -> ({nx},{ny})")
+        for st in tied_st:
+            st["x"] += dx
+            st["y"] += dy
+        for f in tied_fx:
+            f["x"] += dx
+            f["y"] += dy
+        L._tied = getattr(L, "_tied", []) + tied_st
+        placed.append((nx, ny, w, h))
+        keep.append((p, nx, ny))
+    L.back = keep
+    return []
+
+
+def resolve_wall(name, L, t, notes):
+    errs = []
+    fixed = []
+    movable = []
+    lamps = []
+    for p, x, y in L.back:
+        w, h = SZ[p]
+        if p in LAMP_PARTS:
+            lamps.append(x)
+        elif y + h < WALL:                       # colgado en la pared
+            movable.append((p, x, y))
+        else:
+            fixed.append((x, y, w, h))
+    fixed += [(x, y, *SZ[p]) for p, x, y in L.front]
+    fixed += [(f["x"], f["y"], *FX[f["anim"]]) for f in L.fx]
+    placed = list(fixed)
+    out_back = [it for it in L.back if it[0] not in LAMP_PARTS and SZ[it[0]][1] + it[2] >= WALL]
+
+    walls = []                          # lo ya ubicado en la pared (ventana incluida)
+
+    def find(x0, y, w, h, pad_floor=PAD, pad_wall=WALL_PAD, lo=WALL_X[0], hi=WALL_X[1], text=False):
+        bx0, by0, bx1, by1 = BUTTONS
+        for d in range(0, 400, 2):
+            for nx in ((x0 - d, x0 + d) if d else (x0,)):
+                if nx < lo or nx + w > hi:
+                    continue
+                r = (nx, y, w, h)
+                if text and _overlap(r, (bx0, by0, bx1 - bx0, by1 - by0), 0):
+                    continue
+                if any(_overlap(r, o, pad_floor) for o in placed):
+                    continue
+                if any(_overlap(r, o, pad_wall) for o in walls):
+                    continue
+                return nx
+        return None
+
+    window_x = None
+    if L.wall != "chapa":                 # 12.2: ventana desde el nivel 0 (el local no queda ciego)
+        bx, by, bw, bh = rooms_art.window_box(0)
+        pref = [330, 60, 196][zlib.crc32(name[4:-2].encode()) % 3]
+        nx = find(pref + bx, by, bw, bh, pad_floor=WINDOW_PAD)
+        if nx is None:
+            notes.append(f"{name}: sin lugar para la ventana (se omite)")
+        else:
+            window_x = nx - bx
+            walls.append((nx, by, bw, bh))
+    for p, x, y in movable:
+        w, h = SZ[p]
+        nx = find(x, y, w, h, pad_floor=WALL_PAD, text=p in TEXT_PARTS)
+        if nx is None:
+            nx = find(x, y, w, h, text=p in TEXT_PARTS)
+        if nx is None and p not in DECOR:
+            for ny in (y - 6, y + 6, y - 12, y + 12):          # el rubro se prueba un poco más arriba/abajo
+                if ny >= 8 and ny + h < WALL:
+                    nx = find(x, ny, w, h, text=p in TEXT_PARTS)
+                    if nx is not None:
+                        y = ny
+                        break
+        if nx is None:
+            if p in DECOR:
+                notes.append(f"{name}: {p} no entra en la pared (se omite)")
+            else:
+                errs.append(f"{name}: {p} no entra en la pared sin superponerse")
+            continue
+        if nx != x:
+            notes.append(f"{name}: {p} x {x} -> {nx}")
+        walls.append((nx, y, w, h))
+        out_back.append((p, nx, y))
+    lpart = getattr(L, "lamp_part", "_lamp_hanging")
+    lw, lh = SZ[lpart]
+    lamp_cx = []
+    # Lámparas repartidas parejo en el espacio libre del techo (no amontonadas
+    # al lado de la ventana o del cartel): se elige la posición libre más cercana
+    # a cada cuantil del espacio libre.
+    n = len(lamps)
+    for i in range(n):
+        free = [x for x in range(WALL_X[0], WALL_X[1] - lw, 2)
+                if not any(_overlap((x, 4, lw, lh), o, WALL_PAD) for o in placed)
+                and not any(_overlap((x, 4, lw, lh), o, WALL_PAD) for o in walls)
+                and all(abs(x + lw / 2 - c) >= 64 for c in lamp_cx)]
+        if not free:
+            notes.append(f"{name}: no entran más lámparas ({len(lamp_cx)} de {n})")
+            break
+        want = WALL_X[0] + 20 + (WALL_X[1] - WALL_X[0] - 40 - lw) * (i + 0.5) / n
+        # lejos de las otras lámparas: el hueco libre más cercano al lugar parejo
+        nx = min(free, key=lambda x: abs(x - want))
+        walls.append((nx, 4, lw, lh))
+        out_back.append((lpart, nx, 4))
+        lamp_cx.append(nx + lw // 2)
+    L.back = out_back
+    L.window_x = window_x
+    L.lamp_cx = lamp_cx
+    return errs
+
+
+def check_no_overlap(name, L):
+    """Verificación final independiente: nada de la pared toca a nadie."""
+    errs = []
+    rects = []
+    for p, x, y in L.back:
+        w, h = SZ[p]
+        rects.append((p, (x, y, w, h), "w" if (y + h < WALL or p in LAMP_PARTS) else False))
+    for p, x, y in L.front:
+        w, h = SZ[p]
+        rects.append((p, (x, y, w, h), "c" if y + h < FRONT_BASE - 20 else False))   # arriba del mostrador: no se pisa
+    for f in L.fx:
+        rects.append((f["anim"], (f["x"], f["y"], *FX[f["anim"]]), False))
+    if L.window_x is not None:
+        rects.append(("ventana", rooms_art.window_box(L.window_x), "w"))
+    for i, (pa, ra, wa) in enumerate(rects):
+        for pb, rb, wb in rects[i + 1:]:
+            # lo de arriba del mostrador apoya 3 px sobre la mesada (a propósito)
+            if pa.startswith("_counter") or pb.startswith("_counter"):
+                continue
+            if wa == "w" and wb == "w" and _overlap(ra, rb, WALL_PAD - 1):
+                errs.append(f"{name}: {pa} y {pb} sin aire en la pared")
+            elif (wa or wb) and _overlap(ra, rb, 0):
+                errs.append(f"{name}: {pa} se superpone con {pb}")
+    return errs
+
+
 def depth_sorted(L):
     """Lo de la pared primero; lo del piso de atrás hacia adelante."""
     def key(it):
@@ -373,6 +678,7 @@ def main():
     meta = {"_doc": "Generado por tools/art/pxl/gen_interiors.py. Coordenadas en píxeles del lienzo 400x170 de cada interior.",
             "size": [W, H], "behind_y": BEHIND, "queue_y": QUEUE_Y, "businesses": {}}
     errors = []
+    notes = []
     layout = {}
     for bid, fn in BUSINESSES.items():
         tiers = []
@@ -381,13 +687,18 @@ def main():
             if not L.outdoor and bid in RETAIL:
                 add_wall_shelves(L, 1 if t < 2 else 2)
             name = f"int_{bid}_{t}"
-            errors += check_text_items(name, L)
+            errors += place_floor(name, L, notes)
             errors += fix_depth(name, L)
+            errors += resolve_wall(name, L, t, notes)
+            errors += check_text_items(name, L)
+            errors += check_no_overlap(name, L)
             # 12.1: PXL pinta sólo la habitación; la utilería la estampa compose_interiors.py.
             js.append(f'scene("{name}", {{ w: {W}, h: {H}, bg: "u", layers: true }},')
             js.append(f'  layer("back", room("{L.wall}", "{L.floor}", {str(L.outdoor).lower()}, {t})),')
             js.append('  layer("front", px(0, 0, ".")))')
-            layout[name] = {"back": [list(i) for i in depth_sorted(L)], "front": [list(i) for i in L.front]}
+            layout[name] = {"back": [list(i) for i in depth_sorted(L)], "front": [list(i) for i in L.front],
+                            "room": {"wall": L.wall, "floor": L.floor, "tier": t, "lamps": L.lamp_cx,
+                                     "window_x": L.window_x, "view": VIEW.get(bid, "ciudad"), "seed": zlib.crc32(bid.encode()) % 997 + t}}
             if not L.queue:
                 L.queue.append([W // 2, QUEUE_Y])
             if not L.stations:
@@ -401,6 +712,8 @@ def main():
     os.makedirs(os.path.join(HERE, "out"), exist_ok=True)
     with open(os.path.join(HERE, "out", "layout.json"), "w", encoding="utf-8", newline="\n") as f:
         json.dump({"size": SZ, "wall": WALL, "scenes": layout}, f)
+    if notes:
+        print("Ajustes de la pared:\n  " + "\n  ".join(notes))
     if errors:
         sys.exit("Interiores con problemas:\n  " + "\n  ".join(errors))
     print("ok:", len(BUSINESSES) * 5, "interiores")

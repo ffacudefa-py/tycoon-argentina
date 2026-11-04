@@ -18,6 +18,8 @@ import os
 import random
 import sys
 
+from PIL import Image
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 from minigames_art2 import Cv, shade_poly  # noqa: E402
@@ -274,16 +276,23 @@ def slicer(w=24, h=18):
     return cv
 
 
-def mate_set(w=18, h=14):
+def mate_set(w=22, h=18):
+    """Termo y mate sobre una repisita de pared con ménsulas (12.2: antes flotaban)."""
     cv = Cv(w, h)
-    cylinder_v(cv, 3, 2, 12, 2.6, R["steel"])                         # termo
-    cv.rect(1, 0, 5, 2, R["dark"][3])
-    cv.rect(1, 0, 5, 1, R["dark"][5])
-    disk(cv, 12, 9, 4.6, R["oak"])                                    # mate de calabaza
-    cv.rect(9, 5, 7, 2, R["brass"][3])                                # virola
-    cv.rect(9, 5, 7, 1, R["brass"][5])
-    cv.ell(12, 5, 3, 1, "#3F9E5E")                                    # yerba
-    cv.line([(13, 5), (15, 0)], R["steel"][5])                        # bombilla
+    W_ = R["oak"]
+    py = h - 6                                                        # tabla de la repisa
+    box(cv, 0, py, w, 3, 1, W_, top_tone=5, front_tone=3)
+    for bx in (3, w - 5):                                             # ménsulas
+        cv.poly([(bx, py + 3), (bx + 2, py + 3), (bx + 2, h - 1)], W_[2])
+        cv.line([(bx, py + 3), (bx + 2, h - 1)], W_[4])
+    cylinder_v(cv, 5, 1, py - 1, 2.8, R["steel"])                     # termo
+    cv.rect(2, 0, 6, 2, R["dark"][3])
+    cv.rect(2, 0, 6, 1, R["dark"][5])
+    disk(cv, 14, py - 4, 4.4, R["oak"])                               # mate de calabaza
+    cv.rect(11, py - 9, 7, 2, R["brass"][3])                          # virola
+    cv.rect(11, py - 9, 7, 1, R["brass"][5])
+    cv.ell(14, py - 9, 3, 1, "#3F9E5E")                               # yerba
+    cv.line([(15, py - 9), (17, py - 15)], R["steel"][5])             # bombilla
     outline(cv)
     return cv
 
@@ -314,9 +323,8 @@ def sack(cv, x, y, w, h, col_label, ramp=None):
         for xx in range(x + 2 + (yy % 2), x + w - 2, 3):
             cv.put(xx, yy, B[2])
     lx, ly = x + w // 2 - 3, y + h // 2
-    cv.rect(lx, ly, 6, 5, "#F2E6CE")
-    cv.rect(lx + 1, ly + 1, 4, 3, col_label)
-    cv.put(lx + 1, ly + 1, "#FFFFFF")
+    cv.rect(lx, ly, 6, 5, "#E4D6BC")                                     # etiqueta sobria
+    cv.rect(lx + 1, ly + 2, 4, 1, B[2])
 
 
 def sacks(w=38, h=28):
@@ -503,7 +511,9 @@ def oven(w=54, h=58):
         cv.put(xx, int(30 - math.sqrt(max(0, 1 - dx * dx)) * 9), B[5])
     cv.rect(8, 46, 36, 3, R["steel"][2])                                  # repisa de hierro
     cv.rect(8, 46, 36, 1, R["steel"][5])
-    box(cv, 20, 0, 13, 10, 3, R["steel"], top_tone=4, front_tone=2, side_tone=1)   # chimenea
+    box(cv, 20, 0, 13, 10, 3, B, top_tone=5, front_tone=3, side_tone=1)           # chimenea de ladrillo
+    cv.rect(21, 4, 10, 1, B[2])
+    cv.rect(20, 0, 14, 2, B[1])                                           # remate
     outline(cv)
     return cv
 
@@ -1081,12 +1091,88 @@ PIECES = {
 }
 
 
+import props_art2  # noqa: E402  (12.2: piezas nuevas y redibujadas)
+props_art2.register(PIECES)
+
+
 def render(name, size):
-    """Dibuja la pieza al tamaño exacto (w, h) de gen_interiors.SZ."""
-    cv = PIECES[name](*size)
-    if cv.img.size != tuple(size):
-        raise SystemExit(f"{name}: mide {cv.img.size}, se esperaba {tuple(size)}")
-    return cv.img
+    """Dibuja la pieza al tamaño exacto (w, h) de gen_interiors.SZ.
+
+    12.2: se pinta 2 px más chica y se centra, así el contorno entra entero en
+    los cuatro lados (antes las 46 piezas tocaban el borde del lienzo y se veían
+    cortadas en seco). Después pasa por finish(): contorno selectivo y luz."""
+    w, h = size
+    cv = PIECES[name](w - 2, h - 2)
+    if cv.img.size != (w - 2, h - 2):
+        raise SystemExit(f"{name}: mide {cv.img.size}, se esperaba {(w - 2, h - 2)}")
+    big = Cv(w, h)
+    big.img.alpha_composite(cv.img, (1, 1))
+    big.outline(OUTL, OUTL_L)
+    return finish(big.img)
+
+
+def finish(img):
+    """Terminación profesional de cada pieza:
+    - contorno selectivo ("selout"): el contorno toma el tono oscuro del color
+      que rodea en vez de ser siempre marrón (menos "recortado"), salvo abajo,
+      donde la pieza apoya y queda bien marcado;
+    - luz de borde: la primera fila/columna de cada forma del lado de la luz
+      (arriba-izquierda) sube un poco; la del lado contrario baja (volumen);
+    - oclusión al pie: las 2 filas de abajo se oscurecen levemente."""
+    import numpy as np
+    a = np.array(img).astype(np.int32)
+    al = a[:, :, 3] > 0
+    rgb = a[:, :, :3]
+    H, W = al.shape
+    outl = np.zeros_like(al)
+    o1 = np.array([0x3D, 0x1B, 0x0B])
+    o2 = np.array([0x8E, 0x46, 0x1F])
+    m1 = (rgb == o1).all(axis=2) & al
+    m2 = (rgb == o2).all(axis=2) & al
+    m3 = (rgb == np.array([0x2E, 0x2B, 0x3E])).all(axis=2) & al        # contorno metálico
+    m4 = (rgb == np.array([0x65, 0x62, 0x7E])).all(axis=2) & al
+    outl = m1 | m2 | m3 | m4
+    pad = np.pad(al & ~outl, 1)
+    inner_n = [pad[1:-1, 2:], pad[1:-1, :-2], pad[2:, 1:-1], pad[:-2, 1:-1]]
+    shifts = [(0, -1), (0, 1), (-1, 0), (1, 0)]
+    out = a.copy()
+    # el color de adentro más cercano, oscurecido, para el contorno
+    acc = np.zeros((H, W, 3))
+    cnt = np.zeros((H, W))
+    for (dy, dx), has in zip(shifts, inner_n):
+        nb = np.roll(rgb, (dy, dx), axis=(0, 1))
+        sel = outl & has
+        acc[sel] += nb[sel]
+        cnt[sel] += 1
+    have = cnt > 0
+    avg = acc[have] / cnt[have][:, None]
+    lum = avg.mean(axis=1, keepdims=True)
+    dark = np.clip(avg * 0.42 + np.array([0x3D, 0x1B, 0x0B]) * 0.35 - 6, 0, 255)
+    sel_idx = np.argwhere(have)
+    # abajo (apoyo) queda el contorno marrón fuerte
+    bottom = np.zeros((H, W), dtype=bool)
+    below = np.pad(al, 1)[2:, 1:-1]
+    bottom = outl & ~below
+    for (y, x), c in zip(sel_idx, dark):
+        if not bottom[y, x]:
+            out[y, x, :3] = c
+    # luz de borde y sombra del lado opuesto, sólo en el interior de la forma
+    body = al & ~outl
+    lp = np.pad(body, 1)
+    up_out = ~lp[:-2, 1:-1]
+    left_out = ~lp[1:-1, :-2]
+    down_out = ~lp[2:, 1:-1]
+    right_out = ~lp[1:-1, 2:]
+    lit = body & (up_out | left_out) & ~(down_out | right_out)
+    shd = body & (down_out | right_out) & ~(up_out | left_out)
+    out[lit, :3] = np.clip(out[lit, :3] * 1.1 + 10, 0, 255)
+    out[shd, :3] = np.clip(out[shd, :3] * 0.86, 0, 255)
+    # oclusión al pie (las 2 filas de abajo de cada columna con cuerpo)
+    ys = np.arange(H)[:, None]
+    last = np.where(body.any(axis=0), H - 1 - np.argmax(body[::-1, :], axis=0), -10)
+    foot = body & (ys >= last[None, :] - 1)
+    out[foot, :3] = np.clip(out[foot, :3] * 0.88, 0, 255)
+    return Image.fromarray(out.astype(np.uint8), "RGBA")
 
 
 def main():

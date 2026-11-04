@@ -33,7 +33,7 @@ var h := 560.0
 var diff := 0.3
 var rng := RandomNumberGenerator.new()
 
-var thieves: Array = []     ## {id, pos, vel, state, hp, helmet, carry, target, dash_t, pause_t, dir, weave, spawn_at, side, flash}
+var thieves: Array = []     ## {id, pos, vel, state, hp, helmet, carry, target, pause_t, dir, leg_d, curve, stop_d, stopped, spawn_at, side, flash}
 var loot: Array = []        ## {id, pos, home, state, floor_t, product}
 var civilians: Array = []   ## {pos, vel, spawn_at, state, kind}
 var events: Array = []      ## [{type, pos, ...}] pendientes: la vista los toma con take_events()
@@ -63,7 +63,7 @@ func _init(seed_value: int, difficulty: float, width := 360.0, height := 560.0, 
 	products = maxi(1, product_count)
 	shelf_y = h * 0.27
 	floor_top = shelf_y + REACH + 20.0
-	floor_bottom = h - 140.0
+	floor_bottom = lane_bottom(h)
 	bag = bag_rect(h)
 	var n := thief_count()
 	# Cajas en la estantería: una por ladrón y un par de más.
@@ -72,14 +72,14 @@ func _init(seed_value: int, difficulty: float, width := 360.0, height := 560.0, 
 		var x := lerpf(w * 0.12, w * 0.88, (float(i) + 0.5) / float(crates))
 		loot.append({"id": i, "pos": Vector2(x, shelf_y), "home": Vector2(x, shelf_y), "state": "shelf",
 			"floor_t": 0.0, "product": i % products})
-	var spread := lerpf(6.5, 5.0, diff)
+	var spread := lerpf(6.5, 3.8, diff)
 	for i in n:
 		var side := -1 if rng.randf() < 0.5 else 1
 		var hp := 2 if rng.randf() < diff * 0.55 else 1
 		thieves.append({"id": i, "pos": Vector2(-30.0 if side < 0 else w + 30.0, rng.randf_range(floor_top, floor_bottom)),
 			"state": "wait", "hp": hp, "helmet": hp > 1, "carry": -1, "target": -1,
-			"dash_t": 0.0, "pause_t": 0.0, "dir": Vector2.ZERO, "vel": Vector2.ZERO, "bias": 0.0, "bias_to": 0.0,
-			"weave": rng.randf() * TAU, "weave_f": rng.randf_range(5.0, 8.0),
+			"pause_t": 0.0, "dir": Vector2.ZERO, "vel": Vector2.ZERO,
+			"leg_d": 0.0, "curve": 0.0, "stop_d": 0.0, "stopped": true,
 			"spawn_at": 0.8 + spread * float(i) / maxf(1.0, float(n - 1)) + rng.randf_range(-0.4, 0.4),
 			"side": side, "flash": 0.0, "exit_y": 0.0})
 	var nciv := 0 if diff < 0.25 else (1 if diff < 0.55 else 2) + rng.randi_range(0, 1)
@@ -94,8 +94,9 @@ func thief_count() -> int:
 	return 4 + int(round(diff * 4.0))
 
 
+## Velocidad de carrera (12.2: pareja y más lenta que las rachas de antes).
 func dash_speed() -> float:
-	return w * lerpf(1.2, 1.85, diff)
+	return w * lerpf(0.66, 1.08, diff)
 
 
 func floor_life() -> float:
@@ -142,10 +143,9 @@ func tap(pos: Vector2) -> String:
 		if int(th["hp"]) > 0:
 			th["helmet"] = false
 			th["pause_t"] = 0.45
-			th["dash_t"] = 0.0
 			th["flash"] = 0.2
 			# Trastabilla: el tiro lo empuja hacia atrás (se frena con la aceleración).
-			th["vel"] = (th["vel"] as Vector2) * -0.4 + Vector2(0, -dash_speed() * 0.15)
+			th["vel"] = (th["vel"] as Vector2) * 0.2
 			_event("armor", th["pos"], {"thief": best})
 			return "armor"
 		th["state"] = "down"
@@ -296,6 +296,7 @@ func _step_thief(th: Dictionary, dt: float) -> void:
 					th["carry"] = l["id"]
 					_event("grab", th["pos"], {"thief": th["id"], "loot": l["id"]})
 					th["state"] = "flee"
+					th["leg_d"] = 0.0
 					th["side"] = -1 if (th["pos"] as Vector2).x < w * 0.5 else 1
 					# Huye en diagonal hacia abajo: cruza el local y da tiempo a reaccionar.
 					th["exit_y"] = rng.randf_range(lerpf(floor_top, floor_bottom, 0.45), floor_bottom)
@@ -322,49 +323,68 @@ func _step_thief(th: Dictionary, dt: float) -> void:
 		loot[int(th["carry"])]["pos"] = (th["pos"] as Vector2) + Vector2(0, CARRY_OFFSET)
 
 
-## 12.1: movimiento con inercia (antes cambiaba de rumbo y de velocidad de golpe y
-## se veía robótico). Mantiene el ritmo de rachas y pausas cortas (el momento de
-## disparar), pero con un "steering" simple: la velocidad se acerca a la deseada
-## con aceleración limitada, el rumbo serpentea con una onda suave más un desvío
-## por racha que cambia de a poco, en las pausas casi se detiene (mira, duda) y
-## frena al llegar. dir = hacia dónde mira. Devuelve true al llegar.
+## 12.2: movimiento legible. Antes (12.1) iba a rachas de 0,2-0,4 s con desvíos
+## laterales al azar y pausas cortísimas: se veía errático. Ahora cada tramo
+## (entrar hasta la caja, huir hasta el costado) es una curva suave y continua:
+## el rumbo apunta a la meta más un arco fijo del ladrón que se desvanece al
+## llegar, la velocidad es pareja (acelera y frena con suavidad) y el giro tiene
+## un límite por segundo, así nunca da volantazos. En cada tramo hace UNA parada
+## deliberada (mira a los costados): es el momento justo para dispararle.
+## dir = hacia dónde mira. Devuelve true al llegar.
 func _move(th: Dictionary, goal: Vector2, dt: float) -> bool:
 	var pos: Vector2 = th["pos"]
 	var vel: Vector2 = th["vel"]
 	var to_goal := goal - pos
 	var dist := to_goal.length()
+	if float(th.get("leg_d", 0.0)) <= 0.0:
+		_new_leg(th, dist)
 	if dist < 8.0:
 		th["vel"] = vel * 0.5
+		th["leg_d"] = 0.0
 		return true
 	var top := dash_speed()
 	var want := top
 	if float(th["pause_t"]) > 0.0:
 		th["pause_t"] = float(th["pause_t"]) - dt
-		want = top * 0.03                        # duda: se planta (casi quieto), el momento de disparar
-	else:
-		if float(th["dash_t"]) <= 0.0:
-			th["dash_t"] = rng.randf_range(0.22, 0.4)
-			th["bias_to"] = rng.randf_range(-0.75, 0.75)
-		th["dash_t"] = float(th["dash_t"]) - dt
-		if float(th["dash_t"]) <= 0.0:
-			th["pause_t"] = rng.randf_range(lerpf(0.16, 0.07, diff), lerpf(0.42, 0.22, diff))
-	# Rumbo: hacia la meta + desvío de la racha (suavizado) + serpenteo.
-	th["bias"] = lerpf(float(th["bias"]), float(th["bias_to"]), minf(1.0, dt * 7.0))
-	th["weave"] = float(th["weave"]) + dt * float(th["weave_f"])
+		want = 0.0                                   # se planta: el momento de disparar
+	elif not bool(th.get("stopped", true)) and dist < float(th["stop_d"]):
+		th["stopped"] = true
+		th["pause_t"] = stop_time()
+		want = 0.0
 	var fwd := to_goal / dist
 	var lat := Vector2(-fwd.y, fwd.x)
-	var near := clampf((dist - 30.0) / 90.0, 0.0, 1.0)     # cerca de la meta va derecho
-	var heading := (fwd + lat * (float(th["bias"]) + sin(float(th["weave"])) * 0.3) * near).normalized()
-	want *= clampf(dist / 60.0, 0.25, 1.0)                    # llegada: frena
-	var accel := top * (9.0 if want > vel.length() else 16.0)   # arranca en ~0,1 s, frena en ~0,06 s
-	vel = vel.move_toward(heading * want, accel * dt)
+	var prog := 1.0 - clampf(dist / maxf(1.0, float(th["leg_d"])), 0.0, 1.0)
+	var arc := float(th["curve"]) * sin(prog * PI) * clampf((dist - 24.0) / 80.0, 0.0, 1.0)
+	var heading := (fwd + lat * arc).normalized()
+	want *= clampf(dist / 70.0, 0.3, 1.0)                     # llegada: frena de a poco
+	var spd := vel.length()
+	var accel := top * (3.2 if want > spd else 6.0)           # arranca en ~0,3 s, frena en ~0,17 s
+	spd = move_toward(spd, want, accel * dt)
+	# Giro con límite (rad/s): curva continua, sin volantazos.
+	var cur: Vector2 = th["dir"] if (th["dir"] as Vector2).length() > 0.5 else heading
+	var ang := cur.angle_to(heading)
+	var max_turn := 7.0 * dt
+	cur = cur.rotated(clampf(ang, -max_turn, max_turn))
+	vel = cur * spd
 	pos += vel * dt
 	pos.y = clampf(pos.y, shelf_y + REACH - 4.0, floor_bottom)
 	th["pos"] = pos
 	th["vel"] = vel
-	if vel.length() > top * 0.05:
-		th["dir"] = vel.normalized()
+	th["dir"] = cur
 	return pos.distance_to(goal) < 8.0
+
+
+## Arranca un tramo: arco propio (izquierda o derecha) y dónde hace la parada.
+func _new_leg(th: Dictionary, dist: float) -> void:
+	th["leg_d"] = maxf(dist, 1.0)
+	th["curve"] = rng.randf_range(0.18, 0.42) * (-1.0 if rng.randf() < 0.5 else 1.0)
+	th["stop_d"] = dist * rng.randf_range(0.35, 0.65)
+	# En la máxima dificultad a veces huye sin pararse.
+	th["stopped"] = th["state"] == "flee" and rng.randf() < diff * 0.75
+
+
+func stop_time() -> float:
+	return rng.randf_range(lerpf(0.5, 0.2, diff), lerpf(0.72, 0.3, diff))
 
 
 func _pick_target(th: Dictionary) -> int:
@@ -465,8 +485,14 @@ func rescale(nw: float, nh: float) -> void:
 	h = nh
 	shelf_y = h * 0.27
 	floor_top = shelf_y + REACH + 20.0
-	floor_bottom = h - 140.0
+	floor_bottom = lane_bottom(h)
 	bag = bag_rect(h)
+
+
+## 12.2: los pies más abajo que esto quedarían detrás de las manos (la bolsa y la
+## pistola, en primer plano): ladrones y clientes caminan siempre por encima.
+static func lane_bottom(height: float) -> float:
+	return height - 196.0
 
 
 func escaped_count() -> int:
