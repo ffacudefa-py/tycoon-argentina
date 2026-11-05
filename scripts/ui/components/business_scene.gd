@@ -17,6 +17,7 @@ const H := 170
 const ART_H := 200
 const BG_W := 480
 const BUILDING_BASE_Y := 168
+const SHADOW_TOP := 130           # fila del cuadro del edificio donde empieza su sombra
 const WALK_Y := 178
 ## Calzada de la calle (asfalto entre y=186 y 200 del arte): el colectivo apoya
 ## las ruedas acá y se dibuja DELANTE del negocio y de los peatones.
@@ -47,6 +48,7 @@ var view := "interior"
 var _world: Node2D
 var _bg: Sprite2D
 var _building: Sprite2D
+var _shadow: Sprite2D          # 14.0: sombra del edificio sobre la vereda (atrás-derecha)
 var _int_back: Sprite2D
 var _int_front: Sprite2D
 var _fx_layer: Node2D
@@ -79,6 +81,7 @@ func _ready() -> void:
 	add_child(_world)
 	_bg = _sprite(_world)
 	_add_ambient(SceneAmbient.Layer.SKY)          # nubes y pájaros (detrás del edificio)
+	_shadow = _sprite(_world)
 	_building = _sprite(_world)
 	_int_back = _sprite(_world)
 	_add_ambient(SceneAmbient.Layer.SPARKS)       # destellos en ventanas / motas adentro
@@ -190,6 +193,7 @@ func refresh() -> void:
 	var interior := view == "interior"
 	_bg.visible = not interior
 	_building.visible = not interior
+	_shadow.visible = not interior
 	_int_back.visible = interior
 	_int_front.visible = interior
 	if interior:
@@ -198,12 +202,15 @@ func refresh() -> void:
 	else:
 		# Fondo propio de la provincia si existe; si no, el provisorio de su región.
 		var street: String = Game.m.data.zone_by_id[s["zone"]].get("street", s["zone"])
-		var loc := "locations/street_%s.png" % s["zone"]
-		if not ResourceLoader.exists(U.PA + loc):
-			loc = "locations/street_%s.png" % street
-		_bg.texture = U.tex(loc) if ResourceLoader.exists(U.PA + loc) else U.tex("backgrounds/street_%s.png" % street)
+		# 14.0: U.tex busca primero en escenarios/ (ahí están las variantes por provincia).
+		var bg_tex := U.tex("locations/street_%s.png" % s["zone"])
+		if bg_tex == null:
+			bg_tex = U.tex("locations/street_%s.png" % street)
+		_bg.texture = bg_tex if bg_tex else U.tex("backgrounds/street_%s.png" % street)
 		_building.texture = U.tex("businesses/%s_%d.png" % [bid, tier])
 		_building.hframes = 2 if _building.texture and _building.texture.get_width() >= 384 else 1
+		var sh_path := "businesses/%s_%d_shadow.png" % [bid, tier]
+		_shadow.texture = U.tex(sh_path)
 	if _last_tier >= 0 and tier > _last_tier:
 		_tier_flash()
 	_last_tier = tier
@@ -233,6 +240,7 @@ func _layout() -> void:
 		_world.position = Vector2(0, H - ART_H)
 		_bg.position = Vector2(floor((w - BG_W) / 2.0), 0)
 		_building.position = Vector2(floor(w / 2.0) - 96, BUILDING_BASE_Y - 149)
+		_shadow.position = _building.position + Vector2(0, SHADOW_TOP)
 	_place_workers()
 	_place_fx()
 

@@ -358,3 +358,8 @@ if __name__ == "__main__":
     print("escenarios:", run(SCENES, "escenarios"), "· íconos:", run(ICONS, "iconos"))
     import ui11  # la interfaz 11 (marcos, botones, flechas) va encima del re-estilo automático
     ui11.generate(os.path.join(ROOT, "assets"))
+    # 14.0: exteriores con luz (pisan lo que el re-estilo dejó en businesses/ y locations/)
+    import facade_light
+    import landscapes14
+    facade_light.main()
+    landscapes14.main()
