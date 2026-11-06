@@ -16,6 +16,15 @@ const TRAIN_SPEED := 34.0
 const TRAIN_CARS := 4
 const CAR_W := 42.0
 const MAX_SMOKE := 14
+## La entrada arranca recién con cuadros fluidos: al abrir la app los primeros
+## tardan (shaders, música) y se comían la animación entera.
+const SETTLE_FRAMES := 3
+const SETTLE_DELTA := 0.05
+const SETTLE_MAX := 4.0
+const INTRO_MAX_STEP := 1.0 / 20.0
+
+## Empieza la entrada de verdad (después de esperar cuadros fluidos).
+signal intro_started
 
 var data := {}
 var _stage: Node2D
@@ -27,6 +36,8 @@ var _t := 0.0
 var _intro := 9.0                       ## tiempo desde que arrancó la entrada
 var _traffic: StreetTraffic
 var _anim := true
+var _settle := 0                        ## cuadros fluidos que faltan para arrancar la entrada
+var _settle_t := 0.0
 
 var _train: Array = []
 var _train_x := -120.0
@@ -203,13 +214,25 @@ func intro() -> void:
 		_intro = 9.0
 		return
 	_fade.modulate.a = 1.0
-	_fade.create_tween().tween_property(_fade, "modulate:a", 0.0, 0.9)
+	_settle = SETTLE_FRAMES
+	_settle_t = 0.0
 	_train_x = -150.0
 	_train_on = true
 	_train_dir = 1.0
 	_show_train(true)
 	_traffic.clear()
 	_traffic.prefill()
+
+
+func is_settling() -> bool:
+	return _settle > 0
+
+
+func _start_intro() -> void:
+	_settle = 0
+	_intro = 0.0
+	_fade.create_tween().tween_property(_fade, "modulate:a", 0.0, 0.9)
+	intro_started.emit()
 
 
 func _animated() -> bool:
@@ -224,9 +247,21 @@ func _process(delta: float) -> void:
 	_traffic.visible = _anim
 	if not _anim:
 		_set_layers(0.0)
+		if _settle > 0:
+			_settle = 0
+			_fade.modulate.a = 0.0
+			intro_started.emit()
 		return
+	if _settle > 0:
+		_settle_t += delta
+		_settle = _settle - 1 if delta < SETTLE_DELTA else SETTLE_FRAMES
+		if _settle == 0 or _settle_t > SETTLE_MAX:
+			_start_intro()
+		else:
+			_set_layers(0.0)
+			return
 	_t += delta
-	_intro += delta
+	_intro += minf(delta, INTRO_MAX_STEP)
 	_set_layers(sin(_t * 0.21) * 0.7 + sin(_t * 0.09 + 1.0) * 0.3)
 	_tick_sky(delta)
 	_tick_train(delta)

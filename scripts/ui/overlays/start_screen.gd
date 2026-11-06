@@ -108,10 +108,12 @@ func _play_intro() -> void:
 	_logo.pivot_offset = Vector2(180, 68)
 	_logo.scale = Vector2(0.6, 0.6)
 	_logo.modulate.a = 0.0
+	_card.modulate.a = 0.0
+	if _postcard.is_settling():
+		await _postcard.intro_started
 	var tw := _logo.create_tween().set_parallel(true)
 	tw.tween_property(_logo, "modulate:a", 1.0, 0.3).set_delay(0.55)
 	tw.tween_property(_logo, "scale", Vector2.ONE, 0.6).set_delay(0.55).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	_card.modulate.a = 0.0
 	var tc := _card.create_tween()
 	tc.tween_interval(0.95)
 	tc.tween_property(_card, "modulate:a", 1.0, 0.35)
