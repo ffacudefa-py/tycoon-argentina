@@ -273,6 +273,13 @@ func refresh_session(done := Callable()) -> void:
 
 ## Token de acceso vigente para la API de Firestore. Si está por vencer lo
 ## renueva primero. done(token) recibe "" si no hay sesión o no hay internet.
+## Para el chequeo de notificaciones en segundo plano (PushNotifications): la
+## misma sesión que ya se guarda en user://session.cfg, en el almacenamiento
+## privado de la app.
+func background_token() -> String:
+	return _refresh_token if signed_in() else ""
+
+
 func get_token(done: Callable) -> void:
 	if not signed_in() or _refresh_token == "":
 		done.call("")

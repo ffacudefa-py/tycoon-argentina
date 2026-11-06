@@ -6,15 +6,18 @@ extends RefCounted
 ## Se guardan en el almacenamiento interno de la app (user://profile/), que en
 ## Android no necesita permisos y sobrevive a cerrar la app. Tamaños:
 ##   foto 256x256 (se muestra en un círculo), banner 768x256 (3:1).
-## Integración futura con la nube: subir estos mismos PNG asociados al uid de
-## Firebase (hoy el proyecto está en plan Spark, sin Storage). No hay
-## sincronización implementada: todo queda en el teléfono.
+## Los archivos quedan en el teléfono. Lo único que sale es una miniatura de la
+## foto (THUMB px, JPEG) en el perfil público, para que la vean los amigos
+## (Friends, si el jugador no lo desactivó en Configuración).
 
 const DIR := "user://profile"
 const SIZES := {"photo": Vector2i(256, 256), "banner": Vector2i(768, 256)}
 const MAX_SOURCE := 2048     ## lado máximo con el que se trabaja al recortar
+const THUMB := 64            ## miniatura de la foto para los amigos (~3 KB)
+const THUMB_QUALITY := 0.8
 
 static var _cache := {}       ## kind -> Texture2D
+static var _B64 := RegEx.create_from_string("^[A-Za-z0-9+/]+={0,2}$")
 
 
 static func path_for(kind: String, dir := DIR) -> String:
@@ -135,6 +138,31 @@ static func clear(kind: String, dir := DIR) -> void:
 	if FileAccess.file_exists(p):
 		DirAccess.remove_absolute(p)
 	_cache.erase(kind)
+
+
+## Miniatura JPEG de la foto en base64 ("" si no hay foto).
+static func thumb_b64(kind := "photo", dir := DIR) -> String:
+	var p := path_for(kind, dir)
+	if not FileAccess.file_exists(p):
+		return ""
+	var img := Image.load_from_file(p)
+	if img == null or img.is_empty():
+		return ""
+	img.resize(THUMB, THUMB, Image.INTERPOLATE_LANCZOS)
+	img.convert(Image.FORMAT_RGB8)
+	return Marshalls.raw_to_base64(img.save_jpg_to_buffer(THUMB_QUALITY))
+
+
+## Textura a partir de una miniatura en base64 (null si no se puede leer).
+static func texture_from_b64(b64: String) -> Texture2D:
+	# Viene de la red (perfil de otro jugador): sólo base64 válido.
+	if b64 == "" or b64.length() % 4 != 0 or not _B64.search(b64):
+		return null
+	var bytes := Marshalls.base64_to_raw(b64)
+	var img := Image.new()
+	if bytes.size() < 4 or img.load_jpg_from_buffer(bytes) != OK or img.is_empty():
+		return null
+	return ImageTexture.create_from_image(img)
 
 
 static func has(kind: String, dir := DIR) -> bool:

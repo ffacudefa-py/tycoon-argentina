@@ -4,6 +4,7 @@ extends RefCounted
 ##
 ## Documentos (reglas en firestore.rules, detalle en docs/AMIGOS.md):
 ##   players/<uid>                 perfil público: empresa, avatar, etapa, ganado
+##                                 y, si la compartió, la miniatura de la foto
 ##   codes/<CÓDIGO>                {uid}: para encontrar a alguien por su código
 ##   players/<uid>/requests/<de>   solicitudes recibidas
 ##   players/<uid>/friends/<uid2>  lista de amigos (se escribe de los dos lados)
@@ -89,11 +90,16 @@ static func profile_of(m: GameModel, uid: String, code: String) -> Dictionary:
 		"lifetime": m.economy.lifetime_earned,
 		"prestige": int(m.prestige.get("count", 0)),
 		"code": code,
+		"photo": "",
 	}
 
 
+## Hasta cuánto texto (base64) puede ocupar la miniatura de la foto (reglas: 24000).
+const PHOTO_MAX := 20000
+
+
 static func profile_fields(p: Dictionary, now: float) -> Dictionary:
-	return {"fields": {
+	var out := {"fields": {
 		"company": {"stringValue": str(p["company"]).left(40)},
 		"avatar": {"stringValue": str(p["avatar"])},
 		"stage": {"integerValue": str(p["stage"])},
@@ -102,6 +108,10 @@ static func profile_fields(p: Dictionary, now: float) -> Dictionary:
 		"code": {"stringValue": str(p["code"])},
 		"updated": {"doubleValue": now},
 	}}
+	var photo := str(p.get("photo", ""))
+	if photo != "" and photo.length() <= PHOTO_MAX:
+		out["fields"]["photo"] = {"stringValue": photo}
+	return out
 
 
 ## Perfil a partir de un documento players/<uid> ({} si no tiene datos).
@@ -118,6 +128,7 @@ static func profile_from_doc(doc: Dictionary) -> Dictionary:
 		"prestige": integer(f, "prestige"),
 		"code": text(f, "code"),
 		"updated": num(f, "updated"),
+		"photo": text(f, "photo"),
 	}
 
 

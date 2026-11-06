@@ -56,7 +56,7 @@
    100
   ],
   "hard_mode": {
-   "_doc": "Modo Argentina picante (opcional, se elige al empezar la cuenta). Ver scripts/events/hard_mode.gd.",
+   "_doc": "Modo bien argentino (opcional, se elige al empezar la cuenta): sólo más difícil, nada exclusivo. Ver scripts/events/hard_mode.gd. lawsuit_* = juicios de este modo; normal pisa esos valores en el modo normal; inflation pisa la de events.json.",
    "income_bonus": 0.25,
    "lawsuit_after": 120,
    "lawsuit_cooldown": 300,
@@ -65,9 +65,14 @@
     "period": 360,
     "warning": 60,
     "cost_step": 0.12,
-    "price_step": 0.11,
+    "price_step": 0.06,
     "price_lag": 120,
-    "max_index": 10.0
+    "max_index": 3.0
+   },
+   "normal": {
+    "lawsuit_after": 300,
+    "lawsuit_cooldown": 600,
+    "lawsuit_salary_seconds": 600
    }
   },
   "engagement": {
@@ -81,19 +86,19 @@
      "kind": "money",
      "weight": 50,
      "seconds": [
-      120,
-      480
+      45,
+      120
      ],
-     "min": 200
+     "min": 20
     },
     {
      "kind": "money",
      "weight": 15,
      "seconds": [
-      900,
-      1500
+      240,
+      420
      ],
-     "min": 800
+     "min": 60
     },
     {
      "kind": "boost",

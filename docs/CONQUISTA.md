@@ -90,13 +90,19 @@ amigos y fecha de creación.
 ## Modo bien argentino (opcional)
 
 Se elige una sola vez al empezar la cuenta (`HardModeModal`; el prestigio lo
-conserva) y reemplaza al viejo ajuste de inflación ficticia. Lógica en
-`scripts/events/hard_mode.gd`, balance en `progression.json → balance.hard_mode`:
+conserva). Desde la 15.0 **no bloquea nada**: inflación, juicios, robos, coima y
+minijuegos existen en los dos modos; este modo sólo los hace más difíciles. Lógica en
+`scripts/events/hard_mode.gd`, balance en `progression.json → balance.hard_mode`
+(`normal` = valores del modo normal):
 
 - **+25 %** en todos los ingresos.
-- **Inflación fuerte** siempre activa (remarcación cada 6 min, +12 %).
-- **Juicios laborales**: con sueldos atrasados más de 2 min, el empleado de mayor
-  sueldo hace juicio (15 min de sueldo; lo que no se pueda pagar queda como deuda) y se va.
+- **Inflación**: normal, después del tutorial, cada 10 min costos +6 % / precios +3 %
+  (tope ×2, ~-20 % de ganancia); bien argentino, desde el principio, cada 6 min
+  costos +12 % / precios +6 % (tope ×3, ~-50 %).
+- **Juicios laborales**: con sueldos atrasados más de 2 min (normal: 5 min), el
+  empleado de mayor sueldo hace juicio (15 min de sueldo; normal: 10 min; lo que no
+  se pueda pagar queda como deuda) y se va.
+- **Minijuegos**: +15 % de dificultad en este modo.
 - **Robos más seguidos y grandes**: cada 4-8 min, 20-40 % de la mercadería (en el
   modo normal, 8-15 min y 15-30 %). Desde la 11.2 los robos y la coima existen en los
   dos modos y se juegan como minijuegos: ver docs/MINIJUEGOS.md.

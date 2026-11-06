@@ -52,7 +52,7 @@ def save(name, samples):
 
 random.seed(3)
 save("tap", tone(880, 0.05, 0.25, "square", decay=40, duty=0.25))
-save("coin", seq(tone(988, 0.06, 0.3, "square", decay=12, duty=0.25), tone(1319, 0.18, 0.3, "square", decay=10, duty=0.25)))
+# "coin" ya no se sintetiza (15.0): son los 5 golpes de coin.mp3, ver tools/audio/split_coin.sh.
 save("buy", seq(tone(523, 0.06, 0.3, "square", decay=15), tone(784, 0.12, 0.3, "square", decay=12)))
 save("upgrade", seq(*[tone(f, 0.07, 0.28, "square", decay=10, duty=0.3) for f in (523, 659, 784, 1047)]))
 save("unlock", seq(*[tone(f, 0.09, 0.3, "square", decay=6, duty=0.4) for f in (392, 523, 659, 784)], tone(1047, 0.35, 0.3, "tri", decay=4)))

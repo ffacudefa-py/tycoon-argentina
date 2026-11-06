@@ -36,7 +36,7 @@ static func open(id: String, start_tab := 0) -> void:
 	var v := ManageBusinessModal.new()
 	v.bid = id
 	v.tab = start_tab
-	v._window = Main.instance.modal_host.open(Game.m.data.business_by_id[id]["name"], v)
+	v._window = Main.instance.modal_host.open(Game.m.data.business_by_id[id]["name"], v).with_help("administrar")
 
 
 func _ready() -> void:
@@ -259,7 +259,13 @@ func _employee_row(e: Dictionary, hired: bool, index: int) -> Control:
 		sub += " · nv %d" % EmployeeSystem.xp_level(m, e)
 	col.add_child(U.label(sub, U.SIZE_SMALL, UiColors.INFO, true))
 	col.add_child(U.para(_benefit(role, eff), U.SIZE_SMALL, UiColors.GAIN))
-	col.add_child(U.label("Sueldo " + Fmt.per_sec(e["salary"]), U.SIZE_SMALL, UiColors.LOSS))
+	var cons := _drawbacks(role)
+	if cons != "":
+		col.add_child(U.para(cons, U.SIZE_SMALL, UiColors.LOSS))
+	# El sueldo sube con el negocio (15.0): se muestra el de hoy y cómo crece.
+	var growth := float(role.get("salary_exp", m.data.employees_cfg.get("salary_level_exp", 0.85)))
+	var how := "casi no sube" if growth < 0.5 else ("sube igual que el negocio" if growth >= 1.0 else "sube con el negocio")
+	col.add_child(U.label("Sueldo %s · %s" % [Fmt.per_sec(EmployeeSystem.salary_of(m, e, bid)), how], U.SIZE_SMALL, UiColors.LOSS))
 	row.add_child(col)
 	if hired:
 		var fire := U.button("Despedir", UiColors.BTN_DANGER, "", 32, U.SIZE_SMALL)
@@ -310,6 +316,17 @@ func _portrait(variant: int) -> Control:
 	return frame
 
 
+## Lo malo del rol (efectos negativos, fijos): "Contra: -10 % velocidad".
+func _drawbacks(role: Dictionary) -> String:
+	var parts := []
+	var fx: Dictionary = role["effects"]
+	var names := {"speed": "velocidad", "revenue": "ingresos", "restock_speed": "reposición", "team_eff": "al resto del equipo"}
+	for k in names:
+		if fx.has(k) and float(fx[k]) < 0.0:
+			parts.append("%d %% %s" % [int(round(float(fx[k]) * 100)), names[k]])
+	return ("Contra: " + " · ".join(parts)) if not parts.is_empty() else ""
+
+
 ## Qué hace, en pocas palabras: "Vende solo · +4 % velocidad".
 func _benefit(role: Dictionary, eff: float) -> String:
 	var parts := []
@@ -319,16 +336,23 @@ func _benefit(role: Dictionary, eff: float) -> String:
 		parts.append("repone solo")
 	var fx: Dictionary = role["effects"]
 	var pct := func(k: String) -> int: return int(round(float(fx[k]) * eff * 100))
-	if fx.has("speed"):
+	var good := func(k: String) -> bool: return fx.has(k) and float(fx[k]) > 0.0
+	if good.call("speed"):
 		parts.append("+%d %% velocidad" % pct.call("speed"))
-	if fx.has("revenue"):
+	if good.call("revenue"):
 		parts.append("+%d %% ingresos" % pct.call("revenue"))
-	if fx.has("restock_speed"):
+	if good.call("restock_speed"):
 		parts.append("+%d %% reposición" % pct.call("restock_speed"))
-	if fx.has("team_eff"):
+	if good.call("team_eff"):
 		parts.append("+%d %% al equipo" % pct.call("team_eff"))
-	if fx.has("zone_revenue"):
+	if good.call("zone_revenue"):
 		parts.append("+%d %% en la zona" % pct.call("zone_revenue"))
+	if good.call("salary_cut"):
+		parts.append("-%d %% sueldos del local" % pct.call("salary_cut"))
+	if good.call("theft_guard"):
+		parts.append("%d %% de espantar robos" % mini(90, pct.call("theft_guard")))
+	if float(fx.get("xp_rate", 1.0)) > 1.0:
+		parts.append("aprende x%s más rápido" % str(fx["xp_rate"]).trim_suffix(".0"))
 	if role.get("manager", false):
 		parts.append("arregla fallas")
 	var t := " · ".join(parts)

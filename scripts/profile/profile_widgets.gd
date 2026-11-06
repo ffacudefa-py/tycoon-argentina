@@ -5,6 +5,34 @@ extends RefCounted
 ## muestra su avatar pixel art; el banner por defecto es la calle del barrio.
 
 static var _circle: ShaderMaterial
+static var _friend_tex := {}        ## hash de la miniatura -> textura
+
+
+static func circle() -> ShaderMaterial:
+	if _circle == null:
+		_circle = CropScreen.circle_material()
+	return _circle
+
+
+## Avatar de otro jugador: su foto (miniatura del perfil público) en círculo,
+## o su avatar pixel art si no subió foto.
+static func apply_other_avatar(tr: TextureRect, avatar_id: String, photo_b64: String) -> void:
+	var tex: Texture2D = null
+	if photo_b64 != "":
+		var k := photo_b64.hash()
+		if not _friend_tex.has(k):
+			_friend_tex[k] = ProfileImages.texture_from_b64(photo_b64)
+		tex = _friend_tex[k]
+	if tex:
+		tr.texture = tex
+		tr.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+		tr.material = circle()
+	else:
+		tr.texture = U.tex("avatars/%s.png" % (avatar_id if Game.data.avatar_by_id.has(avatar_id) else "emprendedor"))
+		tr.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		tr.material = null
+	tr.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	tr.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 
 
 static func has_photo() -> bool:
@@ -21,9 +49,7 @@ static func apply_avatar(tr: TextureRect) -> void:
 	if has_photo():
 		tr.texture = ProfileImages.texture("photo")
 		tr.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
-		if _circle == null:
-			_circle = CropScreen.circle_material()
-		tr.material = _circle
+		tr.material = circle()
 	else:
 		tr.texture = U.tex("avatars/%s.png" % Game.m.profile["avatar"])
 		tr.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST

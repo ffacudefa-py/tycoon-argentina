@@ -3,8 +3,11 @@ extends RefCounted
 ## Candidatos, contratación, despidos, sueldos y experiencia.
 ##
 ## Costos y sueldos escalan con la "escala" del negocio (su ganancia por
-## segundo a nivel 10). El sueldo queda fijo al contratar: a medida que el
-## negocio crece, el empleado se vuelve relativamente más barato.
+## segundo a nivel 10) y, desde la 15.0, con lo que gana HOY: el sueldo
+## guardado es el de la escala y se multiplica por salary_index(), que sigue
+## la ganancia del local (sin turbos, prestigio ni eventos) elevada a
+## salary_level_exp. Así el sueldo crece exponencialmente con el negocio y
+## nunca se vuelve insignificante. Cada rol puede crecer más o menos (salary_exp).
 ## Si no alcanza para pagar sueldos, se acumula deuda (nunca saldo negativo)
 ## y todos trabajan "a reglamento" (50 %) hasta saldarla.
 
@@ -16,6 +19,37 @@ static func xp_level(m: GameModel, e: Dictionary) -> int:
 		if float(e.get("xp", 0.0)) >= float(levels[i]):
 			lvl = i + 1
 	return lvl
+
+
+## Índice del sueldo para una ganancia `basis` (por segundo) de un negocio de
+## escala `scale`: (basis / scale) ^ exp, con piso.
+static func index_for(m: GameModel, basis: float, scale: float, role_id := "") -> float:
+	var cfg: Dictionary = m.data.employees_cfg
+	var ex := float(cfg.get("salary_level_exp", 0.9))
+	if role_id != "" and m.data.role_by_id.has(role_id):
+		ex = float(m.data.role_by_id[role_id].get("salary_exp", ex))
+	var ratio := maxf(0.001, basis / maxf(scale, 0.000001))
+	return maxf(float(cfg.get("salary_index_min", 0.05)), pow(ratio, ex))
+
+
+## Cuánto se multiplica hoy el sueldo (y la contratación) en el negocio `bid`.
+static func salary_index(m: GameModel, bid: String, role_id := "") -> float:
+	if not m.biz.has(bid):
+		return 1.0
+	return index_for(m, float(m.derive(bid)["salary_basis"]), float(m.data.business_by_id[bid]["scale"]), role_id)
+
+
+## Sueldo por segundo de un empleado hoy (o de un candidato en `bid`).
+static func salary_of(m: GameModel, e: Dictionary, bid := "") -> float:
+	var b: String = bid if bid != "" else str(e.get("business", ""))
+	return float(e["salary"]) * salary_index(m, b, str(e["role"]))
+
+
+## Valor de un efecto del rol para un empleado: lo bueno crece con su
+## eficiencia; lo malo es fijo (un mejor empleado no tiene más contras).
+static func effect(role: Dictionary, key: String, eff: float) -> float:
+	var v := float(role["effects"].get(key, 0.0))
+	return v * eff if v > 0.0 else v
 
 
 static func available_roles(m: GameModel, bid: String) -> Array:
@@ -41,7 +75,7 @@ static func _make_candidate(m: GameModel, bid: String, role_id: String) -> Dicti
 		"name": "%s %s" % [first[m.rng.randi() % first.size()], last[m.rng.randi() % last.size()]],
 		"role": role_id,
 		"eff": eff,
-		"hire": Economy.to_int_ceil(float(role["hire"]) * scale * (0.8 + 0.4 * quality) * maxf(0.3, hire_discount)),
+		"hire": Economy.to_int_ceil(float(role["hire"]) * scale * (0.8 + 0.4 * quality) * maxf(0.3, hire_discount) * salary_index(m, bid)),
 		"salary": snappedf(float(role["salary"]) * scale * (0.85 + 0.3 * quality) * m.income_rate(), 0.01),
 		"variant": m.rng.randi() % 8,
 	}
@@ -123,7 +157,7 @@ static func hire(m: GameModel, bid: String, index: int) -> Dictionary:
 
 static func severance(m: GameModel, eid: String) -> int:
 	var e: Dictionary = m.employees[eid]
-	return Economy.to_int_ceil(float(e["salary"]) * float(m.data.employees_cfg["fire_severance_seconds"]))
+	return Economy.to_int_ceil(salary_of(m, e) * float(m.data.employees_cfg["fire_severance_seconds"]))
 
 
 static func fire(m: GameModel, eid: String) -> Dictionary:
@@ -162,7 +196,8 @@ static func advance(m: GameModel, dt: float, offline: bool) -> void:
 	var leveled := false
 	for e in m.employees.values():
 		var before := xp_level(m, e)
-		e["xp"] = float(e["xp"]) + dt
+		var role: Dictionary = m.data.role_by_id.get(e["role"], {})
+		e["xp"] = float(e["xp"]) + dt * float(role.get("effects", {}).get("xp_rate", 1.0))
 		if xp_level(m, e) > before:
 			leveled = true
 			if not offline:

@@ -179,6 +179,14 @@ static func start_theft(m: GameModel, bid: String) -> Dictionary:
 		m._count("thefts_blocked", 1)
 		m.notify.emit("Quisieron robar en %s, pero la seguridad estaba arreglada. 😎" % name, "good")
 		return GameModel.fail("protegido")
+	# Patovicas del local: cada uno puede espantar a la banda antes de que entre.
+	var guard := 0.0
+	for e in m.employees_of(bid):
+		guard = 1.0 - (1.0 - guard) * (1.0 - clampf(EmployeeSystem.effect(m.data.role_by_id[e["role"]], "theft_guard", m.employee_efficiency(e)), 0.0, 0.9))
+	if guard > 0.0 and rng.randf() < guard:
+		m._count("thefts_blocked", 1)
+		m.notify.emit("Una banda quiso entrar a %s, pero el patovica los sacó corriendo." % name, "good")
+		return GameModel.fail("patovica")
 	var r := _mode_cfg(m, "theft_fraction", [0.15, 0.3])
 	m.hard["pending_theft"] = {"business": bid, "fraction": rng.randf_range(float(r[0]), float(r[1])),
 		"seed": rng.randi(), "difficulty": difficulty(m), "at": m.now()}

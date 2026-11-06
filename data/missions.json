@@ -1,5 +1,5 @@
 {
- "_doc": "Misiones, desafíos, diarias y logros. metric: ver GameModel.metric(). Recompensas: money (fijo), income_seconds (+min) = segundos de ingreso actual (sólo diarias: las recompensas proporcionales en misiones se encadenan y rompen el balance), boost {mult, seconds}, icon (avatar). Las misiones se completan solas; la recompensa se reclama una sola vez.",
+ "_doc": "Misiones, desafíos, diarias y logros. metric: ver GameModel.metric(). Recompensas: money (fijo), income_seconds (+min) = segundos de ingreso actual (sólo diarias: las recompensas proporcionales en misiones se encadenan y rompen el balance), boost {mult, seconds}, icon (avatar). Las misiones se completan solas; la recompensa se reclama una sola vez. Logros (15.0): tier bronce/plata/oro/diamante y category ventas/dinero/negocios/equipo/conquista/aventura; la insignia sale de tools/art/badges15.py (badges/<id>.png).",
  "main": [
   {
    "id": "m_ventas",
@@ -405,95 +405,74 @@
    "target": 1,
    "reward": {
     "money": 10
-   }
-  },
-  {
-   "id": "emprendedor",
-   "name": "Emprendedor",
-   "description": "Alcanzá un capital de $10.000.",
-   "icon": "billete",
-   "metric": "money",
-   "target": 10000,
-   "reward": {
-    "icon": "gorra"
-   }
-  },
-  {
-   "id": "jefe",
-   "name": "Jefe",
-   "description": "Contratá a tu primer empleado.",
-   "icon": "persona",
-   "metric": "hires_total",
-   "target": 1,
-   "reward": {
-    "money": 100
-   }
-  },
-  {
-   "id": "automatizador",
-   "name": "Automatizador",
-   "description": "Automatizá tu primer negocio.",
-   "icon": "rayo",
-   "metric": "automated",
-   "target": 1,
-   "reward": {
-    "money": 100
-   }
-  },
-  {
-   "id": "multiempresario",
-   "name": "Multiempresario",
-   "description": "Poseé cinco negocios.",
-   "icon": "edificio",
-   "metric": "businesses_owned",
-   "target": 5,
-   "reward": {
-    "money": 300000
-   }
-  },
-  {
-   "id": "millonario",
-   "name": "Primer palo verde",
-   "description": "Ganá $1 M en total (histórico).",
-   "icon": "billete",
-   "metric": "lifetime_earnings",
-   "target": 1000000,
-   "reward": {
-    "money": 100000
-   }
-  },
-  {
-   "id": "magnate",
-   "name": "Magnate",
-   "description": "Alcanzá un patrimonio de $1.000 M.",
-   "icon": "corona",
-   "metric": "net_worth",
-   "target": 1000000000,
-   "reward": {
-    "icon": "galera"
-   }
-  },
-  {
-   "id": "rey_kiosco",
-   "name": "Papa de oro",
-   "description": "Llevá chacra de papas andinas al nivel 100.",
-   "icon": "golosina",
-   "metric": "level:papas_andinas",
-   "target": 100,
-   "reward": {
-    "icon": "kiosquero"
-   }
+   },
+   "tier": "bronce",
+   "category": "ventas"
   },
   {
    "id": "mil_alfajores",
    "name": "Rey del algodón",
    "description": "Vendé 1000 de algodón.",
-   "icon": "alfajor",
+   "icon": "p_algodon",
    "metric": "sold:algodon",
    "target": 1000,
    "reward": {
     "icon": "alfajor"
-   }
+   },
+   "tier": "bronce",
+   "category": "ventas"
+  },
+  {
+   "id": "ventas_100",
+   "name": "Mostrador caliente",
+   "description": "Realizá 100 ventas.",
+   "icon": "moneda",
+   "metric": "sales_total",
+   "target": 100,
+   "reward": {
+    "money": 300
+   },
+   "tier": "bronce",
+   "category": "ventas"
+  },
+  {
+   "id": "reposicion_50",
+   "name": "Siempre con mercadería",
+   "description": "Reponé mercadería 50 veces.",
+   "icon": "caja",
+   "metric": "restock_count",
+   "target": 50,
+   "reward": {
+    "money": 2000
+   },
+   "tier": "bronce",
+   "category": "ventas"
+  },
+  {
+   "id": "gondola_vacia",
+   "name": "Góndola vacía",
+   "description": "Quedate sin stock 10 veces (pasa en las mejores familias).",
+   "icon": "alerta",
+   "metric": "stockouts",
+   "target": 10,
+   "reward": {
+    "money": 1000
+   },
+   "tier": "bronce",
+   "category": "ventas"
+  },
+  {
+   "id": "ventas_1000",
+   "name": "Clientela fiel",
+   "description": "Realizá 1.000 ventas.",
+   "icon": "moneda",
+   "metric": "sales_total",
+   "target": 1000,
+   "reward": {
+    "money": 5000
+   },
+   "tier": "plata",
+   "category": "ventas"
   },
   {
    "id": "vendedor_nato",
@@ -504,7 +483,298 @@
    "target": 10000,
    "reward": {
     "money": 200000
-   }
+   },
+   "tier": "oro",
+   "category": "ventas"
+  },
+  {
+   "id": "reposicion_1000",
+   "name": "Logística aceitada",
+   "description": "Reponé mercadería 1.000 veces.",
+   "icon": "camion",
+   "metric": "restock_count",
+   "target": 1000,
+   "reward": {
+    "money": 5000000
+   },
+   "tier": "oro",
+   "category": "ventas"
+  },
+  {
+   "id": "ventas_100k",
+   "name": "Leyenda del mostrador",
+   "description": "Realizá 100.000 ventas.",
+   "icon": "trofeo",
+   "metric": "sales_total",
+   "target": 100000,
+   "reward": {
+    "money": 50000000
+   },
+   "tier": "diamante",
+   "category": "ventas"
+  },
+  {
+   "id": "emprendedor",
+   "name": "Emprendedor",
+   "description": "Alcanzá un capital de $10.000.",
+   "icon": "billete",
+   "metric": "money",
+   "target": 10000,
+   "reward": {
+    "icon": "gorra"
+   },
+   "tier": "bronce",
+   "category": "dinero"
+  },
+  {
+   "id": "millonario",
+   "name": "Primer palo verde",
+   "description": "Ganá $1 M en total (histórico).",
+   "icon": "billete",
+   "metric": "lifetime_earnings",
+   "target": 1000000,
+   "reward": {
+    "money": 100000
+   },
+   "tier": "plata",
+   "category": "dinero"
+  },
+  {
+   "id": "colchon",
+   "name": "Colchón lleno",
+   "description": "Juntá $100 M en efectivo.",
+   "icon": "billete",
+   "metric": "money",
+   "target": 100000000,
+   "reward": {
+    "money": 5000000
+   },
+   "tier": "plata",
+   "category": "dinero"
+  },
+  {
+   "id": "magnate",
+   "name": "Magnate",
+   "description": "Alcanzá un patrimonio de $1.000 M.",
+   "icon": "corona",
+   "metric": "net_worth",
+   "target": 1000000000,
+   "reward": {
+    "icon": "galera"
+   },
+   "tier": "oro",
+   "category": "dinero"
+  },
+  {
+   "id": "mil_palos",
+   "name": "Mil palos",
+   "description": "Ganá $1.000 M en total (histórico).",
+   "icon": "billete",
+   "metric": "lifetime_earnings",
+   "target": 1000000000,
+   "reward": {
+    "money": 50000000
+   },
+   "tier": "oro",
+   "category": "dinero"
+  },
+  {
+   "id": "billonario",
+   "name": "Billonario",
+   "description": "Ganá $1 billón en total (histórico).",
+   "icon": "corona",
+   "metric": "lifetime_earnings",
+   "target": 1000000000000,
+   "reward": {
+    "boost": {
+     "mult": 2.0,
+     "seconds": 3600
+    }
+   },
+   "tier": "diamante",
+   "category": "dinero"
+  },
+  {
+   "id": "segundo_local",
+   "name": "Segundo local",
+   "description": "Tené dos negocios.",
+   "icon": "edificio",
+   "metric": "businesses_owned",
+   "target": 2,
+   "reward": {
+    "money": 1000
+   },
+   "tier": "bronce",
+   "category": "negocios"
+  },
+  {
+   "id": "creciendo",
+   "name": "Creciendo",
+   "description": "Llevá un negocio al nivel 25.",
+   "icon": "flecha_arriba",
+   "metric": "max_level",
+   "target": 25,
+   "reward": {
+    "money": 1000
+   },
+   "tier": "bronce",
+   "category": "negocios"
+  },
+  {
+   "id": "mejorando",
+   "name": "Mejorando",
+   "description": "Comprá 10 mejoras.",
+   "icon": "llave_inglesa",
+   "metric": "upgrades_bought",
+   "target": 10,
+   "reward": {
+    "money": 2000
+   },
+   "tier": "bronce",
+   "category": "negocios"
+  },
+  {
+   "id": "multiempresario",
+   "name": "Multiempresario",
+   "description": "Poseé cinco negocios.",
+   "icon": "edificio",
+   "metric": "businesses_owned",
+   "target": 5,
+   "reward": {
+    "money": 300000
+   },
+   "tier": "plata",
+   "category": "negocios"
+  },
+  {
+   "id": "rey_kiosco",
+   "name": "Papa de oro",
+   "description": "Llevá chacra de papas andinas al nivel 100.",
+   "icon": "p_papa",
+   "metric": "level:papas_andinas",
+   "target": 100,
+   "reward": {
+    "icon": "kiosquero"
+   },
+   "tier": "plata",
+   "category": "negocios"
+  },
+  {
+   "id": "medio_camino",
+   "name": "Medio camino",
+   "description": "Llevá un negocio al nivel 50.",
+   "icon": "flecha_arriba",
+   "metric": "max_level",
+   "target": 50,
+   "reward": {
+    "money": 10000
+   },
+   "tier": "plata",
+   "category": "negocios"
+  },
+  {
+   "id": "franquicia",
+   "name": "Franquicia",
+   "description": "Abrí 5 sucursales.",
+   "icon": "tienda",
+   "metric": "branches",
+   "target": 5,
+   "reward": {
+    "money": 500000
+   },
+   "tier": "plata",
+   "category": "negocios"
+  },
+  {
+   "id": "media_argentina",
+   "name": "Media Argentina",
+   "description": "Tené 12 negocios.",
+   "icon": "edificio",
+   "metric": "businesses_owned",
+   "target": 12,
+   "reward": {
+    "money": 100000000
+   },
+   "tier": "oro",
+   "category": "negocios"
+  },
+  {
+   "id": "nivel_100",
+   "name": "Al tope",
+   "description": "Llevá un negocio al nivel 100.",
+   "icon": "estrella",
+   "metric": "max_level",
+   "target": 100,
+   "reward": {
+    "money": 100000
+   },
+   "tier": "oro",
+   "category": "negocios"
+  },
+  {
+   "id": "todo_a_nuevo",
+   "name": "Todo a nuevo",
+   "description": "Comprá 100 mejoras.",
+   "icon": "llave_inglesa",
+   "metric": "upgrades_bought",
+   "target": 100,
+   "reward": {
+    "money": 20000000
+   },
+   "tier": "oro",
+   "category": "negocios"
+  },
+  {
+   "id": "escalera",
+   "name": "Escalera al cielo",
+   "description": "Comprá 1.000 niveles entre todos tus negocios.",
+   "icon": "grafico",
+   "metric": "levels_bought",
+   "target": 1000,
+   "reward": {
+    "money": 50000000
+   },
+   "tier": "oro",
+   "category": "negocios"
+  },
+  {
+   "id": "una_por_provincia",
+   "name": "Una por provincia",
+   "description": "Tené un negocio en cada una de las 24 provincias.",
+   "icon": "bandera",
+   "metric": "businesses_owned",
+   "target": 24,
+   "reward": {
+    "money": 5000000000
+   },
+   "tier": "diamante",
+   "category": "negocios"
+  },
+  {
+   "id": "jefe",
+   "name": "Jefe",
+   "description": "Contratá a tu primer empleado.",
+   "icon": "persona",
+   "metric": "hires_total",
+   "target": 1,
+   "reward": {
+    "money": 100
+   },
+   "tier": "bronce",
+   "category": "equipo"
+  },
+  {
+   "id": "automatizador",
+   "name": "Automatizador",
+   "description": "Automatizá tu primer negocio.",
+   "icon": "rayo",
+   "metric": "automated",
+   "target": 1,
+   "reward": {
+    "money": 100
+   },
+   "tier": "bronce",
+   "category": "equipo"
   },
   {
    "id": "gran_equipo",
@@ -515,29 +785,74 @@
    "target": 10,
    "reward": {
     "money": 1000000
-   }
+   },
+   "tier": "plata",
+   "category": "equipo"
   },
   {
-   "id": "cartografo",
-   "name": "Toda la Argentina",
-   "description": "Conquistá las 24 provincias.",
-   "icon": "mapa",
-   "metric": "conquered",
+   "id": "piloto_automatico",
+   "name": "Piloto automático",
+   "description": "Tené 10 negocios que reponen solos.",
+   "icon": "rayo",
+   "metric": "auto_restock",
+   "target": 10,
+   "reward": {
+    "money": 10000000
+   },
+   "tier": "plata",
+   "category": "equipo"
+  },
+  {
+   "id": "pyme_grande",
+   "name": "Pyme grande",
+   "description": "Tené 30 empleados a la vez.",
+   "icon": "persona",
+   "metric": "employees_current",
+   "target": 30,
+   "reward": {
+    "money": 20000000
+   },
+   "tier": "oro",
+   "category": "equipo"
+  },
+  {
+   "id": "recursos_humanos",
+   "name": "Recursos humanos",
+   "description": "Contratá 100 empleados en total.",
+   "icon": "persona",
+   "metric": "hires_total",
+   "target": 100,
+   "reward": {
+    "money": 10000000
+   },
+   "tier": "oro",
+   "category": "equipo"
+  },
+  {
+   "id": "todo_automatico",
+   "name": "Todo en automático",
+   "description": "Tené 24 negocios que venden solos.",
+   "icon": "rayo",
+   "metric": "automated",
    "target": 24,
    "reward": {
-    "money": 1000000000
-   }
+    "money": 5000000000
+   },
+   "tier": "diamante",
+   "category": "equipo"
   },
   {
-   "id": "resiliente",
-   "name": "Resiliente",
-   "description": "Resolvé 3 fallas de suministro.",
-   "icon": "llave",
-   "metric": "events_resolved",
-   "target": 3,
+   "id": "bandera_plantada",
+   "name": "Bandera plantada",
+   "description": "Conquistá tu primera provincia.",
+   "icon": "bandera",
+   "metric": "conquered",
+   "target": 1,
    "reward": {
-    "money": 50000
-   }
+    "money": 2000
+   },
+   "tier": "bronce",
+   "category": "conquista"
   },
   {
    "id": "competidor",
@@ -548,7 +863,181 @@
    "target": 5,
    "reward": {
     "money": 500000
-   }
+   },
+   "tier": "plata",
+   "category": "conquista"
+  },
+  {
+   "id": "cinco_provincias",
+   "name": "Cinco provincias",
+   "description": "Conquistá 5 provincias.",
+   "icon": "bandera",
+   "metric": "conquered",
+   "target": 5,
+   "reward": {
+    "money": 100000
+   },
+   "tier": "plata",
+   "category": "conquista"
+  },
+  {
+   "id": "region_propia",
+   "name": "Región propia",
+   "description": "Conquistá una región entera.",
+   "icon": "mapa",
+   "metric": "regions_conquered",
+   "target": 1,
+   "reward": {
+    "icon": "perro",
+    "fallback": {
+     "money": 1000000
+    }
+   },
+   "tier": "plata",
+   "category": "conquista"
+  },
+  {
+   "id": "etapa_4",
+   "name": "Empresa en serio",
+   "description": "Llegá a la etapa 4.",
+   "icon": "estrella",
+   "metric": "stage",
+   "target": 4,
+   "reward": {
+    "money": 20000000
+   },
+   "tier": "plata",
+   "category": "conquista"
+  },
+  {
+   "id": "doce_provincias",
+   "name": "Doce provincias",
+   "description": "Conquistá 12 provincias.",
+   "icon": "mapa",
+   "metric": "conquered",
+   "target": 12,
+   "reward": {
+    "money": 200000000
+   },
+   "tier": "oro",
+   "category": "conquista"
+  },
+  {
+   "id": "medio_pais",
+   "name": "Medio país",
+   "description": "Conquistá 3 regiones.",
+   "icon": "mapa",
+   "metric": "regions_conquered",
+   "target": 3,
+   "reward": {
+    "money": 500000000
+   },
+   "tier": "oro",
+   "category": "conquista"
+  },
+  {
+   "id": "guerra_de_precios",
+   "name": "Guerra de precios",
+   "description": "Lanzá 25 campañas contra rivales.",
+   "icon": "bandera",
+   "metric": "campaigns",
+   "target": 25,
+   "reward": {
+    "money": 50000000
+   },
+   "tier": "oro",
+   "category": "conquista"
+  },
+  {
+   "id": "etapa_7",
+   "name": "Grupo nacional",
+   "description": "Llegá a la etapa 7.",
+   "icon": "estrella",
+   "metric": "stage",
+   "target": 7,
+   "reward": {
+    "money": 10000000000
+   },
+   "tier": "oro",
+   "category": "conquista"
+  },
+  {
+   "id": "cartografo",
+   "name": "Toda la Argentina",
+   "description": "Conquistá las 24 provincias.",
+   "icon": "mapa",
+   "metric": "conquered",
+   "target": 24,
+   "reward": {
+    "money": 1000000000
+   },
+   "tier": "diamante",
+   "category": "conquista"
+  },
+  {
+   "id": "resiliente",
+   "name": "Resiliente",
+   "description": "Resolvé 3 fallas de suministro.",
+   "icon": "llave",
+   "metric": "events_resolved",
+   "target": 3,
+   "reward": {
+    "money": 50000
+   },
+   "tier": "bronce",
+   "category": "aventura"
+  },
+  {
+   "id": "ni_un_peso",
+   "name": "Ni un peso",
+   "description": "Frená un asalto sin que se lleven nada.",
+   "icon": "pesa",
+   "metric": "thefts_defended",
+   "target": 1,
+   "reward": {
+    "money": 2000
+   },
+   "tier": "bronce",
+   "category": "aventura"
+  },
+  {
+   "id": "arreglado",
+   "name": "Arreglado",
+   "description": "Te sale bien una coima.",
+   "icon": "billete",
+   "metric": "bribes_ok",
+   "target": 1,
+   "reward": {
+    "money": 2000
+   },
+   "tier": "bronce",
+   "category": "aventura"
+  },
+  {
+   "id": "mate_compartido",
+   "name": "Mate compartido",
+   "description": "Abrí un mate que te convidó un amigo.",
+   "icon": "yerba",
+   "metric": "gifts_claimed",
+   "target": 1,
+   "reward": {
+    "money": 1000
+   },
+   "tier": "bronce",
+   "category": "aventura"
+  },
+  {
+   "id": "una_horita",
+   "name": "Una horita",
+   "description": "Jugá una hora.",
+   "icon": "reloj",
+   "metric": "play_time",
+   "target": 3600,
+   "reward": {
+    "money": 2000
+   },
+   "tier": "bronce",
+   "category": "aventura"
   },
   {
    "id": "constante",
@@ -562,7 +1051,74 @@
      "mult": 2.0,
      "seconds": 1800
     }
-   }
+   },
+   "tier": "plata",
+   "category": "aventura"
+  },
+  {
+   "id": "capeando",
+   "name": "Capeando temporales",
+   "description": "Resolvé 25 fallas de suministro.",
+   "icon": "lluvia",
+   "metric": "events_resolved",
+   "target": 25,
+   "reward": {
+    "money": 2000000
+   },
+   "tier": "plata",
+   "category": "aventura"
+  },
+  {
+   "id": "seguridad_privada",
+   "name": "Seguridad privada",
+   "description": "Que la seguridad o un patovica frenen 5 robos.",
+   "icon": "candado",
+   "metric": "thefts_blocked",
+   "target": 5,
+   "reward": {
+    "money": 200000
+   },
+   "tier": "plata",
+   "category": "aventura"
+  },
+  {
+   "id": "contactos",
+   "name": "Contactos en la comisaría",
+   "description": "Te salen bien 10 coimas.",
+   "icon": "billete",
+   "metric": "bribes_ok",
+   "target": 10,
+   "reward": {
+    "money": 5000000
+   },
+   "tier": "plata",
+   "category": "aventura"
+  },
+  {
+   "id": "buscatesoros",
+   "name": "Buscatesoros",
+   "description": "Abrí 10 cofres.",
+   "icon": "regalo",
+   "metric": "chests_opened",
+   "target": 10,
+   "reward": {
+    "money": 100000
+   },
+   "tier": "plata",
+   "category": "aventura"
+  },
+  {
+   "id": "fanatico",
+   "name": "Fanático",
+   "description": "Jugá 10 horas.",
+   "icon": "reloj",
+   "metric": "play_time",
+   "target": 36000,
+   "reward": {
+    "money": 5000000
+   },
+   "tier": "plata",
+   "category": "aventura"
   },
   {
    "id": "fundador",
@@ -573,7 +1129,102 @@
    "target": 1,
    "reward": {
     "icon": "corona"
-   }
+   },
+   "tier": "oro",
+   "category": "aventura"
+  },
+  {
+   "id": "mano_dura",
+   "name": "Mano dura",
+   "description": "Frená 10 asaltos sin que se lleven nada.",
+   "icon": "pesa",
+   "metric": "thefts_defended",
+   "target": 10,
+   "reward": {
+    "money": 20000000
+   },
+   "tier": "oro",
+   "category": "aventura"
+  },
+  {
+   "id": "cazatesoros",
+   "name": "Cazatesoros",
+   "description": "Abrí 50 cofres.",
+   "icon": "regalo",
+   "metric": "chests_opened",
+   "target": 50,
+   "reward": {
+    "icon": "gato",
+    "fallback": {
+     "money": 50000000
+    }
+   },
+   "tier": "oro",
+   "category": "aventura"
+  },
+  {
+   "id": "ronda_de_mate",
+   "name": "Ronda de mate",
+   "description": "Abrí 30 mates de tus amigos.",
+   "icon": "yerba",
+   "metric": "gifts_claimed",
+   "target": 30,
+   "reward": {
+    "icon": "vecina",
+    "fallback": {
+     "money": 10000000
+    }
+   },
+   "tier": "oro",
+   "category": "aventura"
+  },
+  {
+   "id": "habitue",
+   "name": "Habitué",
+   "description": "Reclamá 30 recompensas diarias.",
+   "icon": "calendario",
+   "metric": "daily_claims",
+   "target": 30,
+   "reward": {
+    "boost": {
+     "mult": 2.0,
+     "seconds": 3600
+    }
+   },
+   "tier": "oro",
+   "category": "aventura"
+  },
+  {
+   "id": "dinastia",
+   "name": "Dinastía",
+   "description": "Fundá 5 grupos empresariales.",
+   "icon": "corona",
+   "metric": "prestige_count",
+   "target": 5,
+   "reward": {
+    "boost": {
+     "mult": 2.0,
+     "seconds": 7200
+    }
+   },
+   "tier": "diamante",
+   "category": "aventura"
+  },
+  {
+   "id": "vida_de_empresario",
+   "name": "Vida de empresario",
+   "description": "Jugá 100 horas.",
+   "icon": "reloj",
+   "metric": "play_time",
+   "target": 360000,
+   "reward": {
+    "boost": {
+     "mult": 2.0,
+     "seconds": 7200
+    }
+   },
+   "tier": "diamante",
+   "category": "aventura"
   }
  ]
 }

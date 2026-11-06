@@ -64,7 +64,7 @@ static func open(zid: String) -> void:
 				w_ref[0].close(), 44)
 		UiColors.set_cost(b, st["cost"], "" if st["available"] else "Conquistá la provincia anterior")
 		body.add_child(b)
-	w_ref.append(Main.instance.modal_host.open(z["name"], body))
+	w_ref.append(Main.instance.modal_host.open(z["name"], body).with_help("provincia"))
 
 
 ## Fila "ícono  Título: valor" con salto de línea si el valor es largo.

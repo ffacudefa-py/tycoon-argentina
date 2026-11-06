@@ -157,6 +157,9 @@ func _run() -> void:
 		if a == "--shots-set=video":
 			await _run_video()
 			return
+		if a == "--shots-set=trailer":
+			await DevTrailer.new(self).run()
+			return
 	var main := Main.instance
 	var m := Game.m
 	Game.reset_everything()

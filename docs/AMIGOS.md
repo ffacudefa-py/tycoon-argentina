@@ -24,7 +24,7 @@ Acceso: Perfil → tarjeta **Amigos** (muestra cuántas solicitudes y mates hay 
 
 | Documento | Contenido | Quién lee / escribe |
 |---|---|---|
-| `players/<uid>` | empresa, avatar, etapa, ganado, prestigio, código | cualquiera verificado lo lee **de a uno** (no se listan); escribe el dueño |
+| `players/<uid>` | empresa, avatar, etapa, ganado, prestigio, código y (15.0) `photo`: miniatura JPEG 64×64 en base64 si el jugador la comparte (Configuración) | cualquiera verificado lo lee **de a uno** (no se listan); escribe el dueño |
 | `codes/<CÓDIGO>` | `{uid}` | se lee de a uno; se crea una vez y no se cambia |
 | `players/<uid>/requests/<de>` | solicitud recibida | la crea `<de>` (si no son amigos); el dueño la ve y la borra |
 | `players/<uid>/friends/<uid2>` | `{since}` | el dueño; quien acepta escribe además en la lista del que pidió **sólo si existe la solicitud** |

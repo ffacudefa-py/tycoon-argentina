@@ -27,13 +27,14 @@ static func open() -> void:
 	# --- Juego y accesibilidad
 	body.add_child(_section("Juego y accesibilidad", "estrella"))
 	body.add_child(_toggle("Vibración", "vibration", "vibrar"))
+	body.add_child(_toggle("Notificaciones (caja llena, eventos, amigos y versiones nuevas)", "notifications", "alerta"))
 	body.add_child(_toggle("Reducir movimiento (sin rebotes ni partículas extra)", "reduce_motion", "info"))
 	body.add_child(_toggle("Confirmar acciones irreversibles", "confirm_irreversible", "alerta"))
 	if HardMode.on(Game.m):
 		body.add_child(U.stat_row("Modo de juego", "Bien argentino (+%d %%)" % int(round(HardMode.income_bonus(Game.m) * 100)), UiColors.LOSS))
 	else:
 		body.add_child(U.stat_row("Modo de juego", "Normal"))
-	body.add_child(U.para("Se elige al empezar la cuenta. El modo bien argentino trae inflación, juicios laborales y robos, a cambio de más ingresos.", U.SIZE_SMALL, U.TEXT_SOFT))
+	body.add_child(U.para("Se elige al empezar la cuenta. Los dos modos tienen todo el juego; el bien argentino tiene inflación, juicios y robos más duros y minijuegos más difíciles, a cambio de más ingresos.", U.SIZE_SMALL, U.TEXT_SOFT))
 	# Beta: practicar los minijuegos sin consecuencias, para todos los jugadores.
 	# Sacarlo al lanzar: project.godot → application/config/minigame_practice = false.
 	if MinigameHost.practice_enabled():
@@ -87,6 +88,7 @@ static func open() -> void:
 			body.add_child(ver)
 		else:
 			body.add_child(U.stat_row("Email", "Verificado", U.GREEN))
+			body.add_child(_toggle("Mostrar mi foto de perfil a mis amigos", "share_photo", "persona"))
 		var cloud_l := U.para(Cloud.status_text(), U.SIZE_SMALL, U.RED if Cloud.status == "error" else U.TEXT_SOFT)
 		body.add_child(cloud_l)
 		var sync := U.button("Sincronizar ahora", "verde", "check", 32, U.SIZE_SMALL)
@@ -159,7 +161,7 @@ static func open() -> void:
 				Game.reset_everything()
 				Main.instance.toast("Partida nueva. ¡A conquistar la Argentina!", "info")))
 	body.add_child(reset)
-	w_ref.append(Main.instance.modal_host.open("Configuración", body))
+	w_ref.append(Main.instance.modal_host.open("Configuración", body).with_help("configuracion"))
 
 
 static func _legal() -> Dictionary:

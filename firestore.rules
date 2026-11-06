@@ -63,13 +63,16 @@ service cloud.firestore {
       allow delete: if verified() && resource.data.uid == request.auth.uid;
     }
 
-    // Perfil público (empresa, avatar, etapa, ganado). Se lee de a uno, no se lista.
+    // Perfil público (empresa, avatar, etapa, ganado y, desde la 15.0, la
+    // miniatura JPEG de la foto en base64 si el jugador la comparte). Se lee de
+    // a uno, no se lista.
     match /players/{uid} {
       allow get: if verified();
       allow delete: if isMe(uid);
       allow create, update: if isMe(uid)
-        && onlyKeys(["company", "avatar", "stage", "lifetime", "prestige", "code", "updated"])
+        && onlyKeys(["company", "avatar", "stage", "lifetime", "prestige", "code", "updated", "photo"])
         && shortText(data().company, 40)
+        && (!("photo" in data()) || shortText(data().photo, 24000))
         && avatarId(data().avatar)
         && data().stage is int && data().stage >= 1 && data().stage <= 20
         && count(data().lifetime)

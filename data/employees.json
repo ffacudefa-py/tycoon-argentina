@@ -1,15 +1,222 @@
 {
- "_doc": "Roles de empleados. hire/salary se multiplican por la 'escala' del negocio (= ganancia por segundo de ese negocio a nivel 10 sin bonificaciones). Efectos * eficiencia del empleado: speed, revenue, restock_speed (+% velocidad de reposición), team_eff (+% eficiencia del resto del equipo), zone_revenue (+% a todos los negocios de la misma zona). auto_sell / auto_restock activan la automatización.",
+ "_doc": "Roles de empleados. hire/salary se multiplican por la 'escala' del negocio (= ganancia por segundo de ese negocio a nivel 10 sin bonificaciones). Efectos * eficiencia del empleado: speed, revenue, restock_speed (+% velocidad de reposición), team_eff (+% eficiencia del resto del equipo), zone_revenue (+% a todos los negocios de la misma zona). auto_sell / auto_restock activan la automatización. 15.0: el sueldo y el costo de contratar se multiplican por (ganancia actual del local sin turbos/prestigio/eventos ÷ escala) ^ salary_level_exp (o salary_exp del rol), con piso salary_index_min: crecen con el negocio y nunca se vuelven insignificantes. Efectos negativos no se multiplican por la eficiencia. Claves nuevas: xp_rate (aprende más rápido), salary_cut (-% sueldos del local), theft_guard (probabilidad de espantar un robo).",
  "roles": [
-  {"id": "vendedor", "name": "Vendedor", "icon": "persona", "description": "Atiende solo: el negocio vende sin que toques nada.", "hire": 12, "salary": 0.05, "min_level": 1, "min_stage": 1, "auto_sell": true, "auto_restock": false, "effects": {"speed": 0.05}},
-  {"id": "repositor", "name": "Repositor", "icon": "caja", "description": "Repone mercadería solo y más rápido. Menos ventas perdidas por falta de stock.", "hire": 18, "salary": 0.05, "min_level": 5, "min_stage": 1, "auto_sell": false, "auto_restock": true, "effects": {"restock_speed": 0.6}},
-  {"id": "cajero", "name": "Cajero", "icon": "moneda", "description": "Cobra rapidísimo: ciclos más cortos. También atiende solo.", "hire": 30, "salary": 0.09, "min_level": 10, "min_stage": 1, "auto_sell": true, "auto_restock": false, "effects": {"speed": 0.25}},
-  {"id": "encargado", "name": "Encargado", "icon": "llave", "description": "Vende y repone solo, y mejora los precios.", "hire": 120, "salary": 0.22, "min_level": 25, "min_stage": 2, "auto_sell": true, "auto_restock": true, "effects": {"revenue": 0.12, "restock_speed": 0.3}},
-  {"id": "supervisor", "name": "Supervisor", "icon": "estrella", "description": "Ordena al equipo: más ingresos y mejor eficiencia de los demás.", "hire": 300, "salary": 0.35, "min_level": 40, "min_stage": 3, "auto_sell": false, "auto_restock": false, "effects": {"revenue": 0.2, "team_eff": 0.1}},
-  {"id": "gerente", "name": "Gerente", "icon": "corona", "description": "Gestión total: automatiza todo, sube los ingresos y resuelve solo las fallas de suministro.", "hire": 1000, "salary": 0.8, "min_level": 60, "min_stage": 4, "auto_sell": true, "auto_restock": true, "manager": true, "effects": {"revenue": 0.35, "restock_speed": 0.3}},
-  {"id": "director", "name": "Director regional", "icon": "mapa", "description": "Coordina la zona: bonifica a TODOS tus negocios de la misma zona.", "hire": 5000, "salary": 2.5, "min_level": 75, "min_stage": 5, "auto_sell": false, "auto_restock": false, "effects": {"zone_revenue": 0.1}}
+  {
+   "id": "vendedor",
+   "name": "Vendedor",
+   "icon": "persona",
+   "description": "Atiende solo: el negocio vende sin que toques nada.",
+   "hire": 12,
+   "salary": 0.05,
+   "min_level": 1,
+   "min_stage": 1,
+   "auto_sell": true,
+   "auto_restock": false,
+   "effects": {
+    "speed": 0.05
+   }
+  },
+  {
+   "id": "pasante",
+   "name": "Pasante",
+   "icon": "persona",
+   "description": "Recién empieza: vende solo, cobra poco y aprende rapidísimo, pero al principio es lento.",
+   "hire": 5,
+   "salary": 0.02,
+   "min_level": 1,
+   "min_stage": 1,
+   "auto_sell": true,
+   "auto_restock": false,
+   "effects": {
+    "speed": -0.1,
+    "xp_rate": 3.0
+   }
+  },
+  {
+   "id": "sobrino",
+   "name": "Sobrino del dueño",
+   "icon": "corona",
+   "description": "Viene recomendado: casi no cobra y el sueldo casi no le sube, pero el resto del equipo trabaja con desgano.",
+   "hire": 1,
+   "salary": 0.03,
+   "salary_exp": 0.3,
+   "min_level": 3,
+   "min_stage": 1,
+   "auto_sell": false,
+   "auto_restock": false,
+   "effects": {
+    "revenue": 0.04,
+    "team_eff": -0.1
+   }
+  },
+  {
+   "id": "repositor",
+   "name": "Repositor",
+   "icon": "caja",
+   "description": "Repone mercadería solo y más rápido. Menos ventas perdidas por falta de stock.",
+   "hire": 18,
+   "salary": 0.05,
+   "min_level": 5,
+   "min_stage": 1,
+   "auto_sell": false,
+   "auto_restock": true,
+   "effects": {
+    "restock_speed": 0.6
+   }
+  },
+  {
+   "id": "cadete",
+   "name": "Cadete en moto",
+   "icon": "bici",
+   "description": "Repone volando, pero pide aumento cada vez que el negocio crece.",
+   "hire": 25,
+   "salary": 0.06,
+   "salary_exp": 1.0,
+   "min_level": 8,
+   "min_stage": 1,
+   "auto_sell": false,
+   "auto_restock": true,
+   "effects": {
+    "restock_speed": 1.2
+   }
+  },
+  {
+   "id": "cajero",
+   "name": "Cajero",
+   "icon": "moneda",
+   "description": "Cobra rapidísimo: ciclos más cortos. También atiende solo.",
+   "hire": 30,
+   "salary": 0.09,
+   "min_level": 10,
+   "min_stage": 1,
+   "auto_sell": true,
+   "auto_restock": false,
+   "effects": {
+    "speed": 0.25
+   }
+  },
+  {
+   "id": "patovica",
+   "name": "Patovica",
+   "icon": "pesa",
+   "description": "Asusta a los ladrones (muchas veces ni entran), pero también a algunos clientes.",
+   "hire": 60,
+   "salary": 0.08,
+   "min_level": 15,
+   "min_stage": 1,
+   "auto_sell": false,
+   "auto_restock": false,
+   "effects": {
+    "theft_guard": 0.6,
+    "speed": -0.06
+   }
+  },
+  {
+   "id": "estrella",
+   "name": "Vendedor estrella",
+   "icon": "estrella",
+   "description": "Vende como nadie, pero cobra en proporción y su ego le baja el ánimo al resto del equipo.",
+   "hire": 250,
+   "salary": 0.25,
+   "salary_exp": 1.0,
+   "min_level": 20,
+   "min_stage": 2,
+   "auto_sell": true,
+   "auto_restock": false,
+   "effects": {
+    "revenue": 0.3,
+    "speed": 0.1,
+    "team_eff": -0.06
+   }
+  },
+  {
+   "id": "encargado",
+   "name": "Encargado",
+   "icon": "llave",
+   "description": "Vende y repone solo, y mejora los precios.",
+   "hire": 120,
+   "salary": 0.15,
+   "min_level": 25,
+   "min_stage": 2,
+   "auto_sell": true,
+   "auto_restock": true,
+   "effects": {
+    "revenue": 0.12,
+    "restock_speed": 0.3
+   }
+  },
+  {
+   "id": "contador",
+   "name": "Contador",
+   "icon": "grafico",
+   "description": "Le busca la vuelta a los números: todos los sueldos del local bajan, pero con tanto papeleo se vende un poco menos.",
+   "hire": 400,
+   "salary": 0.1,
+   "min_level": 30,
+   "min_stage": 2,
+   "auto_sell": false,
+   "auto_restock": false,
+   "effects": {
+    "salary_cut": 0.2,
+    "revenue": -0.03
+   }
+  },
+  {
+   "id": "supervisor",
+   "name": "Supervisor",
+   "icon": "estrella",
+   "description": "Ordena al equipo: más ingresos y mejor eficiencia de los demás.",
+   "hire": 300,
+   "salary": 0.15,
+   "min_level": 40,
+   "min_stage": 3,
+   "auto_sell": false,
+   "auto_restock": false,
+   "effects": {
+    "revenue": 0.2,
+    "team_eff": 0.1
+   }
+  },
+  {
+   "id": "gerente",
+   "name": "Gerente",
+   "icon": "corona",
+   "description": "Gestión total: automatiza todo, sube los ingresos y resuelve solo las fallas de suministro.",
+   "hire": 1000,
+   "salary": 0.3,
+   "min_level": 60,
+   "min_stage": 4,
+   "auto_sell": true,
+   "auto_restock": true,
+   "manager": true,
+   "effects": {
+    "revenue": 0.35,
+    "restock_speed": 0.3
+   }
+  },
+  {
+   "id": "director",
+   "name": "Director regional",
+   "icon": "mapa",
+   "description": "Coordina la zona: bonifica a TODOS tus negocios de la misma zona.",
+   "hire": 5000,
+   "salary": 0.5,
+   "min_level": 75,
+   "min_stage": 5,
+   "auto_sell": false,
+   "auto_restock": false,
+   "effects": {
+    "zone_revenue": 0.1
+   }
+  }
  ],
- "xp_levels": [0, 600, 1800, 5400, 14400],
+ "xp_levels": [
+  0,
+  600,
+  1800,
+  5400,
+  14400
+ ],
  "xp_level_bonus": 0.05,
  "efficiency_min": 0.7,
  "efficiency_max": 1.2,
@@ -17,6 +224,66 @@
  "candidate_refresh_seconds": 600,
  "reroll_cooldown_seconds": 60,
  "fire_severance_seconds": 60,
- "first_names": ["Chiche", "Mirta", "Coco", "Nelly", "Tano", "Pocha", "Ruben", "Graciela", "Kevin", "Yamila", "Tito", "Marga", "Lalo", "Nancy", "Pato", "Susi", "Beto", "Dora", "Facu", "Romi", "Cacho", "Estela", "Juanci", "Luli", "Pichi", "Norma", "Toto", "Sabri", "Fede", "Moni", "Rulo", "Vero"],
- "last_names": ["Benítez", "Ferreyra", "Acosta", "Ledesma", "Quiroga", "Sosa", "Ojeda", "Funes", "Peralta", "Godoy", "Paz", "Vera", "Molina", "Rivero", "Aguirre", "Luna", "Correa", "Navarro", "Bustos", "Arce", "Toledo", "Medina", "Ponce", "Villalba"]
+ "first_names": [
+  "Chiche",
+  "Mirta",
+  "Coco",
+  "Nelly",
+  "Tano",
+  "Pocha",
+  "Ruben",
+  "Graciela",
+  "Kevin",
+  "Yamila",
+  "Tito",
+  "Marga",
+  "Lalo",
+  "Nancy",
+  "Pato",
+  "Susi",
+  "Beto",
+  "Dora",
+  "Facu",
+  "Romi",
+  "Cacho",
+  "Estela",
+  "Juanci",
+  "Luli",
+  "Pichi",
+  "Norma",
+  "Toto",
+  "Sabri",
+  "Fede",
+  "Moni",
+  "Rulo",
+  "Vero"
+ ],
+ "last_names": [
+  "Benítez",
+  "Ferreyra",
+  "Acosta",
+  "Ledesma",
+  "Quiroga",
+  "Sosa",
+  "Ojeda",
+  "Funes",
+  "Peralta",
+  "Godoy",
+  "Paz",
+  "Vera",
+  "Molina",
+  "Rivero",
+  "Aguirre",
+  "Luna",
+  "Correa",
+  "Navarro",
+  "Bustos",
+  "Arce",
+  "Toledo",
+  "Medina",
+  "Ponce",
+  "Villalba"
+ ],
+ "salary_level_exp": 0.9,
+ "salary_index_min": 0.05
 }

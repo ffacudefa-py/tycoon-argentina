@@ -66,3 +66,22 @@ requisitos en `docs/PLAY_STORE.md`.
   progreso offline al volver.
 - Respeta el área segura (notch y barra de gestos) con `get_display_safe_area()`.
 - Renderer GL Compatibility (máxima compatibilidad y menor consumo).
+
+## Notificaciones (15.0)
+
+Plugin propio en `addons/coronados_notif/` (Java, sólo APIs del sistema: AlarmManager,
+BroadcastReceiver y NotificationManager; sin librerías externas). El AAR compilado
+(`bin/coronados-notif.aar`) se versiona; si se toca el código en `android/src`:
+
+```
+addons/coronados_notif/android/build_aar.sh   # javac contra android.jar + godot-lib de android/build
+```
+
+- `scripts/notify/notif_plan.gd` decide qué agendar al salir (caja llena / sin
+  mercadería, y hasta 2 eventos por día en horario 10-21 h); `push_notifications.gd`
+  (autoload `PushNotifications`) lo manda al plugin y, al volver, dispara el evento anunciado.
+- Chequeo en segundo plano cada ~6 h (`NotifReceiver.check`): versión nueva en las
+  releases públicas de `tycoon-argentina-descargas` y solicitudes de amistad nuevas
+  (`players/<uid>/requests`, con la sesión del juego guardada en las preferencias
+  privadas de la app). Configuración → "Notificaciones" lo apaga todo.
+- El permiso de Android 13+ se pide una vez, al entrar al juego después del tutorial.

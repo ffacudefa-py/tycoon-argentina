@@ -34,7 +34,13 @@ baja también los sueldos de empleados y candidatos ya guardados.
 - Capacidad de stock = clientes × participación × max(25 ciclos; 40 s) × (1 + mejoras).
 - Costo de nivel = base × crecimiento^(nivel−1) × (1 − contactos). Crecimiento 1,15 (puesto) a 1,10.
 - Desbloqueos: kiosco $2.000, luego ×20 por negocio. Ganancia por nivel ×5 por negocio.
-- Sueldos y contrataciones escalan con la "escala" del negocio (ganancia/s a nivel 10).
+- Sueldos y contrataciones escalan con la "escala" del negocio (ganancia/s a nivel 10)
+  y, desde la 15.0, con lo que el local gana hoy: se multiplican por
+  (ganancia sin turbos/prestigio/eventos ÷ escala) ^ `salary_level_exp` (0,9; cada
+  rol puede tener su `salary_exp`: el sobrino 0,3, el cadete y el vendedor estrella 1).
+  El sueldo crece con el negocio y no se vuelve insignificante (bot: ~6-10 % de la
+  ganancia de cada local durante todo el juego). Los efectos negativos de los roles
+  no se multiplican por la eficiencia.
 - Patrimonio = efectivo + 50 % de lo invertido por negocio + stock a costo + 50 % de zonas.
 
 ## Simulación automatizada (tests/progression/test_balance.gd)
