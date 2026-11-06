@@ -13,7 +13,8 @@ static func open() -> void:
 	body.add_child(_toggle("Silenciar todo", "mute", "volumen"))
 	body.add_child(_toggle("Efectos de sonido", "sfx_enabled", "volumen"))
 	body.add_child(_slider("Volumen de efectos", "sfx_volume"))
-	body.add_child(U.para("Música: esta versión no tiene música, sólo efectos de sonido.", U.SIZE_SMALL, U.TEXT_SOFT))
+	body.add_child(_toggle("Música", "music_enabled", "volumen"))
+	body.add_child(_slider("Volumen de música", "music_volume"))
 	# --- Gráficos y rendimiento
 	body.add_child(_section("Gráficos y rendimiento", "chispa"))
 	body.add_child(U.label("Calidad de efectos visuales", U.SIZE_SMALL, U.TEXT, true))

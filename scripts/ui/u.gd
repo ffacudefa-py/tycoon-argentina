@@ -7,10 +7,10 @@ extends RefCounted
 const PA := "res://assets/pixel_art/"
 ## Paleta 11 (docs/style-guide.md §1): texto marrón sobre crema, fondo de madera cálida.
 const TEXT := Color("3d1b0b")
-const TEXT_SOFT := Color("8e5a3c")
+const TEXT_SOFT := Color("6b3f26")
 const TEXT_LIGHT := Color("fff6e6")
 const GOLD := Color("f2d173")
-const GREEN := Color("2e7d4f")
+const GREEN := Color("256b42")
 const RED := Color("c0394a")
 const BG := Color("5c3520")
 
@@ -34,6 +34,7 @@ const ART11 := {
 	"interiors/": "res://assets/escenarios/interiors/", "backgrounds/": "res://assets/escenarios/backgrounds/",
 	"map/": "res://assets/escenarios/map/", "effects/": "res://assets/escenarios/effects/",
 	"icons/": "res://assets/iconos/icons/", "icons32/": "res://assets/iconos/icons32/",
+	"start/": "res://assets/escenarios/start/",
 	"particles/": "res://assets/iconos/particles/", "avatars/": "res://assets/iconos/avatars/",
 	"ui/": "res://assets/iconos/ui/", "logo/": "res://assets/iconos/logo/",
 }

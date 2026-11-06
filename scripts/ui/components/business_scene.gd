@@ -19,13 +19,9 @@ const BG_W := 480
 const BUILDING_BASE_Y := 168
 const SHADOW_TOP := 130           # fila del cuadro del edificio donde empieza su sombra
 const WALK_Y := 178
-## Calzada de la calle (asfalto entre y=186 y 200 del arte): el colectivo apoya
-## las ruedas acá y se dibuja DELANTE del negocio y de los peatones.
+## Calzada de la calle (asfalto entre y=186 y 200 del arte): carril de adelante.
+## StreetTraffic se dibuja DELANTE del negocio y de los peatones.
 const ROAD_Y := 198
-const BUS_SPEED := 110.0
-## Filas de effects/colectivo_anim.png: una línea de colectivo por fila
-## (60, 160, 103 y 59, ver tools/art/bus_art.py); cada pasada elige una.
-const BUS_LINES := 4
 const WORKER_Y := 171
 ## Interior: lienzo 400x170.
 const INT_W := 400
@@ -57,10 +53,7 @@ var _customers: Node2D
 var _workers: Array = []          ## [{sprite, station}]
 var _walkers: Array = []
 var _fx: Array = []               ## [{sprite, durations, t}]
-var _bus: Sprite2D
-var _bus_t := 12.0
-var _bus_line := 0
-var _bus_x := 0.0
+var _traffic: StreetTraffic
 var _spawn_t := 0.0
 var _anim_t := 0.0
 var _happy_until := 0.0   ## personajes 11: empleados felices tras una venta
@@ -92,13 +85,10 @@ func _ready() -> void:
 	_int_front = _sprite(_world)
 	_customers = Node2D.new()
 	_world.add_child(_customers)
-	_add_ambient(SceneAmbient.Layer.ROAD)         # autos (carril de atrás del colectivo)
-	_bus = _sprite(_world)
-	_bus.texture = U.tex("effects/colectivo_anim.png")
-	if _bus.texture:
-		_bus.hframes = 2
-		_bus.vframes = BUS_LINES
-	_bus.visible = false
+	_traffic = StreetTraffic.new()                # autos y colectivos, delante de negocio y peatones
+	_traffic.near_y = ROAD_Y
+	_traffic.far_y = ROAD_Y - 8.0
+	_world.add_child(_traffic)
 	resized.connect(_layout)
 	preferred_view = str(Settings.get_value("scene_view"))
 	view = preferred_view
@@ -162,9 +152,10 @@ func set_business(id: String) -> void:
 	bid = id
 	_last_tier = -1
 	_clear_walkers()
-	# Otra calle: el colectivo arranca su espera de cero.
-	_bus.visible = false
-	_bus_t = randf_range(4.0, 10.0)
+	# Otra calle: el tránsito arranca de cero y según la región.
+	_traffic.clear()
+	if Game.m.biz.has(id):
+		_traffic.set_street(str(Game.m.data.zone_by_id[Game.m.biz[id]["zone"]].get("street", "")))
 	refresh()
 
 
@@ -355,7 +346,7 @@ func _process(delta: float) -> void:
 				f = 10
 		spr.frame = f
 	_animate_fx(delta)
-	_update_bus(delta, anim_on)
+	_update_traffic(anim_on)
 
 	# Clientes: frecuencia según ventas reales por segundo (sólo visual).
 	var level := Settings.fx_level()
@@ -451,27 +442,14 @@ func _update_walkers(delta: float) -> void:
 ## Colectivo que pasa por la calle cada tanto (sólo en la vista de fachada).
 ## El sprite mira a la derecha: entra por la izquierda y sale por la derecha.
 ## Las ventas (refresh) no lo tocan, así no se reinicia el recorrido.
-func _update_bus(delta: float, anim_on: bool) -> void:
-	if view == "interior" or not anim_on or _bus.texture == null:
-		if _bus.visible:
-			_bus.visible = false
-			_bus_t = randf_range(10.0, 22.0)
-		return
-	var frame_w := float(_bus.texture.get_width()) / _bus.hframes
-	if not _bus.visible:
-		_bus_t -= delta
-		if _bus_t <= 0.0:
-			_bus.visible = true
-			_bus_line = randi() % BUS_LINES
-			_bus.position = Vector2(-frame_w - 10, ROAD_Y - _bus.texture.get_height() / _bus.vframes)
-			_bus_x = _bus.position.x
-		return
-	_bus_x += BUS_SPEED * delta                  # posición exacta aparte (redondear cada cuadro lo frenaba a muchos fps)
-	_bus.position.x = round(_bus_x)
-	_bus.frame = _bus_line * _bus.hframes + int(_anim_t * 6.0) % 2
-	if _bus.position.x > size.x + 10:
-		_bus.visible = false
-		_bus_t = randf_range(10.0, 22.0)
+## 15.0: autos y colectivos los maneja StreetTraffic; adentro del local no hay calle.
+func _update_traffic(anim_on: bool) -> void:
+	_traffic.width = size.x
+	var on := anim_on and view != "interior" and SceneAmbient.enabled()
+	if _traffic.active and not on:
+		_traffic.clear()
+	_traffic.active = on
+	_traffic.visible = on
 
 
 func _on_sale(id: String, revenue: int) -> void:

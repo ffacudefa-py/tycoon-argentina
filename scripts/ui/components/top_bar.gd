@@ -121,16 +121,16 @@ func _refresh_income() -> void:
 	var eta := HardMode.lawsuit_eta(m)
 	if eta >= 0.0:
 		var secs := int(ceilf(eta))
-		_income_label.text = "JUICIO EN %d:%02d" % [secs / 60, secs % 60]
+		_income_label.text = "JUICIO %d:%02d" % [secs / 60, secs % 60]   # corto: entra aun con deuda grande
 		var blink := secs <= 30 and int(Time.get_ticks_msec() / 500) % 2 == 0
-		_income_label.add_theme_color_override("font_color", Color("ffd458") if blink else Color("e2665a"))
+		_income_label.add_theme_color_override("font_color", Color("ffd458") if blink else UiColors.LOSS_LIGHT)
 		_refresh_names()
 		return
 	if inc > 0.0:
 		_income_label.text = "+%s%s" % [Fmt.per_sec(inc), "  x2" if m.boost_multiplier() > 1.0 else ""]
 		_income_label.add_theme_color_override("font_color", Color("9cf0b0"))
 	else:
-		_income_label.text = "vendé a mano"
+		_income_label.text = "a mano"
 		_income_label.add_theme_color_override("font_color", Color("f0dcc0"))
 	_refresh_names()
 

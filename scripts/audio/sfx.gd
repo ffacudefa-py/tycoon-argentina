@@ -1,6 +1,6 @@
 extends Node
 ## Autoload "Sfx": efectos de sonido (sintetizados para el proyecto, ver
-## tools/sfx.py) y vibración. No hay música en esta versión.
+## tools/sfx.py) y vibración. La música la maneja el autoload Music.
 
 const NAMES := ["tap", "coin", "buy", "upgrade", "unlock", "hire", "mission", "error", "event", "register", "tier", "whoosh",
 	"shot", "hit", "ricochet", "empty", "reload", "bag", "alarm", "siren", "swipe", "shred", "stamp", "buzzer", "tick"]

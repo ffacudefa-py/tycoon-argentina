@@ -363,3 +363,8 @@ if __name__ == "__main__":
     import landscapes14
     facade_light.main()
     landscapes14.main()
+    # 15.0: vehículos por capas y postal de inicio
+    import vehicles15
+    import postal15
+    vehicles15.main()
+    postal15.main()

@@ -217,12 +217,12 @@ func _build_employees() -> void:
 	var cl := _section("Candidatos")
 	cl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	ch.add_child(cl)
-	var reroll := U.button("Buscar otros", "crema", "", 36, U.SIZE_SMALL)
+	var reroll := U.button("Buscar otros", "crema", "", 36, U.SIZE_BODY)
 	U.on_press(reroll, func() -> void: Main.instance.result(EmployeeSystem.reroll(m, bid)))
 	var upd_r := func() -> void:
 		var cd := float(m.biz[bid]["reroll_cd"])
 		reroll.disabled = cd > 0.0
-		reroll.text = "Buscar otros" if cd <= 0.0 else "Esperá " + Fmt.duration(cd)
+		reroll.text = "Buscar otros" if cd <= 0.0 else "Nuevos en " + Fmt.duration(cd)
 	upd_r.call()
 	_refreshers.append(upd_r)
 	ch.add_child(reroll)
