@@ -1,6 +1,7 @@
 extends Node
-## Autoload "Sfx": efectos de sonido (sintetizados para el proyecto, ver
-## tools/sfx.py) y vibración. La música la maneja el autoload Music.
+## Autoload "Sfx": efectos de sonido (sintetizados en tools/sfx.py o exportados
+## de FL Studio, ver tools/audio/import_sfx.py) y vibración. La música la maneja
+## el autoload Music.
 
 const NAMES := ["tap", "coin", "buy", "upgrade", "unlock", "hire", "mission", "error", "event", "register", "tier", "whoosh",
 	"shot", "hit", "ricochet", "empty", "reload", "bag", "alarm", "siren", "swipe", "shred", "stamp", "buzzer", "tick"]
@@ -13,7 +14,6 @@ const VARIANT_PITCH := 0.06
 
 var _streams := {}
 var _players: Array[AudioStreamPlayer] = []
-var _next := 0
 var _last_play := {}
 var _variants := {}          ## nombre -> [streams]
 var _last_variant := {}
@@ -44,8 +44,7 @@ func play(name: String, pitch := 1.0, min_gap := 0.05) -> void:
 	if t - float(_last_play.get(name, -10.0)) < min_gap:
 		return
 	_last_play[name] = t
-	var pl := _players[_next]
-	_next = (_next + 1) % POOL
+	var pl := _free_player()
 	if _variants.has(name):
 		pl.stream = _pick_variant(name)
 		pitch *= randf_range(1.0 - VARIANT_PITCH, 1.0 + VARIANT_PITCH)
@@ -53,6 +52,15 @@ func play(name: String, pitch := 1.0, min_gap := 0.05) -> void:
 		pl.stream = _streams[name]
 	pl.pitch_scale = pitch
 	pl.play()
+
+
+## Un reproductor libre o, si están todos ocupados, el que está por terminar:
+## así una seguidilla de monedas no corta una fanfarria de varios segundos.
+func _free_player() -> AudioStreamPlayer:
+	var left := []
+	for pl in _players:
+		left.append(pl.stream.get_length() - pl.get_playback_position() if pl.playing else 0.0)
+	return _players[SoundVariants.least_busy(left)]
 
 
 func _pick_variant(name: String) -> AudioStream:

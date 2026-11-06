@@ -16,3 +16,9 @@ func test_moneda_una_version_por_vez() -> void:
 		last = k
 	eq(seen.size(), 5, "van saliendo todas")
 	eq(SoundVariants.pick(1, 0), 0, "con una sola versión, esa")
+
+
+func test_una_fanfarria_no_se_corta_por_las_monedas() -> void:
+	eq(SoundVariants.least_busy([6.5, 0.0, 0.2]), 1, "usa el reproductor libre")
+	eq(SoundVariants.least_busy([6.5, 0.4, 0.2]), 2, "si no hay libre, el que está por terminar")
+	eq(SoundVariants.least_busy([0.0, 0.0]), 0, "con todos libres, el primero")

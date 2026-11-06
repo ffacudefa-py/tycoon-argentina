@@ -16,6 +16,11 @@ static func paths(name: String, count: int) -> Array:
 	return out
 
 
+## Índice del reproductor al que le queda menos por sonar (0.0 = libre).
+static func least_busy(time_left: Array) -> int:
+	return time_left.find(time_left.min())
+
+
 ## Índice de la próxima versión: al azar, distinto de `last` si hay más de una.
 static func pick(count: int, last: int) -> int:
 	if count <= 1:
