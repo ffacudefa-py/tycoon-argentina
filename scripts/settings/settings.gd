@@ -12,6 +12,10 @@ func _ready() -> void:
 		AudioServer.add_bus()
 		AudioServer.set_bus_name(AudioServer.bus_count - 1, "SFX")
 		AudioServer.set_bus_send(AudioServer.bus_count - 1, "Master")
+	if AudioServer.get_bus_index("Music") == -1:
+		AudioServer.add_bus()
+		AudioServer.set_bus_name(AudioServer.bus_count - 1, "Music")
+		AudioServer.set_bus_send(AudioServer.bus_count - 1, "Master")
 	for k in store.values:
 		_apply(k)
 
@@ -39,6 +43,11 @@ func _apply(key: String) -> void:
 			var vol := float(get_value("sfx_volume"))
 			AudioServer.set_bus_mute(bus, not get_value("sfx_enabled") or vol <= 0.001)
 			AudioServer.set_bus_volume_db(bus, linear_to_db(maxf(vol, 0.001)))
+		"music_enabled", "music_volume":
+			var mbus := AudioServer.get_bus_index("Music")
+			var mvol := float(get_value("music_volume"))
+			AudioServer.set_bus_mute(mbus, not get_value("music_enabled") or mvol <= 0.001)
+			AudioServer.set_bus_volume_db(mbus, linear_to_db(maxf(mvol, 0.001)))
 		"power_saver":
 			Engine.max_fps = 30 if get_value("power_saver") else 60
 

@@ -149,12 +149,11 @@ func _make_strip() -> Control:
 	_strip_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	_strip_label.clip_text = true
 	_strip_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	var who: String = m.profile["company"]
 	if kind == "theft":
 		var bid: String = (_pending if practice else Security.pending_theft(m)).get("business", "")
-		_strip_label.text = "%s defiende %s" % [who, m.data.business_by_id[bid]["name"] if m.data.business_by_id.has(bid) else "su negocio"]
+		_strip_label.text = "Defendé: %s" % (m.data.business_by_id[bid]["name"] if m.data.business_by_id.has(bid) else "tu negocio")
 	else:
-		_strip_label.text = "%s en la comisaría de %s" % [who, m.data.zone_by_id[zid]["name"] if m.data.zone_by_id.has(zid) else ""]
+		_strip_label.text = "Comisaría de %s" % (m.data.zone_by_id[zid]["name"] if m.data.zone_by_id.has(zid) else "la zona")
 	if practice:
 		_strip_label.text = "PRÁCTICA · " + _strip_label.text
 	strip.add_child(_strip_label)

@@ -337,18 +337,32 @@ func test_hard_mode_bonus_lawsuit_theft_bribe() -> void:
 	check(Security.protected_left(m2, Z0) > 0.0, "la seguridad paga se guarda")
 
 
-## 11.2: en el modo normal también hay robos (menos seguidos), pero no
-## inflación ni juicios.
-func test_normal_mode_has_no_hard_events() -> void:
+## 15.0: el modo normal tiene todo (robos, inflación, juicios), sólo más suave.
+func test_normal_mode_tiene_todo_mas_suave() -> void:
 	var m := make_model()
 	HardMode.choose(m, false)
 	var pid: String = m.data.business_by_id[B0]["products"][0]["id"]
 	m.biz[B0]["stock"][pid] = 100.0
 	run(m, 400.0)
 	eq(int(m.counter("thefts")), 0, "el primer robo no llega antes de 8 min")
-	check(not m.inflation_active(), "sin inflación")
+	check(not m.inflation_active(), "sin inflación durante el tutorial")
+	m.tutorial["done"] = true
+	check(m.inflation_active(), "inflación después del tutorial")
+	var normal_inf := HardMode.inflation_cfg(m)
+	var hard_m := make_model(3)
+	HardMode.choose(hard_m, true)
+	check(hard_m.inflation_active(), "en el bien argentino, desde el principio")
+	var hard_inf := HardMode.inflation_cfg(hard_m)
+	check(float(hard_inf["period"]) < float(normal_inf["period"]), "en el bien argentino remarcan más seguido")
+	check(float(hard_inf["max_index"]) > float(normal_inf["max_index"]), "en el bien argentino la inflación llega más alto")
+	m.economy.reset_run(1_000_000)
+	EmployeeSystem.ensure_candidates(m, B0)
+	EmployeeSystem.hire(m, B0, 0)
+	m.economy.reset_run(0)
 	m.salary_debt = 50
-	eq(HardMode.lawsuit_eta(m), -1.0, "sin cuenta regresiva de juicio")
+	var eta := HardMode.lawsuit_eta(m)
+	check(eta > 120.0, "también hay juicios, con más margen (%s)" % Fmt.duration(eta))
+	check(Security.difficulty(m) < Security.difficulty(hard_m), "minijuegos más fáciles que en el bien argentino")
 
 
 ## 10.3: ciclo de enganche (combo, cofres, próxima meta, desafíos de evento).
@@ -394,3 +408,21 @@ func test_rival_no_crece_sin_techo() -> void:
 	for i in 400:
 		RivalSystem.advance(m, float(m.data.world["rival_update_seconds"]))
 	check(int(m.rivals[rid]["power"]) <= top, "el rival no pasa de %d (está en %d)" % [top, int(m.rivals[rid]["power"])])
+
+
+## 15.0: cada logro tiene rango, categoría, insignia y una métrica que existe.
+func test_logros_con_insignia() -> void:
+	var tiers := ["bronce", "plata", "oro", "diamante"]
+	var cats := ["ventas", "dinero", "negocios", "equipo", "conquista", "aventura"]
+	check(data().achievements.size() >= 60, "hay al menos 60 logros (%d)" % data().achievements.size())
+	for a in data().achievements:
+		check(tiers.has(a.get("tier", "")), "%s tiene rango" % a["id"])
+		check(cats.has(a.get("category", "")), "%s tiene categoría" % a["id"])
+		check(ResourceLoader.exists("res://assets/iconos/badges/%s.png" % a["id"]), "%s tiene insignia" % a["id"])
+	for c in cats:
+		check(ResourceLoader.exists("res://assets/iconos/badges/locked_%s.png" % c), "insignia bloqueada de %s" % c)
+	# Las métricas responden (no se escribió mal ninguna).
+	var m := make_model()
+	m.economy.earn(1_000_000_000_000, "dev")
+	ProgressionSystem.update(m)
+	check(m.achievements.has("billonario"), "se desbloquea un logro nuevo (billonario)")

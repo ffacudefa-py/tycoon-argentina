@@ -11,7 +11,7 @@ const ITEMS := [
 	["mapa", "Conquista a tu ritmo", "La cuota de mercado avanza según cuánto gana tu negocio: cada nivel y cada mejora te acercan a conquistar la provincia, sin esperas con todo comprado."],
 	["tienda", "Juego rediseñado", "Paleta cálida nueva, edificios que cambian en cada nivel, interiores, personajes y paisajes propios de cada región."],
 	["regalo", "Combo, cofres y eventos", "Vendé a mano para llegar al combo x2, ganá cofres jugando y aprovechá la Vendimia, la Zafra o la Fiesta de la Yerba."],
-	["alerta", "Modo bien argentino", "Elegí al empezar: +25 % de ingresos a cambio de inflación, juicios laborales, robos y coimas."],
+	["alerta", "Modo bien argentino", "Elegí al empezar: los dos modos tienen todo, pero en este la inflación, los juicios y los robos pegan más fuerte y los minijuegos son más difíciles. A cambio, +25 % de ingresos."],
 	["mapa", "Conquistá la Argentina", "Ganale el mercado al rival de cada provincia hasta el 100 %, región por región: NOA, NEA, Cuyo, Patagonia, Pampeana y Centro."],
 	["reloj", "Si venís de antes de la 10.0", "Con el juego nuevo arrancás de cero desde el NOA. Tu nombre, avatar y amigos siguen intactos."],
 ]

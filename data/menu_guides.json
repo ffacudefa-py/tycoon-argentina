@@ -1,0 +1,86 @@
+{
+ "imperio": {
+  "title": "Tu negocio",
+  "pages": [
+   "Esta es la pantalla de tu negocio. Arriba ves el local; con las flechas de los costados pasás de un negocio a otro.",
+   "El botón grande hace lo que el negocio necesita ahora: abrirlo, REPONER MERCADERÍA o ¡VENDER! Si lo mantenés apretado vendés seguido y sube el COMBO, que paga extra.",
+   "SUBIR NIVEL hace que cada venta deje más plata. ADMINISTRAR NEGOCIO abre los empleados, las mejoras y los datos del local.",
+   "Los eventos aparecen arriba a la izquierda del local: tocalos para ver qué hacen y cómo resolverlos. Los cofres que ganes también aparecen ahí."
+  ]
+ },
+ "negocios": {
+  "title": "Tus negocios",
+  "pages": [
+   "Acá están todos tus negocios, uno por provincia. Cada tarjeta muestra qué vende y cómo le va; desde ahí vas al negocio o lo administrás.",
+   "Si un negocio dice ¡SIN STOCK!, entrá y reponé mercadería: sin insumos no vende.",
+   "Más abajo están los próximos negocios: se habilitan cuando cumplís lo que piden. Los demás se van revelando a medida que crece tu imperio."
+  ]
+ },
+ "mapa": {
+  "title": "El mapa",
+  "pages": [
+   "Tu meta es conquistar la Argentina, región por región. Tocá una región para ver sus provincias y tocá una provincia para ver su detalle.",
+   "En cada provincia competís contra un rival local por el mercado. Invirtiendo en tu negocio de ahí (niveles, empleados y mejoras) le vas ganando terreno hasta conquistarla.",
+   "Al conquistar una provincia, tus negocios de esa región ganan un extra. Cuando conquistás la región entera se abre la siguiente."
+  ]
+ },
+ "objetivos": {
+  "title": "Objetivos",
+  "pages": [
+   "Acá están tus misiones, en tres pestañas: Principales, Diarias y Desafíos.",
+   "Cuando completás una misión aparece RECLAMAR: tocalo para cobrar el premio. RECLAMAR TODO cobra todas juntas.",
+   "La recompensa diaria se cobra una vez por día. Si faltás algunos días no perdés la racha: seguís desde donde quedaste."
+  ]
+ },
+ "perfil": {
+  "title": "Tu perfil",
+  "pages": [
+   "Este es tu perfil: el nombre de tu empresa, tu avatar y tu banner. Tocalos para cambiarlos.",
+   "Con una cuenta tu progreso también se guarda en la nube (se sube cuando salís del juego) y podés sumar amigos con tu código.",
+   "Más abajo están tus estadísticas, logros e hitos. Desde la etapa 5 podés fundar un nuevo grupo empresarial: empezás de nuevo, pero con ventajas permanentes."
+  ]
+ },
+ "administrar": {
+  "title": "Administrar el negocio",
+  "pages": [
+   "Acá manejás este negocio. Arriba elegís la pestaña: Negocio, Empleados, Mejoras o Datos.",
+   "En Negocio ves el stock, la reposición y la competencia. En Empleados contratás vendedores: venden solos aunque no toques nada, pero cobran sueldo.",
+   "En Mejoras comprás cosas que hacen vender más rápido o más caro. En Datos ves cuánto gana el negocio y cuánto ganó en total."
+  ]
+ },
+ "provincia": {
+  "title": "La provincia",
+  "pages": [
+   "Cada provincia tiene su producto estrella y un rival local. La barra de Mercado muestra cuánto del mercado es tuyo: al llegar al 100 % la conquistás.",
+   "Desde acá podés abrir tu negocio en la provincia o ir a verlo si ya lo tenés."
+  ]
+ },
+ "cofres": {
+  "title": "Cofres",
+  "pages": [
+   "Los cofres se ganan conquistando provincias y regiones, con logros, en los niveles 25, 50 y 100 y con los desafíos de los eventos. Nunca se compran.",
+   "Tocá ABRIR: la ruleta gira y frena en tu premio. Puede ser plata, un turbo que multiplica tus ganancias por un rato o un avatar nuevo. Los de borde violeta son los más raros."
+  ]
+ },
+ "amigos": {
+  "title": "Amigos",
+  "pages": [
+   "Pasale tu código de 6 letras a quien quieras sumar, o escribí el suyo y tocá Agregar.",
+   "Tus amigos aparecen en el ranking. Podés convidarle un mate por día a cada uno: al abrirlo gana un premio chico."
+  ]
+ },
+ "configuracion": {
+  "title": "Configuración",
+  "pages": [
+   "Acá ajustás el sonido, la música, la vibración y la calidad de los efectos.",
+   "Ahorro de energía baja a 30 FPS y apaga animaciones. Reducir movimiento saca las sacudidas y los rebotes.",
+   "También podés iniciar sesión y ver el estado de la nube. Estas guías se vuelven a ver cuando quieras con el botón de información (i) de cada menú."
+  ]
+ },
+ "bonos": {
+  "title": "Bonos por anuncio",
+  "pages": [
+   "Si querés, mirá un anuncio corto y llevate un bono. Hay un límite por día y tu progreso nunca depende de esto."
+  ]
+ }
+}

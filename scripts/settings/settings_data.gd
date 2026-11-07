@@ -8,6 +8,8 @@ const DEFAULTS := {
 	"mute": false,              ## silenciar todo
 	"sfx_enabled": true,
 	"sfx_volume": 0.8,
+	"music_enabled": true,
+	"music_volume": 0.6,
 	"vibration": true,
 	"fx_quality": 2,            ## 0 bajo, 1 medio, 2 alto
 	"power_saver": false,       ## 30 FPS y menos animaciones ambientales
@@ -16,6 +18,8 @@ const DEFAULTS := {
 	"scene_anim": true,         ## animaciones del escenario (clientes, humo, neón...)
 	"news_seen": "",            ## última versión cuyas novedades se mostraron
 	"reduce_motion": false,     ## accesibilidad: sin sacudidas ni rebotes de la interfaz
+	"share_photo": true,        ## los amigos ven la miniatura de la foto de perfil
+	"notifications": true,      ## avisos para volver (caja llena, eventos, amigos, versiones)
 }
 
 var path: String
@@ -36,6 +40,7 @@ func load() -> void:
 		if typeof(v) == typeof(DEFAULTS[k]) or (DEFAULTS[k] is float and v is int):
 			values[k] = v
 	values["sfx_volume"] = clampf(float(values["sfx_volume"]), 0.0, 1.0)
+	values["music_volume"] = clampf(float(values["music_volume"]), 0.0, 1.0)
 	values["master_volume"] = clampf(float(values["master_volume"]), 0.0, 1.0)
 	if values["scene_view"] not in ["interior", "fachada"]:
 		values["scene_view"] = "interior"

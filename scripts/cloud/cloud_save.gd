@@ -6,8 +6,9 @@ extends Node
 ## - Al iniciar sesión (o al abrir el juego con sesión) compara la partida del
 ##   teléfono con la de la nube y decide con CloudSync.decide(): sube, baja
 ##   o le pregunta al jugador cuál conservar.
-## - Después sube una copia cada UPLOAD_EVERY segundos si hubo cambios y al
-##   pasar la app a segundo plano. Cada subida lleva como condición el
+## - Durante el juego no escribe nada: sube una copia SÓLO al salir (la app pasa
+##   a segundo plano, se cierra o se sale con "atrás"), si hubo cambios. Así se
+##   evitan lecturas y escrituras de más. Cada subida lleva como condición el
 ##   updateTime de la nube que vimos: si otro teléfono subió algo mientras
 ##   tanto, el servidor la rechaza y se vuelve a comparar (no se pisa).
 ## - La partida del teléfono es de la última cuenta que entró. Si entra otra,
@@ -21,8 +22,10 @@ signal status_changed
 signal conflict(local: Dictionary, cloud: Dictionary)
 
 const STATE_PATH := "user://cloud.cfg"
-const UPLOAD_EVERY := 90.0
+## Si falló la primera consulta a la nube (sin internet), cada cuánto se reintenta.
 const RETRY_EVERY := 120.0
+## Al salir con "atrás", cuánto se espera a que termine la subida antes de cerrar.
+const QUIT_WAIT := 4.0
 const TIMEOUT := 20.0
 
 var project_id := ""
@@ -97,17 +100,39 @@ func _dev_mode() -> bool:
 func _process(delta: float) -> void:
 	if not enabled() or _inflight or status == "conflict":
 		return
+	# Sólo se reintenta la consulta inicial; las subidas esperan a la salida.
 	_timer += delta
-	if status == "error" and _timer >= RETRY_EVERY:
+	if status == "error" and not _cloud_seen and _timer >= RETRY_EVERY:
 		sync_now()
-	elif _dirty and _timer >= UPLOAD_EVERY:
-		upload() if _cloud_seen else sync_now()
 
 
 func _notification(what: int) -> void:
 	if what in [NOTIFICATION_APPLICATION_PAUSED, NOTIFICATION_APPLICATION_FOCUS_OUT, NOTIFICATION_WM_CLOSE_REQUEST]:
-		if enabled() and _dirty and not _inflight and status != "conflict" and _cloud_seen:
-			upload()
+		upload_on_exit()
+
+
+func _can_upload_on_exit() -> bool:
+	return enabled() and _dirty and not _inflight and status != "conflict" and _cloud_seen
+
+
+## El jugador sale del juego: sube la partida si cambió.
+func upload_on_exit(done := Callable()) -> void:
+	if _can_upload_on_exit():
+		upload(done)
+	elif done.is_valid():
+		done.call(true)
+
+
+## Sube (si hace falta) y después cierra el juego; no espera más de QUIT_WAIT.
+func quit_after_upload() -> void:
+	var finished := [false]
+	var quit := func(_ok := true) -> void:
+		if not finished[0]:
+			finished[0] = true
+			get_tree().quit()
+	upload_on_exit(quit)
+	if not finished[0]:
+		get_tree().create_timer(QUIT_WAIT).timeout.connect(quit)
 
 
 ## Si cambió la cuenta, lo sincronizado antes no cuenta para esta; y si la
@@ -181,7 +206,10 @@ func _on_fetched(ok: bool, code: int, doc: Dictionary) -> void:
 	var local := CloudSync.summary_of(Game.m, Game.m.now())
 	match CloudSync.decide(local, cloud, _synced_saved_at):
 		"upload":
-			upload()
+			# No se sube ahora: queda para cuando el jugador salga del juego.
+			_dirty = true
+			last_error = ""
+			_set_status("ok")
 		"download":
 			_apply(doc, false)
 		"ask":

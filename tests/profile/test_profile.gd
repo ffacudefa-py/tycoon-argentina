@@ -141,3 +141,19 @@ func test_niveles_sin_interior() -> void:
 		check(d.has(b["id"]) and (d[b["id"]] as Array).size() == 5, "%s tiene 5 interiores" % b["id"])
 		for t in 5:
 			check(ResourceLoader.exists("res://assets/pixel_art/interiors/%s_%d_back.png" % [b["id"], t]), "%s nivel %d: imagen del interior" % [b["id"], t])
+
+
+## 15.0: la miniatura que ven los amigos es chica y se vuelve a leer.
+func test_miniatura_para_amigos() -> void:
+	var dir := "user://test_thumb"
+	DirAccess.make_dir_recursive_absolute(dir)
+	var img := Image.create(256, 256, false, Image.FORMAT_RGBA8)
+	img.fill(Color(0.8, 0.3, 0.2))
+	img.save_png(ProfileImages.path_for("photo", dir))
+	var b64 := ProfileImages.thumb_b64("photo", dir)
+	check(b64 != "" and b64.length() < FriendLogic.PHOTO_MAX, "miniatura chica (%d caracteres)" % b64.length())
+	var tex := ProfileImages.texture_from_b64(b64)
+	check(tex != null and tex.get_width() == ProfileImages.THUMB, "se vuelve a leer a %d px" % ProfileImages.THUMB)
+	check(ProfileImages.texture_from_b64("no es una foto") == null, "basura -> sin foto")
+	ProfileImages.clear("photo", dir)
+	eq(ProfileImages.thumb_b64("photo", dir), "", "sin foto no hay miniatura")

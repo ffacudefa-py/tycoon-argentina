@@ -13,9 +13,12 @@ extends RefCounted
 const CARD_W := 84
 const CARD_H := 84
 const CARD_GAP := 6
-const CARDS := 36
-const WIN_AT := 30          ## posición de la tarjeta ganadora en la tira
+const CARDS := 24
+## Posición de la tarjeta ganadora en la tira. Con pocas vueltas la tira no pasa
+## tan rápido: se alcanza a leer cada premio que cruza la flecha.
+const WIN_AT := 18
 const SPIN_TIME := 3.4
+const WIND_UP := 0.18       ## retrocede un poquito antes de largar (se nota que arranca)
 const RARE_CHANCE := 0.2    ## un premio con menos probabilidad que esto es "raro"
 
 const TIER_COMMON := Color("c8963e")
@@ -107,9 +110,18 @@ static func open() -> void:
 		var from := _offset_for(window, 2, 0.0)
 		var to := _offset_for(window, WIN_AT, rng.randf_range(-0.38, 0.38))
 		var last := [_card_under(window, from)]
+		strip.position.x = from
+		# Armar la tira nueva cuesta un cuadro largo (sobre todo en el teléfono):
+		# si la vuelta arrancara ahí, el tramo rápido se saltearía entero.
+		await strip.get_tree().process_frame
+		await strip.get_tree().process_frame
+		if not is_instance_valid(strip) or not strip.is_inside_tree():
+			return
 		var tw := strip.create_tween()
+		tw.tween_property(strip, "position:x", from + CARD_W * 0.35, WIND_UP).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+		var back := from + CARD_W * 0.35
 		tw.tween_method(func(k: float) -> void:
-			strip.position.x = lerpf(from, to, 1.0 - pow(1.0 - k, 4))
+			strip.position.x = lerpf(back, to, 1.0 - pow(1.0 - k, 3))
 			var idx := _card_under(window, strip.position.x)
 			if idx != last[0]:
 				last[0] = idx
@@ -119,7 +131,7 @@ static func open() -> void:
 			.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 		tw.tween_callback(finish), "")
 	body.add_child(b)
-	Main.instance.modal_host.open("Cofres", body)
+	Main.instance.modal_host.open("Cofres", body).with_help("cofres")
 
 
 ## Arma la tira de tarjetas. Con un resultado (won no vacío) la tarjeta WIN_AT

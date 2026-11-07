@@ -89,6 +89,12 @@ func _ready() -> void:
 	center.add_child(mrow)
 	row.add_child(center)
 
+	# Guía de la sección en la que estás (MenuGuide); se puede ver las veces que quieras.
+	var help := U.icon_button("info", "crema", 36)
+	U.on_press(help, func() -> void: MenuGuide.open_section(Main.instance.section))
+	row.add_child(help)
+	Main.instance.register_target("help", help)
+
 	var gear := U.icon_button("engranaje", "crema", 36)
 	U.on_press(gear, func() -> void: SettingsModal.open())
 	row.add_child(gear)
@@ -117,20 +123,20 @@ func _refresh_names() -> void:
 func _refresh_income() -> void:
 	var m := Game.m
 	var inc := m.income_per_sec()
-	# Modo bien argentino: en rojo, cuenta regresiva hasta el juicio laboral.
+	# Con sueldos atrasados (los dos modos): en rojo, cuenta regresiva hasta el juicio laboral.
 	var eta := HardMode.lawsuit_eta(m)
 	if eta >= 0.0:
 		var secs := int(ceilf(eta))
-		_income_label.text = "JUICIO EN %d:%02d" % [secs / 60, secs % 60]
+		_income_label.text = "JUICIO %d:%02d" % [secs / 60, secs % 60]   # corto: entra aun con deuda grande
 		var blink := secs <= 30 and int(Time.get_ticks_msec() / 500) % 2 == 0
-		_income_label.add_theme_color_override("font_color", Color("ffd458") if blink else Color("e2665a"))
+		_income_label.add_theme_color_override("font_color", Color("ffd458") if blink else UiColors.LOSS_LIGHT)
 		_refresh_names()
 		return
 	if inc > 0.0:
 		_income_label.text = "+%s%s" % [Fmt.per_sec(inc), "  x2" if m.boost_multiplier() > 1.0 else ""]
 		_income_label.add_theme_color_override("font_color", Color("9cf0b0"))
 	else:
-		_income_label.text = "vendé a mano"
+		_income_label.text = "a mano"
 		_income_label.add_theme_color_override("font_color", Color("f0dcc0"))
 	_refresh_names()
 
@@ -197,6 +203,8 @@ func coin_landed() -> void:
 	var now := Time.get_ticks_msec()
 	_combo = mini(_combo + 1, 8) if now - _last_land < 600 else 0
 	_last_land = now
+	if Main.instance and Main.instance.in_start_menu():
+		return
 	Sfx.play("coin", 1.0 + _combo * 0.06, 0.04)
 	_bump(1.12, 0.18)
 
@@ -207,9 +215,11 @@ func jackpot(_amount: int) -> void:
 	var anim := _animations_on()
 	_jackpot_until = Time.get_ticks_msec() + int(SlotCounter.SPIN_TIME * 1000) + 300
 	_show_balance(anim, anim)
+	if Main.instance == null or Main.instance.in_start_menu():
+		return
 	Sfx.play("register")
 	Sfx.vibrate(40)
-	if not anim or Main.instance == null:
+	if not anim:
 		return
 	_bump(1.3, 0.35)
 	Main.instance.fx.coin_shower(_money.get_global_rect().get_center(), 14)

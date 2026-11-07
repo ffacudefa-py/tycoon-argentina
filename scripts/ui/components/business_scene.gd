@@ -19,24 +19,34 @@ const BG_W := 480
 const BUILDING_BASE_Y := 168
 const SHADOW_TOP := 130           # fila del cuadro del edificio donde empieza su sombra
 const WALK_Y := 178
-## Calzada de la calle (asfalto entre y=186 y 200 del arte): el colectivo apoya
-## las ruedas acá y se dibuja DELANTE del negocio y de los peatones.
+## Calzada de la calle (asfalto entre y=186 y 200 del arte): carril de adelante.
+## StreetTraffic se dibuja DELANTE del negocio y de los peatones.
 const ROAD_Y := 198
-const BUS_SPEED := 110.0
-## Filas de effects/colectivo_anim.png: una línea de colectivo por fila
-## (60, 160, 103 y 59, ver tools/art/bus_art.py); cada pasada elige una.
-const BUS_LINES := 4
 const WORKER_Y := 171
 ## Interior: lienzo 400x170.
 const INT_W := 400
 const CHAR_W := 32
 const CHAR_FEET := 46
-const MAX_WALKERS := [2, 6, 10]
+## Clientes a la vez según la calidad de efectos (15.0: menos gente, se veía amontonado).
+const MAX_WALKERS := [2, 4, 6]
 ## 12.1: ningún cliente se queda trabado: a los WALKER_MAX_T segundos se va sí o sí,
 ## y si en STUCK_T segundos no avanzó (por ejemplo, la escena cambió de tamaño) se quita.
 const WALKER_MAX_T := 18.0
 const STUCK_T := 4.0
 const QUEUE_GAP := 22.0
+## 15.0: qué hace un empleado trabajando según el rubro (tools/art/work_anims15.py).
+## Se toma la primera etiqueta del negocio que aparezca en esta lista (de lo
+## más específico a lo más general).
+const WORK_BY_TAG := [["vino", "servir"], ["bebida", "servir"], ["panaderia", "amasar"], ["lacteo", "servir"],
+	["ganaderia", "carnear"], ["fruta", "cajon"], ["infusion", "bolsa"], ["industria", "martillo"],
+	["fabrica", "martillo"], ["comida", "amasar"], ["campo", "cosechar"], ["agro", "cosechar"]]
+## Roles que hacen siempre lo mismo, para que se entienda quién es quién.
+const WORK_BY_ROLE := {"cajero": "cobrar", "repositor": "cajon", "cadete": "cajon"}
+const WORK_FPS := 10.0
+## Detrás de un mostrador el empleado se dibuja más arriba: así se le ven las
+## manos y lo que hace, no sólo la cabeza.
+const COUNTER_LIFT := 10
+const WORK_FRAMES := 8
 
 static var _interiors := {}
 
@@ -57,10 +67,7 @@ var _customers: Node2D
 var _workers: Array = []          ## [{sprite, station}]
 var _walkers: Array = []
 var _fx: Array = []               ## [{sprite, durations, t}]
-var _bus: Sprite2D
-var _bus_t := 12.0
-var _bus_line := 0
-var _bus_x := 0.0
+var _traffic: StreetTraffic
 var _spawn_t := 0.0
 var _anim_t := 0.0
 var _happy_until := 0.0   ## personajes 11: empleados felices tras una venta
@@ -92,13 +99,10 @@ func _ready() -> void:
 	_int_front = _sprite(_world)
 	_customers = Node2D.new()
 	_world.add_child(_customers)
-	_add_ambient(SceneAmbient.Layer.ROAD)         # autos (carril de atrás del colectivo)
-	_bus = _sprite(_world)
-	_bus.texture = U.tex("effects/colectivo_anim.png")
-	if _bus.texture:
-		_bus.hframes = 2
-		_bus.vframes = BUS_LINES
-	_bus.visible = false
+	_traffic = StreetTraffic.new()                # autos y colectivos, delante de negocio y peatones
+	_traffic.near_y = ROAD_Y
+	_traffic.far_y = ROAD_Y - 8.0
+	_world.add_child(_traffic)
 	resized.connect(_layout)
 	preferred_view = str(Settings.get_value("scene_view"))
 	view = preferred_view
@@ -162,9 +166,10 @@ func set_business(id: String) -> void:
 	bid = id
 	_last_tier = -1
 	_clear_walkers()
-	# Otra calle: el colectivo arranca su espera de cero.
-	_bus.visible = false
-	_bus_t = randf_range(4.0, 10.0)
+	# Otra calle: el tránsito arranca de cero y según la región.
+	_traffic.clear()
+	if Game.m.biz.has(id):
+		_traffic.set_street(str(Game.m.data.zone_by_id[Game.m.biz[id]["zone"]].get("street", "")))
 	refresh()
 
 
@@ -262,13 +267,30 @@ func _rebuild_workers(tier: int) -> void:
 	var limit: int = stations.size() if view == "interior" else 4
 	for i in mini(shown.size(), maxi(1, limit)):
 		var sp := _sprite(_people)
-		sp.texture = U.tex("characters/worker_%d.png" % shown[i]["variant"])
-		sp.hframes = maxi(1, sp.texture.get_width() / CHAR_W)
+		var base := U.tex("characters/worker_%d.png" % shown[i]["variant"])
+		sp.texture = base
+		sp.hframes = maxi(1, base.get_width() / CHAR_W)
 		sp.frame = 4
 		var st: Dictionary = stations[i] if i < stations.size() else {}
 		sp.flip_h = bool(st.get("flip", false))
-		_workers.append({"sprite": sp, "station": st, "index": i})
+		var action := work_action(str(shown[i].get("role", "")))
+		# Detrás del mostrador, la variante sin mesa propia (la mesa es el mostrador).
+		var suffix := "_c" if view == "interior" and str(st.get("kind", "")) == "counter" else ""
+		var work := U.tex("characters/work/worker_%d_%s%s.png" % [int(shown[i]["variant"]) % 8, action, suffix])
+		_workers.append({"sprite": sp, "station": st, "index": i, "base": base, "work": work})
 	_place_workers()
+
+
+## Acción de trabajo de un empleado: la de su rol si tiene una propia, si no
+## la del rubro del negocio.
+func work_action(role: String) -> String:
+	if WORK_BY_ROLE.has(role):
+		return WORK_BY_ROLE[role]
+	var tags: Array = Game.m.data.business_by_id[bid].get("tags", []) if Game.m.data.business_by_id.has(bid) else []
+	for pair in WORK_BY_TAG:
+		if tags.has(pair[0]):
+			return pair[1]
+	return "cobrar"
 
 
 func _place_workers() -> void:
@@ -277,7 +299,8 @@ func _place_workers() -> void:
 		var sp: Sprite2D = wk["sprite"]
 		if view == "interior" and not wk["station"].is_empty():
 			var st: Dictionary = wk["station"]
-			sp.position = Vector2(_origin_x() + float(st["x"]) - CHAR_W / 2, float(st["y"]) - CHAR_FEET)
+			var lift := COUNTER_LIFT if str(st.get("kind", "")) == "counter" else 0
+			sp.position = Vector2(_origin_x() + float(st["x"]) - CHAR_W / 2, float(st["y"]) - CHAR_FEET - lift)
 		else:
 			var off: int = [-44, 40, -78, 74][int(wk["index"]) % 4]
 			sp.position = Vector2(floor(w / 2.0) + off - CHAR_W / 2, WORKER_Y - CHAR_FEET)
@@ -345,17 +368,33 @@ func _process(delta: float) -> void:
 		var i: int = wk["index"]
 		var spr: Sprite2D = wk["sprite"]
 		var f := (6 + (tick + i) % 2) if busy else (4 + int(_anim_t / 0.8 + i) % 2)
+		var base_tex: Texture2D = wk["base"]
 		# Hojas de 12 cuadros (personajes 11): 8-9 festejar, 10 feliz, 11 triste.
-		if spr.hframes >= 12:
+		var special := false
+		if base_tex.get_width() / CHAR_W >= 12:
 			if _anim_t < _party_until:
 				f = 8 + (tick + i) % 2
+				special = true
 			elif bool(s.get("stockout", false)):
 				f = 11
+				special = true
 			elif _anim_t < _happy_until and i == 0:
 				f = 10
+				special = true
+		# 15.0: trabajando, la animación del rubro (8 cuadros, cada uno desfasado).
+		var work_tex: Texture2D = wk["work"]
+		if busy and not special and work_tex != null and anim_on:
+			if spr.texture != work_tex:
+				spr.texture = work_tex
+				spr.hframes = WORK_FRAMES
+			spr.frame = int(_anim_t * WORK_FPS + i * 3) % WORK_FRAMES
+			continue
+		if spr.texture != base_tex:
+			spr.texture = base_tex
+			spr.hframes = maxi(1, base_tex.get_width() / CHAR_W)
 		spr.frame = f
 	_animate_fx(delta)
-	_update_bus(delta, anim_on)
+	_update_traffic(anim_on)
 
 	# Clientes: frecuencia según ventas reales por segundo (sólo visual).
 	var level := Settings.fx_level()
@@ -364,9 +403,9 @@ func _process(delta: float) -> void:
 	if s.get("closed", false):
 		rate = 0.1                                  # igual pasa gente por la vereda
 	elif d["auto_sell"] and m.has_stock(bid):
-		rate = clampf(1.0 / float(d["cycle"]), 0.15, 0.8)
+		rate = clampf(1.0 / float(d["cycle"]), 0.15, 0.5)
 	elif s["running"]:
-		rate = 0.6
+		rate = 0.45
 	_spawn_t += delta * rate
 	if _spawn_t >= 1.0 and _walkers.size() < max_w:
 		_spawn_t = 0.0
@@ -451,32 +490,22 @@ func _update_walkers(delta: float) -> void:
 ## Colectivo que pasa por la calle cada tanto (sólo en la vista de fachada).
 ## El sprite mira a la derecha: entra por la izquierda y sale por la derecha.
 ## Las ventas (refresh) no lo tocan, así no se reinicia el recorrido.
-func _update_bus(delta: float, anim_on: bool) -> void:
-	if view == "interior" or not anim_on or _bus.texture == null:
-		if _bus.visible:
-			_bus.visible = false
-			_bus_t = randf_range(10.0, 22.0)
-		return
-	var frame_w := float(_bus.texture.get_width()) / _bus.hframes
-	if not _bus.visible:
-		_bus_t -= delta
-		if _bus_t <= 0.0:
-			_bus.visible = true
-			_bus_line = randi() % BUS_LINES
-			_bus.position = Vector2(-frame_w - 10, ROAD_Y - _bus.texture.get_height() / _bus.vframes)
-			_bus_x = _bus.position.x
-		return
-	_bus_x += BUS_SPEED * delta                  # posición exacta aparte (redondear cada cuadro lo frenaba a muchos fps)
-	_bus.position.x = round(_bus_x)
-	_bus.frame = _bus_line * _bus.hframes + int(_anim_t * 6.0) % 2
-	if _bus.position.x > size.x + 10:
-		_bus.visible = false
-		_bus_t = randf_range(10.0, 22.0)
+## 15.0: autos y colectivos los maneja StreetTraffic; adentro del local no hay calle.
+func _update_traffic(anim_on: bool) -> void:
+	_traffic.width = size.x
+	var on := anim_on and view != "interior" and SceneAmbient.enabled()
+	if _traffic.active and not on:
+		_traffic.clear()
+	_traffic.active = on
+	_traffic.visible = on
 
 
 func _on_sale(id: String, revenue: int) -> void:
 	if id != bid or not is_visible_in_tree() or Main.instance == null:
 		return
+	_happy_until = _anim_t + 0.45
+	if Main.instance.in_start_menu():
+		return              # detrás del inicio: sin monedas ni "clinc"
 	_happy_until = _anim_t + 0.45
 	var center := get_global_rect().position + Vector2(size.x / 2.0, 60)
 	if view == "interior":

@@ -37,7 +37,7 @@ func _ready() -> void:
 		var badge := U.label("", U.SIZE_SMALL, Color.WHITE, true, HORIZONTAL_ALIGNMENT_CENTER)
 		badge.custom_minimum_size = Vector2(12, 10)
 		var sb := StyleBoxFlat.new()
-		sb.bg_color = Color("d94a4a")
+		sb.bg_color = Color("bf2f3b")
 		sb.border_color = Color("5c3520")
 		sb.set_border_width_all(1)
 		badge.add_theme_stylebox_override("normal", sb)

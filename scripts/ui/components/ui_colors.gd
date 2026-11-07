@@ -7,12 +7,12 @@ extends RefCounted
 ##   celeste  = acción o información (comprar, contratar, abrir)
 ## Los estilos de botón usan los mismos nombres.
 
-const GAIN := Color("2d6a3e")
-const GAIN_LIGHT := Color("8ccb6c")
-const LOSS := Color("b83a3f")
-const LOSS_LIGHT := Color("e2665a")
-const WARN := Color("b5700a")
-const INFO := Color("2f6ea8")
+const GAIN := Color("256037")
+const GAIN_LIGHT := Color("a8e088")
+const LOSS := Color("a22a30")
+const LOSS_LIGHT := Color("ffb0a0")
+const WARN := Color("8a5200")
+const INFO := Color("245a8f")
 
 const BTN_ACTION := "celeste"   ## comprar, contratar, abrir, desbloquear
 const BTN_GAIN := "verde"       ## vender, reclamar premios

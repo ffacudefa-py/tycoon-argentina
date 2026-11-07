@@ -189,33 +189,62 @@ func _on_friends_changed() -> void:
 		rebuild()
 
 
+const ACH_CATEGORIES := {"ventas": "Ventas", "dinero": "Dinero", "negocios": "Negocios", "equipo": "Equipo",
+	"conquista": "Conquista", "aventura": "Aventuras"}
+const ACH_TIERS := {"bronce": "Bronce", "plata": "Plata", "oro": "Oro", "diamante": "Diamante"}
+
+
+## Insignia del logro (15.0, tools/art/badges15.py): la suya o la bloqueada de su categoría.
+static func badge_tex(a: Dictionary, got: bool) -> Texture2D:
+	var t := U.tex("res://assets/iconos/badges/%s.png" % (a["id"] if got else "locked_" + str(a.get("category", "aventura"))))
+	return t if t else U.icon_tex(a["icon"] if got else "candado")
+
+
 func _achievements() -> Control:
 	var card := U.panel("Card")
-	var col := U.vbox(4)
+	var col := U.vbox(6)
 	card.add_child(col)
 	col.add_child(U.label("Logros (%d/%d)" % [m.achievements.size(), m.data.achievements.size()], U.SIZE_BODY, U.TEXT, true))
-	var grid := GridContainer.new()
-	grid.columns = 8
-	grid.add_theme_constant_override("h_separation", 3)
-	grid.add_theme_constant_override("v_separation", 3)
-	for a in m.data.achievements:
-		var got := m.achievements.has(a["id"])
-		var b := Button.new()
-		b.theme_type_variation = "Btn_" + ("amarillo" if got else "gris")
-		b.focus_mode = Control.FOCUS_NONE
-		b.custom_minimum_size = Vector2(34, 32)
-		b.icon = U.icon_tex(a["icon"] if got else "candado")
-		b.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		var aa: Dictionary = a
-		U.on_press(b, func() -> void: _achievement_info(aa))
-		grid.add_child(b)
-	col.add_child(grid)
+	for cat in ACH_CATEGORIES:
+		var list: Array = m.data.achievements.filter(func(a: Dictionary) -> bool: return str(a.get("category", "aventura")) == cat)
+		if list.is_empty():
+			continue
+		var got_n := list.filter(func(a: Dictionary) -> bool: return m.achievements.has(a["id"])).size()
+		col.add_child(U.label("%s · %d/%d" % [ACH_CATEGORIES[cat], got_n, list.size()], U.SIZE_SMALL, U.TEXT_SOFT, true))
+		var grid := GridContainer.new()
+		grid.columns = 7
+		grid.add_theme_constant_override("h_separation", 2)
+		grid.add_theme_constant_override("v_separation", 2)
+		for a in list:
+			var got := m.achievements.has(a["id"])
+			var b := TextureButton.new()
+			b.texture_normal = badge_tex(a, got)
+			b.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+			b.stretch_mode = TextureButton.STRETCH_KEEP_CENTERED
+			b.ignore_texture_size = true
+			b.custom_minimum_size = Vector2(42, 40)
+			b.focus_mode = Control.FOCUS_NONE
+			b.tooltip_text = a["name"]
+			var aa: Dictionary = a
+			U.on_press(b, func() -> void: _achievement_info(aa))
+			grid.add_child(b)
+		col.add_child(grid)
 	return card
 
 
 func _achievement_info(a: Dictionary) -> void:
-	var body := U.vbox(4)
+	var body := U.vbox(6)
 	var got := m.achievements.has(a["id"])
+	var big := TextureRect.new()
+	big.texture = badge_tex(a, got)
+	big.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	big.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	big.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	big.custom_minimum_size = Vector2(64, 64)
+	big.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	body.add_child(big)
+	body.add_child(U.label("%s · %s" % [ACH_TIERS.get(str(a.get("tier", "bronce")), "Bronce"), ACH_CATEGORIES.get(str(a.get("category", "aventura")), "")],
+		U.SIZE_SMALL, U.TEXT_SOFT, true, HORIZONTAL_ALIGNMENT_CENTER))
 	body.add_child(U.para(a["description"], U.SIZE_BODY, U.TEXT))
 	body.add_child(U.label("Premio: " + ProgressionSystem.describe(m, a["reward"]), U.SIZE_SMALL, U.GREEN, true))
 	var v := m.metric(a["metric"])
@@ -224,6 +253,8 @@ func _achievement_info(a: Dictionary) -> void:
 	body.add_child(bar)
 	if got:
 		body.add_child(U.label("Desbloqueado el " + Time.get_date_string_from_unix_time(int(m.achievements[a["id"]])), U.SIZE_SMALL, U.TEXT_SOFT))
+	else:
+		body.add_child(U.label("%s / %s" % [Fmt.num(minf(v, float(a["target"]))), Fmt.num(float(a["target"]))], U.SIZE_SMALL, U.TEXT_SOFT))
 	Main.instance.modal_host.open(a["name"], body, true, 280)
 
 

@@ -5,6 +5,9 @@ extends Node
 ## por día (un premio chico al abrirlo). Reglas y formato: FriendLogic y
 ## docs/AMIGOS.md.
 ##
+## Se actualiza al iniciar sesión y al abrir la ventana de amigos (nunca en
+## segundo plano, para no gastar lecturas).
+##
 ## Las acciones son corrutinas: `var r = await Friends.add_by_code("ABC123")`
 ## devuelve {ok, msg}. Sin internet no pasa nada grave: se avisa y listo.
 
@@ -12,8 +15,6 @@ signal changed
 
 const STATE_PATH := "user://friends.cfg"
 const TIMEOUT := 20.0
-## Cada cuánto se actualizan solicitudes, regalos y el perfil público.
-const REFRESH_EVERY := 300.0
 
 var project_id := ""
 ## off (sin cuenta verificada) · loading · ok · error
@@ -26,9 +27,11 @@ var gifts: Array = []          ## [{uid, company, day}]
 
 var _uid := ""
 var _sent := {}                ## uid del amigo -> día en que le convidé un mate
-var _timer := 0.0
 var _busy := false
 var _published := {}
+var _photo_key := ""            ## de qué archivo de foto salió _photo_b64
+var _photo_b64 := ""
+var _photo_rejected := false    ## las reglas de Firestore todavía no aceptan "photo"
 
 
 func _ready() -> void:
@@ -38,6 +41,10 @@ func _ready() -> void:
 		if d is Dictionary:
 			project_id = str(d.get("project_id", ""))
 	Auth.changed.connect(_on_auth_changed)
+	# Dejar de compartir la foto la saca del perfil público en el momento.
+	Settings.changed.connect(func(key: String, _v: Variant) -> void:
+		if key == "share_photo" and enabled() and my_code != "":
+			publish_profile())
 	await get_tree().process_frame
 	_on_auth_changed()
 
@@ -54,14 +61,6 @@ func _dev_mode() -> bool:
 		if a.begins_with("--dev-save=") or a.begins_with("--shots="):
 			return true
 	return false
-
-
-func _process(delta: float) -> void:
-	if not enabled() or _busy:
-		return
-	_timer += delta
-	if _timer >= REFRESH_EVERY:
-		refresh()
 
 
 func _on_auth_changed() -> void:
@@ -96,9 +95,22 @@ func sent_today(uid: String) -> bool:
 	return int(_sent.get(uid, -1)) == ProgressionSystem.day_index(Game.m)
 
 
-## Mi fila para el ranking.
+## Mi fila para el ranking (con la miniatura de mi foto si la comparto).
 func me() -> Dictionary:
-	return FriendLogic.profile_of(Game.m, Auth.uid, my_code)
+	var p := FriendLogic.profile_of(Game.m, Auth.uid, my_code)
+	p["photo"] = my_photo()
+	return p
+
+
+func my_photo() -> String:
+	if _photo_rejected or not Settings.get_value("share_photo") or not ProfileWidgets.has_photo():
+		return ""
+	var path := ProfileImages.path_for("photo")
+	var key := "%s:%d" % [path, FileAccess.get_modified_time(path)]
+	if key != _photo_key:
+		_photo_key = key
+		_photo_b64 = ProfileImages.thumb_b64("photo")
+	return _photo_b64
 
 
 # ---------------------------------------------------------------- acciones
@@ -108,7 +120,6 @@ func refresh() -> Dictionary:
 	if not enabled() or _busy:
 		return {"ok": false, "msg": "Sin cuenta verificada."}
 	_busy = true
-	_timer = 0.0
 	_set_status("loading")
 	var r := await _refresh_inner()
 	_busy = false
@@ -197,6 +208,12 @@ func publish_profile(force := false) -> Dictionary:
 	if not force and p == _published:
 		return {"ok": true, "msg": ""}
 	var res := await _call(HTTPClient.METHOD_PATCH, "players/" + Auth.uid, FriendLogic.profile_fields(p, Time.get_unix_time_from_system()))
+	if res["code"] == 403 and str(p.get("photo", "")) != "":
+		# Reglas viejas (sin el campo "photo"): se publica sin foto y no se insiste.
+		push_warning("Friends: las reglas de Firestore no aceptan la foto; se publica sin ella.")
+		_photo_rejected = true
+		p["photo"] = ""
+		res = await _call(HTTPClient.METHOD_PATCH, "players/" + Auth.uid, FriendLogic.profile_fields(p, Time.get_unix_time_from_system()))
 	if res["code"] != 200:
 		return _fail(res)
 	_published = p
