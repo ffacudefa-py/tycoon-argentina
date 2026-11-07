@@ -1,12 +1,12 @@
 class_name SceneAmbient
 extends Node2D
 ## Vida ambiental de BusinessScene (estilo 11): nubes en dos capas de parallax,
-## pájaros, autos, destellos en las ventanas y, adentro, motas de luz.
+## pájaros, destellos en las ventanas y, adentro, motas de luz.
 ## Sólo decora: no captura toques, no tapa la interfaz (vive en el "mundo" de la
 ## escena, debajo de los botones) y se pausa fuera de pantalla o con
 ## "Reducir movimiento". Pocos sprites reutilizados y movidos por transform.
 
-enum Layer { SKY, ROAD, SPARKS }
+enum Layer { SKY, SPARKS }
 
 var layer := Layer.SKY
 var scene: Control                    ## la BusinessScene (para el ancho y la vista)
@@ -15,7 +15,6 @@ var _spawn_t := 0.0
 var _rng := RandomNumberGenerator.new()
 
 const SKY_MAX := 6
-const ROAD_MAX := 3
 const SPARK_MAX := 5
 
 
@@ -53,8 +52,6 @@ func _process(delta: float) -> void:
 			"bird":
 				n.position.y = float(it["y0"]) + sin(float(it["t"]) * float(it["phase"])) * 4.0
 				(n as Sprite2D).frame = int(float(it["t"]) * 7.0 + float(it["phase"])) % 2
-			"car":
-				(n as Sprite2D).frame = int(float(it["t"]) * 10.0) % 2
 			"spark", "mote":
 				var life: float = it["life"]
 				var k := float(it["t"]) / life
@@ -139,15 +136,6 @@ func _spawn(interior: bool) -> void:
 					b.scale = Vector2.ONE * 2.0
 					_items.append({"node": b, "vx": dir * _rng.randf_range(22.0, 34.0), "t": _rng.randf() * 3.0, "kind": "bird",
 						"phase": _rng.randf_range(4.0, 7.0), "y0": y0})
-		Layer.ROAD:
-			_spawn_t = _rng.randf_range(2.5, 7.0)
-			if interior or _count("car") >= ROAD_MAX:
-				return
-			var dir2 := 1.0 if _rng.randf() < 0.55 else -1.0
-			var c := _sprite("effects/amb_car_%d.png" % (_rng.randi() % 5), 2)
-			c.flip_h = dir2 < 0
-			c.position = Vector2(-40.0 if dir2 > 0 else w + 40.0, BusinessScene.ROAD_Y - 9.0)   # en su carril
-			_items.append({"node": c, "vx": dir2 * _rng.randf_range(55.0, 95.0), "t": 0.0, "kind": "car", "phase": 0.0})
 		Layer.SPARKS:
 			_spawn_t = _rng.randf_range(0.5, 1.4)
 			if _count("spark") + _count("mote") >= SPARK_MAX:

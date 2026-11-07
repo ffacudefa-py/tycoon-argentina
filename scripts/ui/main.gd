@@ -86,7 +86,10 @@ func _ready() -> void:
 	start = StartScreen.new()
 	add_child(start)
 
-	m.notify.connect(func(text: String, kind: String) -> void: toasts.show_toast(text, kind))
+	# En la pantalla de inicio el juego sigue corriendo detrás, pero sin avisos.
+	m.notify.connect(func(text: String, kind: String) -> void:
+		if not in_start_menu():
+			toasts.show_toast(text, kind))
 	m.celebrate.connect(_on_celebrate)
 	Game.offline_report.connect(_show_offline)
 	Game.model_reset.connect(_on_model_reset)
@@ -111,7 +114,12 @@ func _ready() -> void:
 		if not Game.pending_offline.is_empty():
 			var r := Game.pending_offline
 			Game.pending_offline = {}
-			OfflineReport.open(r))
+			OfflineReport.open(r)
+		# Sólo si no se abrió nada de lo anterior (MenuGuide espera sin ventanas).
+		MenuGuide.open_first_time(section)
+		# Permiso de notificaciones (Android 13+), una vez y ya adentro del juego.
+		if not TutorialSteps.active(m):
+			PushNotifications.ask_permission())
 
 
 ## 11.2: arranca el asalto pendiente (o retoma una coima a medias) cuando no
@@ -181,6 +189,7 @@ func go_to(index: int) -> void:
 		screens[index].on_shown()
 	bottom_nav.set_selected(index)
 	section_changed.emit(index)
+	(func() -> void: MenuGuide.open_first_time(index)).call_deferred()
 
 
 func select_business(id: String, show_empire := true) -> void:
@@ -223,7 +232,14 @@ func confirm(title: String, text: String, confirm_text: String, on_yes: Callable
 	ConfirmDialog.open(title, text, confirm_text, on_yes, danger)
 
 
+## La pantalla de inicio está delante: lo que pasa en el juego no suena ni avisa.
+func in_start_menu() -> bool:
+	return start != null and start.visible
+
+
 func _on_celebrate(kind: String, info: Dictionary) -> void:
+	if in_start_menu():
+		return
 	match kind:
 		"level":
 			Sfx.play("buy", 1.0 + randf() * 0.1)
@@ -293,7 +309,7 @@ func _notification(what: int) -> void:
 			var now := Time.get_ticks_msec()
 			if now - _back_armed < 2000:
 				Game.save()
-				get_tree().quit()
+				Cloud.quit_after_upload()
 			else:
 				_back_armed = now
 				toast("Tocá atrás otra vez para salir.", "info")

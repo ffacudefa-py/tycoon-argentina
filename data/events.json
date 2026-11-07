@@ -311,12 +311,12 @@
   }
  ],
  "inflation": {
-  "_doc": "Inflación ficticia: sólo en el modo bien argentino (progression.json → balance.hard_mode.inflation pisa estos valores). Cada period segundos se anuncia una remarcación con warning segundos de anticipación: suben los costos de mercadería; los precios de venta acompañan después de price_lag segundos. Los costos de niveles y mejoras NO cambian.",
+  "_doc": "Inflación ficticia (15.0: en los dos modos). Esta es la del modo normal (arranca después del tutorial; los precios suben la mitad que los costos (con ~50 % de margen la ganancia baja un poco)); en el modo bien argentino progression.json → balance.hard_mode.inflation pisa estos valores (más seguida y los precios quedan atrás). Cada period segundos se anuncia una remarcación con warning segundos de anticipación: suben los costos de mercadería; los precios de venta acompañan después de price_lag segundos. Los costos de niveles y mejoras NO cambian.",
   "period": 600,
   "warning": 60,
-  "cost_step": 0.08,
-  "price_step": 0.08,
+  "cost_step": 0.06,
+  "price_step": 0.03,
   "price_lag": 90,
-  "max_index": 4.0
+  "max_index": 2.0
  }
 }

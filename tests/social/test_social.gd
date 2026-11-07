@@ -32,6 +32,14 @@ func test_perfil_ida_y_vuelta() -> void:
 	eq(back["lifetime"], m.economy.lifetime_earned, "ganado exacto")
 	eq(back["code"], "K7M2QX", "código")
 	check(FriendLogic.profile_from_doc({"name": "x/y"}).is_empty(), "documento vacío -> {}")
+	# 15.0: la miniatura de la foto va y vuelve; sin foto no se manda el campo.
+	eq(back.get("photo", ""), "", "sin foto")
+	check(not (FriendLogic.profile_fields(p, 1.0)["fields"] as Dictionary).has("photo"), "sin foto no hay campo")
+	p["photo"] = "QUJD"
+	var back2 := FriendLogic.profile_from_doc(JSON.parse_string(JSON.stringify({"name": "projects/x/databases/(default)/documents/players/u1", "fields": FriendLogic.profile_fields(p, 1.0)["fields"]})))
+	eq(back2["photo"], "QUJD", "la foto va y vuelve")
+	p["photo"] = "A".repeat(FriendLogic.PHOTO_MAX + 1)
+	check(not (FriendLogic.profile_fields(p, 1.0)["fields"] as Dictionary).has("photo"), "una foto demasiado grande no se manda")
 
 
 func test_ranking() -> void:

@@ -423,13 +423,21 @@ func _update_events() -> void:
 		return
 	U.clear(_events_row)
 	var active: Array = m.events["active"]
-	for i in active.size():
-		var inst: Dictionary = active[i]
-		var e: Dictionary = m.data.event_by_id[inst["id"]]
-		var b := U.button("%s · %s" % [e["name"], Fmt.duration(inst["remaining"])], "rojo" if e["kind"] == "bad" else "amarillo", e["icon"], 32, U.SIZE_SMALL)
-		var idx := i
-		U.on_press(b, func() -> void: EventModal.open(idx))
-		_events_row.add_child(b)
+	if active.is_empty():
+		return
+	# Con varios eventos a la vez no entran en una fila: un solo botón con la lista.
+	if active.size() > 1:
+		var bad := EventModal.any_bad(m)
+		var first: Dictionary = m.data.event_by_id[active[0]["id"]]
+		var lb := U.button("%d eventos activos" % active.size(), "rojo" if bad else "amarillo", first["icon"], 32, U.SIZE_SMALL)
+		U.on_press(lb, EventModal.open_list)
+		_events_row.add_child(lb)
+		return
+	var inst: Dictionary = active[0]
+	var e: Dictionary = m.data.event_by_id[inst["id"]]
+	var b := U.button("%s · %s" % [e["name"], Fmt.duration(inst["remaining"])], "rojo" if e["kind"] == "bad" else "amarillo", e["icon"], 32, U.SIZE_SMALL)
+	U.on_press(b, func() -> void: EventModal.open(0))
+	_events_row.add_child(b)
 
 
 ## Halo dorado que late detrás del botón para llamar la atención. Va detrás

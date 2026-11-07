@@ -51,18 +51,9 @@ def save(name, samples):
 
 
 random.seed(3)
-save("tap", tone(880, 0.05, 0.25, "square", decay=40, duty=0.25))
-save("coin", seq(tone(988, 0.06, 0.3, "square", decay=12, duty=0.25), tone(1319, 0.18, 0.3, "square", decay=10, duty=0.25)))
-save("buy", seq(tone(523, 0.06, 0.3, "square", decay=15), tone(784, 0.12, 0.3, "square", decay=12)))
-save("upgrade", seq(*[tone(f, 0.07, 0.28, "square", decay=10, duty=0.3) for f in (523, 659, 784, 1047)]))
-save("unlock", seq(*[tone(f, 0.09, 0.3, "square", decay=6, duty=0.4) for f in (392, 523, 659, 784)], tone(1047, 0.35, 0.3, "tri", decay=4)))
-save("hire", seq(tone(440, 0.08, 0.3, "tri", decay=8), tone(554, 0.08, 0.3, "tri", decay=8), tone(659, 0.2, 0.3, "tri", decay=6)))
-save("mission", mix(seq(*[tone(f, 0.08, 0.25, "square", decay=6, duty=0.25) for f in (659, 784, 988, 1319)]), tone(330, 0.4, 0.15, "tri", decay=3)))
+# "coin" ya no se sintetiza (15.0): son los 5 golpes de coin.mp3, ver tools/audio/split_coin.sh.
+# tap, buy, upgrade, unlock, hire, mission, event, register, tier y whoosh vienen de FL Studio: ver tools/audio/import_sfx.py.
 save("error", seq(tone(220, 0.08, 0.3, "square", decay=10), tone(165, 0.14, 0.3, "square", decay=8)))
-save("event", seq(tone(784, 0.07, 0.25, "tri", decay=8), tone(784, 0.07, 0.0), tone(988, 0.15, 0.25, "tri", decay=6)))
-save("register", mix(seq(tone(1568, 0.05, 0.25, "square", decay=20, duty=0.2), tone(2093, 0.25, 0.25, "square", decay=9, duty=0.2)), tone(0, 0.08, 0.2, "noise", decay=40)))
-save("tier", seq(*[tone(f, 0.1, 0.28, "square", decay=5, duty=0.35) for f in (523, 659, 784, 659, 784, 1047)], tone(1047, 0.4, 0.25, "tri", decay=3)))
-save("whoosh", tone(300, 0.18, 0.18, "noise", slide=-200, decay=12))
 # 11.2: minijuegos (asalto y coima).
 save("shot", mix(tone(0, 0.16, 0.55, "noise", decay=22), tone(140, 0.12, 0.45, "square", slide=-90, decay=18, duty=0.5)))
 save("hit", mix(tone(90, 0.14, 0.5, "square", slide=-40, decay=14), tone(0, 0.08, 0.3, "noise", decay=30)))

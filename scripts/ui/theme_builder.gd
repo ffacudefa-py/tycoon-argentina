@@ -5,6 +5,7 @@ extends RefCounted
 ## sin deformar los píxeles.
 
 const BUTTON_STYLES := ["verde", "amarillo", "rojo", "celeste", "crema", "gris", "violeta"]
+const BUTTON_OUTLINE := {"verde": Color("1b5a34"), "rojo": Color("7a1c2e"), "violeta": Color("46276e")}
 
 
 static func build() -> Theme:
@@ -38,14 +39,17 @@ static func build() -> Theme:
 		th.set_stylebox("hover_pressed", tv, _btn_box(st, "pressed"))
 		th.set_stylebox("disabled", tv, _btn_box(st, "disabled"))
 		th.set_stylebox("focus", tv, StyleBoxEmpty.new())
-		var fc := U.TEXT if st in ["crema", "amarillo"] else U.TEXT_LIGHT
-		if st == "celeste":
-			fc = U.TEXT
+		# 15.0: texto oscuro sobre fondos claros; sobre verde, rojo y violeta, claro con
+		# contorno (solo no llega a 4,5:1). Vale también para los botones desactivados.
+		var fc: Color = U.TEXT_LIGHT if BUTTON_OUTLINE.has(st) else U.TEXT
+		if BUTTON_OUTLINE.has(st):
+			th.set_color("font_outline_color", tv, BUTTON_OUTLINE[st])
+			th.set_constant("outline_size", tv, 4)
 		th.set_color("font_color", tv, fc)
 		th.set_color("font_hover_color", tv, fc)
 		th.set_color("font_pressed_color", tv, fc)
 		th.set_color("font_hover_pressed_color", tv, fc)
-		th.set_color("font_disabled_color", tv, Color("f0dcc0"))
+		th.set_color("font_disabled_color", tv, U.TEXT_SOFT if st == "crema" else fc)
 		th.set_color("icon_disabled_color", tv, Color(1, 1, 1, 0.5))
 		th.set_font("font", tv, bold)
 		th.set_constant("h_separation", tv, 3)
@@ -72,7 +76,10 @@ static func build() -> Theme:
 	for pair in [["Card", "panel.png", 9], ["DarkCard", "panel_dark.png", 9], ["WhiteCard", "panel_white.png", 9],
 			["GoldCard", "panel_gold.png", 9], ["SlateCard", "panel_slate.png", 9], ["Inset", "inset.png", 3], ["InsetDark", "inset_dark.png", 3]]:
 		th.set_type_variation(pair[0], "PanelContainer")
-		th.set_stylebox("panel", pair[0], _box("ui/" + pair[1], pair[2], pair[2] + 1))
+		var box := _box("ui/" + pair[1], pair[2], pair[2] + 1)
+		if pair[0] == "SlateCard":
+			box.modulate_color = Color(0.6, 0.6, 0.64)   # 15.0: tono medio: ni texto claro ni oscuro se leían
+		th.set_stylebox("panel", pair[0], box)
 	th.set_stylebox("panel", "PanelContainer", _box("ui/panel.png", 9, 10))
 	for kind in ["info", "good", "bad", "reward"]:
 		var tv: String = "Toast_" + kind

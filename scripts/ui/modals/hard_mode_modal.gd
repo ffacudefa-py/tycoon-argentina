@@ -15,12 +15,18 @@ static func open() -> void:
 	var m := Game.m
 	var c := HardMode.cfg(m)
 	var body := U.vbox(8)
-	body.add_child(U.para("Antes de arrancar: ¿cómo querés jugar? La elección queda para toda la partida.", U.SIZE_SMALL, U.TEXT))
+	body.add_child(U.para("Antes de arrancar: ¿cómo querés jugar? Los dos modos tienen todo el juego (inflación, robos, coimas, juicios y minijuegos); cambia qué tan difícil es. La elección queda para toda la partida.", U.SIZE_SMALL, U.TEXT))
 	var normal := U.panel("Inset")
 	var nv := U.vbox(2)
 	normal.add_child(nv)
 	nv.add_child(U.label("Modo normal", U.SIZE_BODY, U.TEXT, true))
-	nv.add_child(U.para("Precios estables, sin inflación ni sobresaltos. Ideal para relajarse.", U.SIZE_SMALL, U.TEXT_SOFT))
+	var nc := HardMode.lawsuit_cfg(m) if not HardMode.on(m) else c.merged(c.get("normal", {}), true)
+	for line in [
+		"Inflación suave: remarcaciones cada 10 min que achican un poco la ganancia.",
+		"Juicio laboral si debés sueldos más de %s." % Fmt.duration(float(nc.get("lawsuit_after", 300))),
+		"Robos de vez en cuando y minijuegos más accesibles.",
+	]:
+		nv.add_child(U.para("• " + line, U.SIZE_SMALL, U.TEXT_SOFT))
 	body.add_child(normal)
 	var hard := U.panel("Inset")
 	var hv := U.vbox(3)
@@ -33,10 +39,10 @@ static func open() -> void:
 	top.add_child(U.label("+%d %% ingresos" % int(round(float(c.get("income_bonus", 0.25)) * 100)), U.SIZE_SMALL, UiColors.GAIN, true))
 	hv.add_child(top)
 	for line in [
-		"Inflación fuerte: remarcaciones cada %s." % Fmt.duration(float(c.get("inflation", {}).get("period", 360))),
-		"Si debés sueldos más de %s, te hacen juicio laboral." % Fmt.duration(float(c.get("lawsuit_after", 120))),
-		"Cada tanto te roban mercadería.",
-		"Podés pagarle a la seguridad (coima) para que no te roben por %d min." % int(c.get("bribe_minutes", 30)),
+		"Inflación fuerte: remarcaciones cada %s y tus precios quedan atrás." % Fmt.duration(float(c.get("inflation", {}).get("period", 360))),
+		"Juicio laboral si debés sueldos más de %s, y más caro." % Fmt.duration(float(c.get("lawsuit_after", 120))),
+		"Robos el doble de seguidos y más grandes.",
+		"Minijuegos de asalto y coima más difíciles.",
 	]:
 		hv.add_child(U.para("• " + line, U.SIZE_SMALL, U.TEXT_SOFT))
 	body.add_child(hard)

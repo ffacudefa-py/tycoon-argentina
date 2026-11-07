@@ -119,3 +119,65 @@ func test_fire_pays_severance() -> void:
 	check(EmployeeSystem.fire(m, eid)["ok"], "despide")
 	eq(m.economy.money, money0 - sev, "indemnización")
 	check(not m.derive(B0)["auto_sell"], "deja de vender solo")
+
+
+## 15.0: el sueldo sigue a la ganancia del local (no queda chico al crecer).
+func test_sueldo_crece_con_el_negocio() -> void:
+	var m := _ready_model()
+	check(_hire_role(m, B0, "vendedor")["ok"], "vendedor")
+	var d0 := m.derive(B0)
+	var share0: float = d0["salary_sec"] / d0["profit_sec"]
+	m.biz[B0]["level"] = 100
+	m.invalidate()
+	var d1 := m.derive(B0)
+	check(d1["salary_sec"] > d0["salary_sec"] * 20.0, "a nivel 100 cobra mucho más (%.2f -> %.2f)" % [d0["salary_sec"], d1["salary_sec"]])
+	var share1: float = d1["salary_sec"] / d1["profit_sec"]
+	check(share1 > share0 * 0.3, "sigue siendo una parte visible de la ganancia (%.3f -> %.3f)" % [share0, share1])
+	# Un turbo no sube los sueldos.
+	var s_before: float = d1["salary_sec"]
+	m.add_boost(2.0, 60.0)
+	m.invalidate()
+	near(m.derive(B0)["salary_sec"], s_before, s_before * 0.01, "el turbo no cambia el sueldo")
+
+
+## Los contras no se agrandan con la eficiencia; lo bueno sí.
+func test_efectos_negativos_fijos() -> void:
+	var pasante: Dictionary = data().role_by_id["pasante"]
+	eq(EmployeeSystem.effect(pasante, "speed", 1.2), float(pasante["effects"]["speed"]), "contra fijo")
+	var cajero: Dictionary = data().role_by_id["cajero"]
+	near(EmployeeSystem.effect(cajero, "speed", 1.2), float(cajero["effects"]["speed"]) * 1.2, 0.0001, "beneficio con eficiencia")
+
+
+func test_contador_baja_sueldos() -> void:
+	var m := _ready_model()
+	m.biz[B0]["level"] = 100
+	m.invalidate()
+	m.employees["x1"] = {"id": "x1", "name": "A", "role": "vendedor", "eff": 1.0, "salary": 1.0, "business": B0, "xp": 0.0, "variant": 0, "hired_at": 0.0}
+	m.invalidate()
+	var s0: float = m.derive(B0)["salary_sec"]
+	m.employees["x2"] = {"id": "x2", "name": "B", "role": "contador", "eff": 1.0, "salary": 0.0, "business": B0, "xp": 0.0, "variant": 0, "hired_at": 0.0}
+	m.invalidate()
+	# -20 % por el contador y un poco más porque con él se vende menos (-3 %).
+	var s1: float = m.derive(B0)["salary_sec"]
+	check(s1 < s0 * 0.81 and s1 > s0 * 0.7, "el contador baja ~20 %% los sueldos (%.1f -> %.1f)" % [s0, s1])
+
+
+func test_patovica_espanta_robos() -> void:
+	var m := _ready_model()
+	for i in 6:
+		m.employees["p%d" % i] = {"id": "p%d" % i, "name": "P", "role": "patovica", "eff": 1.2, "salary": 0.0, "business": B0, "xp": 0.0, "variant": 0, "hired_at": 0.0}
+	m.invalidate()
+	var blocked := 0
+	for i in 20:
+		m.hard["pending_theft"] = {}
+		if not Security.start_theft(m, B0)["ok"]:
+			blocked += 1
+	check(blocked >= 18, "con varios patovicas casi ningún robo entra (%d/20)" % blocked)
+
+
+func test_pasante_aprende_rapido() -> void:
+	var m := _ready_model()
+	m.employees["a"] = {"id": "a", "name": "A", "role": "pasante", "eff": 1.0, "salary": 0.0, "business": B0, "xp": 0.0, "variant": 0, "hired_at": 0.0}
+	m.employees["b"] = {"id": "b", "name": "B", "role": "vendedor", "eff": 1.0, "salary": 0.0, "business": B0, "xp": 0.0, "variant": 0, "hired_at": 0.0}
+	EmployeeSystem.advance(m, 100.0, true)
+	near(float(m.employees["a"]["xp"]), float(m.employees["b"]["xp"]) * 3.0, 0.01, "el pasante gana experiencia x3")

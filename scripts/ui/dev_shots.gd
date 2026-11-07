@@ -18,6 +18,7 @@ func _ready() -> void:
 
 
 var size := Vector2i.ZERO
+var audit := false
 
 
 func _shot(name: String, wait := 0.35) -> void:
@@ -36,6 +37,94 @@ func _shot(name: String, wait := 0.35) -> void:
 	var img := get_viewport().get_texture().get_image()
 	img.save_png("%s/%s.png" % [out_dir, name])
 	print("captura: ", name, " ", img.get_size())
+	if audit:
+		_audit(name, img)
+
+
+## 15.0: --shots-audit: mide cada texto visible contra el fondo real de la captura
+## (contraste) y avisa si no entra en su caja. El contorno cuenta como fondo.
+func _audit(screen: String, img: Image) -> void:
+	var seen := {}
+	var main := Main.instance
+	var top: Node = get_tree().root            # sólo lo que está arriba: lo tapado no se lee
+	if not main.modal_host._stack.is_empty():
+		top = main.modal_host
+	elif main.start.visible:
+		top = main.start
+	_audit_node(top, screen, img, seen)
+
+
+func _audit_node(n: Node, screen: String, img: Image, seen: Dictionary) -> void:
+	if n is CanvasLayer and not (n as CanvasLayer).visible:
+		return
+	if n is CanvasItem and not (n as CanvasItem).visible:
+		return
+	if (n is Label or n is Button) and (n as Control).is_visible_in_tree():
+		_audit_text(n, screen, img, seen)
+	for c in n.get_children():
+		_audit_node(c, screen, img, seen)
+
+
+func _audit_text(c: Control, screen: String, img: Image, seen: Dictionary) -> void:
+	var text: String = c.text
+	if text.strip_edges() == "":
+		return
+	var col := c.get_theme_color("font_color", "Label" if c is Label else "Button")
+	if c is Button and (c as Button).disabled:
+		col = c.get_theme_color("font_disabled_color", "Button")
+	var outline := c.get_theme_constant("outline_size", "Label" if c is Label else "Button")
+	var scale_k := float(img.get_width()) / get_viewport().get_visible_rect().size.x
+	var r := Rect2(c.get_global_rect().position * scale_k, c.get_global_rect().size * scale_k).intersection(Rect2(Vector2.ZERO, Vector2(img.get_size())))
+	if r.size.x < 2.0 or r.size.y < 2.0:
+		return
+	var counts := {}
+	var step := maxi(1, int(r.size.x * r.size.y / 900.0))
+	var i := 0
+	for y in range(int(r.position.y), int(r.end.y)):
+		for x in range(int(r.position.x), int(r.end.x)):
+			i += 1
+			if i % step:
+				continue
+			var p := img.get_pixel(x, y)
+			if absf(p.r - col.r) + absf(p.g - col.g) + absf(p.b - col.b) < 0.3:
+				continue
+			var key := p.to_html(false)
+			counts[key] = int(counts.get(key, 0)) + 1
+	var best := ""
+	for k in counts:
+		if best == "" or int(counts[k]) > int(counts[best]):
+			best = k
+	if best == "":
+		return
+	var ratio := _contrast(col, Color(best))
+	if outline >= 3:
+		var oc := c.get_theme_color("font_outline_color", "Label" if c is Label else "Button")
+		ratio = maxf(ratio, _contrast(col, oc))
+	var font := c.get_theme_font("font", "Label" if c is Label else "Button")
+	var fs := c.get_theme_font_size("font_size", "Label" if c is Label else "Button")
+	var wrapped: bool = (c is Label and (c as Label).autowrap_mode != TextServer.AUTOWRAP_OFF) or (c is Button and (c as Button).autowrap_mode != TextServer.AUTOWRAP_OFF)
+	var cut := false
+	if not wrapped and not ("
+" in text):
+		var pad := 14.0 if c is Button else 0.0
+		cut = font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x + pad > c.size.x + 1.0
+	if ratio < 4.5 or cut:
+		var key2 := "%s|%s|%s" % [text.left(30), col.to_html(false), best]
+		if not seen.has(key2):
+			seen[key2] = true
+			print("AUDIT	%.2f	%s	%s	%s	%s	%s" % [ratio, "CORTADO" if cut else "-", screen, col.to_html(false), best, text.left(44).replace("
+", " / ")])
+
+
+func _contrast(a: Color, b: Color) -> float:
+	var la := _lum(a)
+	var lb := _lum(b)
+	return (maxf(la, lb) + 0.05) / (minf(la, lb) + 0.05)
+
+
+func _lum(c: Color) -> float:
+	var f := func(v: float) -> float: return v / 12.92 if v <= 0.03928 else pow((v + 0.055) / 1.055, 2.4)
+	return 0.2126 * f.call(c.r) + 0.7152 * f.call(c.g) + 0.0722 * f.call(c.b)
 
 
 func _run() -> void:
@@ -43,6 +132,7 @@ func _run() -> void:
 	B0 = bl[0]["id"]
 	B1 = bl[1]["id"]
 	B2 = bl[2]["id"]
+	audit = "--shots-audit" in OS.get_cmdline_user_args()
 	for a in OS.get_cmdline_user_args():
 		# --shots-scale=2: dibuja a x2 dentro de la misma ventana (como un
 		# teléfono de alta densidad) para revisar la nitidez de la letra.
@@ -57,6 +147,18 @@ func _run() -> void:
 			return
 		if a == "--shots-set=minijuegos":
 			await _run_minigames()
+			return
+		if a == "--shots-set=transito":
+			await _run_traffic()
+			return
+		if a == "--shots-set=postal":
+			await _run_postal()
+			return
+		if a == "--shots-set=video":
+			await _run_video()
+			return
+		if a == "--shots-set=trailer":
+			await DevTrailer.new(self).run()
 			return
 	var main := Main.instance
 	var m := Game.m
@@ -147,6 +249,11 @@ func _run() -> void:
 	await _shot("07_admin_empleados", 0.6)
 	await _drag_check()
 	main.modal_host.close_all()
+	m.biz[B0]["reroll_cd"] = 205.0                 # 15.0: la espera tiene que leerse
+	ManageBusinessModal.open(B0, 1)
+	await _shot("07b_empleados_esperando", 0.4)
+	main.modal_host.close_all()
+	m.biz[B0]["reroll_cd"] = 0.0
 	ManageBusinessModal.open(B0, 2)
 	await _shot("08_admin_mejoras", 0.6)
 	main.modal_host.close_all()
@@ -456,11 +563,7 @@ func _run_scenes() -> void:
 			main.select_business(id)
 			Settings.set_value("scene_view", "fachada")
 			await get_tree().process_frame
-			scene._bus.visible = true
-			scene._bus.position = Vector2(scene.size.x / 2.0 - 140, BusinessScene.ROAD_Y - scene._bus.texture.get_height())
-			scene._bus_t = 999.0
 			await _shot("esc_%s_%d_fachada" % [id, t], 0.1)
-			scene._bus.visible = false
 			Settings.set_value("scene_view", "interior")
 			await _shot("esc_%s_%d_%s" % [id, t, "interior" if BusinessScene.has_interior(id, t) else "sin_interior"], 0.2)
 	get_tree().quit()
@@ -527,18 +630,16 @@ func _bus_check() -> void:
 	Settings.set_value("scene_view", "fachada")
 	Settings.set_value("scene_anim", true)
 	await get_tree().process_frame
-	scene._bus.visible = true
-	scene._bus.position.x = 40.0
+	scene._traffic.clear()
+	scene._traffic.prefill()
+	var veh: StreetVehicle = scene._traffic._cars[0]
+	var x0 := veh.exact_x()
 	for i in 3:
 		m.business_changed.emit(scene.bid)
 		await get_tree().process_frame
-	var x := scene._bus.position.x
-	var ok := scene._bus.visible and x > 40.0 and x < 120.0
-	print("COLECTIVO_SIGUE ", "OK" if ok else "FALLÓ (visible=%s x=%s)" % [scene._bus.visible, x])
-	scene._bus.position = Vector2(150.0, BusinessScene.ROAD_Y - scene._bus.texture.get_height() / scene._bus.vframes)
-	scene._bus_line = 1
-	await _shot("13d_colectivo", 0.05)
-	scene._bus.visible = false
+	var ok := is_instance_valid(veh) and veh.exact_x() != x0
+	print("TRANSITO_SIGUE ", "OK" if ok else "FALLÓ")
+	await _shot("13d_transito", 0.05)
 	Settings.set_value("scene_view", prev_view)
 	Settings.set_value("scene_anim", prev_anim)
 
@@ -862,4 +963,63 @@ func _run_minigames() -> void:
 	main.tutorial._skip()
 	Game.m.set_company_name("Los Pibes del Norte")
 	await _minigame_check(true)
+	get_tree().quit()
+
+
+## 15.0: cuadros seguidos de la calle para revisar el tránsito. Uso: --shots-set=transito
+func _run_traffic() -> void:
+	var main := Main.instance
+	main.start.enter_game()
+	await get_tree().create_timer(0.6).timeout
+	main.modal_host.close_all()
+	Settings.set_value("scene_view", "fachada")
+	Settings.set_value("scene_anim", true)
+	var scene: BusinessScene = main.find_children("*", "BusinessScene", true, false)[0]
+	scene._traffic.clear()
+	scene._traffic._bus_t = 0.2
+	for i in 16:
+		await _shot("tr_%02d" % i, 0.7)
+	get_tree().quit()
+
+
+## 15.0: la postal de inicio: la entrada y cuadros espaciados. Uso: --shots-set=postal
+func _run_postal() -> void:
+	var main := Main.instance
+	main.start.open(true)
+	for i in 6:
+		await _shot("po_in_%d" % i, 0.25)
+	for i in 10:
+		await _shot("po_%02d" % i, 2.2)
+		print("MUSICA t=%d db=%.1f pos=%.2f" % [i, Music._player.volume_db, Music._player.get_playback_position()])
+	Music._notification(NOTIFICATION_APPLICATION_FOCUS_OUT)
+	var pos := Music._player.get_playback_position()
+	await get_tree().create_timer(0.5).timeout
+	print("MUSICA pausada ", Music._player.stream_paused, " quieta ", is_equal_approx(pos, Music._player.get_playback_position()))
+	Music._notification(NOTIFICATION_APPLICATION_FOCUS_IN)
+	await get_tree().create_timer(0.1).timeout
+	print("MUSICA volvio pausada=%s db=%.1f" % [Music._player.stream_paused, Music._player.volume_db])
+	await get_tree().create_timer(1.0).timeout
+	print("MUSICA luego db=%.1f" % Music._player.volume_db)
+	get_tree().quit()
+
+
+## 15.0: cuadros seguidos para armar un video de la postal y de la calle.
+func _run_video() -> void:
+	var main := Main.instance
+	main.start._play_intro()
+	for i in 110:
+		await _shot("v_a%03d" % i, 0.05)
+	main.start.enter_game()
+	await get_tree().create_timer(0.5).timeout
+	if main.tutorial:
+		main.tutorial.visible = false
+	main.modal_host.close_all()
+	Settings.set_value("scene_view", "fachada")
+	Settings.set_value("scene_anim", true)
+	var scene: BusinessScene = main.find_children("*", "BusinessScene", true, false)[0]
+	scene._traffic.clear()
+	scene._traffic.prefill()
+	scene._traffic._bus_t = 0.1
+	for i in 150:
+		await _shot("v_b%03d" % i, 0.05)
 	get_tree().quit()

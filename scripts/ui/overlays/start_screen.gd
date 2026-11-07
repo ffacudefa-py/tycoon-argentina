@@ -2,8 +2,8 @@ class_name StartScreen
 extends CanvasLayer
 ## Pantalla de inicio (punto de entrada).
 ##
-## Fondo pixel art animado (avenida al atardecer, colectivo que pasa), logo y
-## menú según el estado REAL de la cuenta (Auth):
+## Fondo: la postal viva del Noroeste (StartPostcard). Logo y menú según el estado
+## REAL de la cuenta (Auth):
 ##   sin sesión: JUGAR / CONTINUAR (como invitado), INICIAR SESIÓN, CONFIGURACIÓN
 ##   con sesión: tarjeta de perfil, CONTINUAR, CONFIGURACIÓN
 ## Va en la capa 9: los modales (10), avisos (40) y diálogos se ven encima;
@@ -12,19 +12,14 @@ extends CanvasLayer
 
 signal entered
 
-const BG_W := 400
-const BG_H := 720
-const ROAD_Y := 640                     ## línea del asfalto dentro del fondo
-
 var _root: Control
-var _sky: ColorRect
-var _bg: TextureRect
-var _bus: Sprite2D
-var _bus_t := 1.5
-var _bus_line := 0
-var _bus_x := 0.0
+var _postcard: StartPostcard
 var _anim := 0.0
 var _logo_box: Control
+var _logo: TextureRect
+var _card: Control
+var _spark: Sprite2D
+var _spark_t := 3.0
 var _menu: VBoxContainer
 var _status: Label
 var _closing := false
@@ -40,23 +35,8 @@ func _ready() -> void:
 	_root.theme = Main.instance.theme
 	_root.mouse_filter = Control.MOUSE_FILTER_STOP
 	add_child(_root)
-	_sky = ColorRect.new()
-	_sky.color = Color("5a2e1e")
-	_sky.set_anchors_preset(Control.PRESET_FULL_RECT)
-	_root.add_child(_sky)
-	_bg = TextureRect.new()
-	_bg.texture = U.tex("locations/start_bg.png")
-	_bg.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-	_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_root.add_child(_bg)
-	_bus = Sprite2D.new()
-	_bus.texture = U.tex("effects/colectivo_anim.png")
-	_bus.hframes = 2
-	_bus.vframes = BusinessScene.BUS_LINES
-	_bus.centered = false
-	_bus.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-	_bus.visible = false
-	_bg.add_child(_bus)
+	_postcard = StartPostcard.new()
+	_root.add_child(_postcard)
 
 	var col := U.vbox(10)
 	col.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -77,8 +57,18 @@ func _ready() -> void:
 	logo.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	logo.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
 	_logo_box.add_child(logo)
+	_logo = logo
 	col.add_child(_logo_box)
-	col.add_child(U.spacer())
+	var gap := U.spacer()                      # el menú va abajo: la postal queda en el medio
+	gap.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	col.add_child(gap)
+	_spark = Sprite2D.new()                    # destello que recorre el logo cada tanto
+	_spark.texture = U.tex("particles/sparkle.png")
+	_spark.hframes = 4
+	_spark.scale = Vector2.ONE * 2.0
+	_spark.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	_spark.visible = false
+	logo.add_child(_spark)
 	var card := U.panel("Card")
 	var inner := U.vbox(6)
 	card.add_child(inner)
@@ -87,26 +77,46 @@ func _ready() -> void:
 	# La versión va dentro de la tarjeta: sobre el fondo tapaba los edificios.
 	inner.add_child(U.label("v%s" % ProjectSettings.get_setting("application/config/version"), U.SIZE_SMALL, U.TEXT_SOFT, false, HORIZONTAL_ALIGNMENT_RIGHT))
 	col.add_child(card)
+	_card = card
 	_status = U.label("", U.SIZE_SMALL, Color("fff6e6"), false, HORIZONTAL_ALIGNMENT_CENTER)
 	_status.add_theme_constant_override("outline_size", 4)
 	_status.add_theme_color_override("font_outline_color", Color("3d1b0b"))
 	col.add_child(_status)
 
 	_root.resized.connect(_layout)
+	card.resized.connect(_layout)
 	Auth.changed.connect(rebuild)
 	Auth.busy_changed.connect(func(_b: bool) -> void: _update_status())
 	Game.m.profile_changed.connect(rebuild)
 	rebuild()
 	_layout()
 	open(false)
+	_play_intro()
 
 
-## Fondo a escala 1 (píxeles enteros), pegado abajo y centrado; arriba se
-## completa con el color del cielo.
+## La ruta de la postal queda justo arriba del menú: en cualquier alto de pantalla
+## lo que se mueve se ve, y lo que sobra de cielo o de cerro va detrás del logo.
 func _layout() -> void:
-	var sz := _root.size
-	_bg.size = Vector2(BG_W, BG_H)
-	_bg.position = Vector2(floor((sz.x - BG_W) / 2.0), floor(sz.y - BG_H))
+	_postcard.set_road_screen_y(_root.size.y - 18.0 - _status.size.y - 10.0 - _card.size.y - 2.0)
+
+
+## Entrada: amanece la postal, el logo cae con rebote y el menú sube.
+func _play_intro() -> void:
+	_postcard.intro()
+	if Settings.fx_level() == 0 or Settings.get_value("reduce_motion"):
+		return
+	_logo.pivot_offset = Vector2(180, 68)
+	_logo.scale = Vector2(0.6, 0.6)
+	_logo.modulate.a = 0.0
+	_card.modulate.a = 0.0
+	if _postcard.is_settling():
+		await _postcard.intro_started
+	var tw := _logo.create_tween().set_parallel(true)
+	tw.tween_property(_logo, "modulate:a", 1.0, 0.3).set_delay(0.55)
+	tw.tween_property(_logo, "scale", Vector2.ONE, 0.6).set_delay(0.55).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	var tc := _card.create_tween()
+	tc.tween_interval(0.95)
+	tc.tween_property(_card, "modulate:a", 1.0, 0.35)
 
 
 func is_open() -> bool:
@@ -160,12 +170,18 @@ func rebuild() -> void:
 	_menu.add_child(play)
 	if not Auth.signed_in():
 		_menu.add_child(U.para("Jugás como invitado: tu progreso se guarda en este teléfono." if has_progress else "Arrancás con un campo de algodón en Santiago del Estero y vas conquistando la Argentina. El tutorial te guía.", U.SIZE_SMALL, U.TEXT_SOFT))
-		var login := U.button("INICIAR SESIÓN", "celeste", "persona", 40, U.SIZE_BODY)
+	# 15.0: los dos botones en una fila, para dejarle más pantalla a la postal.
+	var row := U.hbox(8)
+	if not Auth.signed_in():
+		var login := U.button("INICIAR SESIÓN", "celeste", "", 40, U.SIZE_SMALL)
+		login.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		U.on_press(login, LoginModal.open)
-		_menu.add_child(login)
-	var cfg := U.button("CONFIGURACIÓN", "crema", "engranaje", 40, U.SIZE_BODY)
+		row.add_child(login)
+	var cfg := U.button("CONFIGURACIÓN", "crema", "", 40, U.SIZE_SMALL)
+	cfg.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	U.on_press(cfg, SettingsModal.open)
-	_menu.add_child(cfg)
+	row.add_child(cfg)
+	_menu.add_child(row)
 	_update_status()
 
 
@@ -223,22 +239,15 @@ func _process(delta: float) -> void:
 	_logo_box.position.y = round(sin(_anim * 1.6) * 2.0)
 	if Auth.busy:
 		_status.text = "Conectando" + ".".repeat(1 + int(_anim * 3.0) % 3)
-	if Settings.fx_level() == 0:
-		_bus.visible = false
+	if Settings.fx_level() == 0 or Settings.get_value("reduce_motion"):
+		_spark.visible = false
 		return
-	if not _bus.visible:
-		_bus_t -= delta
-		if _bus_t <= 0.0:
-			_bus.visible = true
-			_bus.flip_h = randf() < 0.5
-			_bus_line = randi() % BusinessScene.BUS_LINES
-			# El sprite mira a la derecha; con flip_h mira a la izquierda.
-			_bus.position = Vector2(-126 if not _bus.flip_h else BG_W + 4, ROAD_Y - 22)
-			_bus_x = _bus.position.x
-		return
-	_bus_x += (-70.0 if _bus.flip_h else 70.0) * delta   # posición exacta aparte (redondear cada cuadro lo frenaba a muchos fps)
-	_bus.position.x = round(_bus_x)
-	_bus.frame = _bus_line * _bus.hframes + int(_anim * 6.0) % 2
-	if _bus.position.x < -130 or _bus.position.x > BG_W + 10:
-		_bus.visible = false
-		_bus_t = randf_range(3.0, 7.0)
+	_spark_t -= delta
+	if _spark_t <= 0.0:
+		_spark_t = randf_range(2.4, 5.0)
+		_spark.position = Vector2(randf_range(60.0, _logo.size.x - 60.0), randf_range(30.0, _logo.size.y - 30.0))
+		_spark.visible = true
+		_spark.frame = 0
+		var tw := _spark.create_tween()
+		tw.tween_property(_spark, "frame", 3, 0.45)
+		tw.tween_callback(func() -> void: _spark.visible = false)

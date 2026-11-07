@@ -23,7 +23,7 @@ static func open() -> void:
 	Friends.changed.connect(rebuild)
 	body.tree_exiting.connect(func() -> void: Friends.changed.disconnect(rebuild))
 	_build(content)
-	w_ref.append(Main.instance.modal_host.open("Amigos", body))
+	w_ref.append(Main.instance.modal_host.open("Amigos", body).with_help("amigos"))
 	Friends.refresh()
 
 
@@ -110,7 +110,7 @@ static func _build(col: VBoxContainer) -> void:
 		pos += 1
 		var mine: bool = p["uid"] == Auth.uid
 		var r := _person_row(p["avatar"], "%d. %s%s" % [pos, p["company"], " (vos)" if mine else ""],
-			"Etapa %d · %s ganados" % [int(p["stage"]), Fmt.money(int(p["lifetime"]))], mine)
+			"Etapa %d · %s ganados" % [int(p["stage"]), Fmt.money(int(p["lifetime"]))], mine, str(p.get("photo", "")))
 		if not mine:
 			var fid: String = p["uid"]
 			var gift := U.icon_button("yerba", "verde", 28)
@@ -140,13 +140,14 @@ static func _card(col: VBoxContainer, title: String, icon_name: String) -> VBoxC
 	return c
 
 
-static func _person_row(avatar_id: String, title: String, sub: String, highlight := false) -> HBoxContainer:
+static func _person_row(avatar_id: String, title: String, sub: String, highlight := false, photo := "") -> HBoxContainer:
 	var r := U.hbox(6)
 	var av: TextureRect
 	if avatar_id == "mate":
 		av = U.icon32("mate")
 	else:
-		av = U.avatar(avatar_id if Game.data.avatar_by_id.has(avatar_id) else "emprendedor")
+		av = TextureRect.new()
+		ProfileWidgets.apply_other_avatar(av, avatar_id, photo)
 	av.custom_minimum_size = Vector2(28, 28)
 	r.add_child(av)
 	var txt := U.vbox(0)

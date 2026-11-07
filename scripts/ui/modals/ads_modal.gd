@@ -23,7 +23,7 @@ static func open(business := "") -> void:
 	body.tree_exiting.connect(func() -> void:
 		if Monetization.ads_changed.is_connected(rebuild):
 			Monetization.ads_changed.disconnect(rebuild))
-	Main.instance.modal_host.open("Bonos por anuncio", body)
+	Main.instance.modal_host.open("Bonos por anuncio", body).with_help("bonos")
 
 
 static func _current_business() -> String:

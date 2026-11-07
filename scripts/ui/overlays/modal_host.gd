@@ -46,6 +46,7 @@ class ModalWindow extends Control:
 	var _panel: PanelContainer
 	var _scroll: ScrollContainer
 	var _title: Label
+	var _head: HBoxContainer
 	var _width := 340
 	var _closing := false
 
@@ -74,6 +75,7 @@ class ModalWindow extends Control:
 		var col := U.vbox(4)
 		_panel.add_child(col)
 		var head := U.hbox(4)
+		_head = head
 		_title = U.label(title, U.SIZE_TITLE, U.TEXT, true)
 		_title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		_title.clip_text = true
@@ -100,6 +102,18 @@ class ModalWindow extends Control:
 		var tw := create_tween().set_parallel(true)
 		tw.tween_property(_panel, "scale", Vector2.ONE, 0.12).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 		tw.tween_property(self, "modulate:a", 1.0, 0.1)
+
+	## Botón de información (i) junto a la cruz con la guía de esta ventana
+	## (MenuGuide); la primera vez la guía se abre sola.
+	func with_help(key: String) -> ModalWindow:
+		if not MenuGuide.has_guide(key):
+			return self
+		var info := U.icon_button("info", "crema", 24)
+		U.on_press(info, func() -> void: MenuGuide.open(key))
+		_head.add_child(info)
+		_head.move_child(info, 1)
+		(func() -> void: MenuGuide.maybe_show(key, true)).call_deferred()
+		return self
 
 	func set_title(t: String) -> void:
 		_title.text = t

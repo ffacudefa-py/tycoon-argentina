@@ -235,26 +235,25 @@ func _compute(id: String) -> Dictionary:
 	var perk_eff := float(data.perk_by_id["reclutadora"]["effects"]["employee_eff"]) * perk_level("reclutadora")
 	var team_eff_total := 0.0
 	for e in team:
-		team_eff_total += float(data.role_by_id[e["role"]]["effects"].get("team_eff", 0.0)) * float(e["eff"])
+		team_eff_total += EmployeeSystem.effect(data.role_by_id[e["role"]], "team_eff", float(e["eff"]))
 	var auto_sell := false
 	var auto_restock := false
 	var manager := false
 	var speed_emp := 0.0
 	var revenue_emp := 0.0
 	var restock_emp := 0.0
-	var salary := 0.0
+	var salary_cut := 0.0
 	for e in team:
 		var role: Dictionary = data.role_by_id[e["role"]]
-		var own_team := float(role["effects"].get("team_eff", 0.0)) * float(e["eff"])
-		var eff: float = employee_efficiency(e) * (1.0 + mods["employee_eff"] + perk_eff + team_eff_total - own_team) * debt_mult
+		var own_team := EmployeeSystem.effect(role, "team_eff", float(e["eff"]))
+		var eff: float = maxf(0.1, employee_efficiency(e) * (1.0 + mods["employee_eff"] + perk_eff + team_eff_total - own_team) * debt_mult)
 		auto_sell = auto_sell or role.get("auto_sell", false)
 		auto_restock = auto_restock or role.get("auto_restock", false)
 		manager = manager or role.get("manager", false)
-		speed_emp += float(role["effects"].get("speed", 0.0)) * eff
-		revenue_emp += float(role["effects"].get("revenue", 0.0)) * eff
-		restock_emp += float(role["effects"].get("restock_speed", 0.0)) * eff
-		salary += float(e["salary"])
-	salary *= maxf(0.0, 1.0 - mods["salary_reduction"])
+		speed_emp += EmployeeSystem.effect(role, "speed", eff)
+		revenue_emp += EmployeeSystem.effect(role, "revenue", eff)
+		restock_emp += EmployeeSystem.effect(role, "restock_speed", eff)
+		salary_cut += EmployeeSystem.effect(role, "salary_cut", eff)
 
 	# Directores regionales de la misma región (de cualquier negocio)
 	var director_bonus := 0.0
@@ -280,10 +279,10 @@ func _compute(id: String) -> Dictionary:
 	var cost_index := float(inflation["cost_index"]) if inflation_active() else 1.0
 
 	var units: float = float(level) * (1.0 + mods["units"])
-	var speed_mult: float = ms_speed * (1.0 + mods["speed"] + speed_emp)
+	var speed_mult: float = ms_speed * maxf(0.3, 1.0 + mods["speed"] + speed_emp)
 	var base_cycle: float = float(def["cycle"]) / speed_mult
 	var cycle := maxf(float(bal["min_cycle"]), base_cycle / float(ev["speed"]))
-	var price_mult: float = (1.0 + mods["revenue"] + revenue_emp + director_bonus) * zone_mult * float(ev["revenue"]) * income_mult * price_index
+	var price_mult: float = maxf(0.3, 1.0 + mods["revenue"] + revenue_emp + director_bonus) * zone_mult * float(ev["revenue"]) * income_mult * price_index
 	var cost_mult: float = maxf(0.5, 1.0 - mods["cost_reduction"]) * float(ev["cost"]) * cost_index * rate
 	var stock_span: float = maxf(float(bal["stock_cycles"]), float(bal["stock_seconds"]) / maxf(base_cycle, float(bal["min_cycle"]))) * (1.0 + mods["capacity"])
 
@@ -306,6 +305,16 @@ func _compute(id: String) -> Dictionary:
 		cost_cycle += u * item["cost"]
 		products.append(item)
 
+	# Sueldos (15.0): siguen a la ganancia del local, sin turbos, prestigio ni
+	# eventos (que no deberían subir los sueldos). Ver EmployeeSystem.
+	var profit_sec := (revenue_cycle - cost_cycle) / cycle
+	var unboost := maxf(0.01, prestige_multiplier() * boost_multiplier() * float(ev["revenue"]))
+	var basis := (revenue_cycle / unboost - cost_cycle) / cycle
+	var salary := 0.0
+	for e in team:
+		salary += float(e["salary"]) * EmployeeSystem.index_for(self, basis, float(def["scale"]), str(e["role"]))
+	salary *= maxf(0.2, 1.0 - mods["salary_reduction"] - salary_cut)
+
 	var automation := 0
 	if auto_sell:
 		automation = 2 if auto_restock else 1
@@ -319,7 +328,7 @@ func _compute(id: String) -> Dictionary:
 	return {
 		"units": units, "cycle": cycle, "price_mult": price_mult, "cost_mult": cost_mult,
 		"products": products, "revenue_cycle": revenue_cycle, "cost_cycle": cost_cycle,
-		"revenue_sec": revenue_cycle / cycle, "profit_sec": (revenue_cycle - cost_cycle) / cycle,
+		"revenue_sec": revenue_cycle / cycle, "profit_sec": profit_sec, "salary_basis": basis,
 		"restock_time": float(def["restock_time"]) / (1.0 + restock_emp),
 		"auto_sell": auto_sell, "auto_restock": auto_restock, "manager": manager,
 		"automation": automation, "slots": slots, "salary_sec": salary,
@@ -330,9 +339,10 @@ func _compute(id: String) -> Dictionary:
 	}
 
 
-## La inflación sólo existe en el modo bien argentino.
+## Inflación (15.0: en los dos modos). En el bien argentino desde el principio
+## y reforzada; en el normal, suave y recién después del tutorial.
 func inflation_active() -> bool:
-	return HardMode.on(self)
+	return HardMode.on(self) or bool(tutorial.get("done", false))
 
 
 ## Ritmo global de ganancias (balance.income_rate, 0,8 desde la 0.7.0).

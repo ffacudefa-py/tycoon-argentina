@@ -177,7 +177,7 @@ func _buy_best(reserve: int, goal_cost: int) -> bool:
 			for i in cands.size():
 				var c: Dictionary = cands[i]
 				var role: Dictionary = m.data.role_by_id[c["role"]]
-				var g: float = (float(role["effects"].get("speed", 0.0)) + float(role["effects"].get("revenue", 0.0))) * float(c["eff"]) * float(d["profit_sec"]) - float(c["salary"])
+				var g: float = (EmployeeSystem.effect(role, "speed", float(c["eff"])) + EmployeeSystem.effect(role, "revenue", float(c["eff"]))) * float(d["profit_sec"]) - EmployeeSystem.salary_of(m, c, id)
 				if g > 0.0:
 					var score3 := float(c["hire"]) / g
 					if score3 < best_score:
