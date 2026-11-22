@@ -28,7 +28,7 @@ Estado de la 15.1 frente a los requisitos de Google Play (revisado el 22/11/2026
 
 ## Publicar las páginas legales
 
-1. Responsable y contacto ya completados (Facundo Nahuel Defagot · facundo.n.defagot@gmail.com).
+1. Responsable: Sarce (Juan José Defagot), desde el 22/11/2026; contacto facundo.n.defagot@gmail.com.
 2. Con la cuenta dueña del proyecto (`firebase login --reauth`; la cuenta benjann8080 no tiene
    permiso sobre coronadosdegloria): `firebase deploy --only hosting --project coronadosdegloria` (Node 22: `~/.local/opt/node22/bin`).
    Quedan en `https://coronadosdegloria.web.app/privacidad.html` y `/borrar-cuenta.html`
