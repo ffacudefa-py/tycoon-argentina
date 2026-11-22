@@ -1,6 +1,6 @@
 # Publicar en Google Play
 
-Estado de la 0.7.1 frente a los requisitos de Google Play (revisado el 28/10/2026).
+Estado de la 15.1 frente a los requisitos de Google Play (revisado el 22/11/2026).
 ✅ cumplido y verificado · ⏳ falta un paso del dueño de la cuenta · ⚠️ decisión pendiente.
 
 ## Requisitos técnicos
@@ -11,18 +11,18 @@ Estado de la 0.7.1 frente a los requisitos de Google Play (revisado el 28/10/202
 | Páginas de memoria de 16 KB (apps con targetSdk ≥ 35) | ✅ `libgodot_android.so` y `libc++_shared.so` con segmentos LOAD alineados a 0x4000; `zipalign -c -P 16` OK |
 | 64 bits | ✅ arm64-v8a y x86_64 (además de armeabi-v7a) |
 | Formato AAB | ✅ preset **"Android Play Store"** (`gradle_build/export_format=1`, sin la etiqueta `beta`) |
-| Firma de subida propia | ⏳ crear el keystore (ver abajo); Play App Signing guarda la clave de la app |
-| Permisos | ✅ sólo INTERNET, ACCESS_NETWORK_STATE y VIBRATE propios. El SDK de anuncios agrega AD_ID, WAKE_LOCK, FOREGROUND_SERVICE y READ_BASIC_PHONE_STATE (normales, sin diálogo) |
+| Firma de subida propia | ✅ clave `coronados-upload` creada el 22/11/2026, **fuera del repo** (SHA-256 `E9:6C:55:76:…:35:1F:C6`); Play App Signing guarda la clave de la app |
+| Permisos | ✅ AAB de la 15.1: INTERNET, ACCESS_NETWORK_STATE, VIBRATE, POST_NOTIFICATIONS y RECEIVE_BOOT_COMPLETED. Sin AdMob no hay AD_ID. El plugin de notificaciones declara `uses-sdk` desde la 15.1: sin eso el merger agregaba READ_PHONE_STATE y almacenamiento implícitos (están en los APK 15.0 y 15.1 de GitHub) |
 
 ## Requisitos de políticas
 
 | Requisito | Estado |
 |---|---|
 | Borrar la cuenta **desde la app** (apps que permiten crear cuentas) | ✅ Configuración → Cuenta → *Borrar mi cuenta*. Borra en un solo commit partida, perfil, código, amigos (de los dos lados), solicitudes y mates, y después la cuenta de Firebase. Probado de punta a punta en `tools/dev/social_check.gd` |
-| Borrar la cuenta **desde la web** (sin reinstalar) | ⏳ página `web/borrar-cuenta.html` lista: falta publicarla (abajo) |
-| Política de privacidad (URL en la ficha y dentro de la app) | ⏳ `web/privacidad.html` + botón en Configuración → Privacidad: falta publicarla |
+| Borrar la cuenta **desde la web** (sin reinstalar) | ✅ publicada el 22/11/2026: https://coronadosdegloria.web.app/borrar-cuenta.html |
+| Política de privacidad (URL en la ficha y dentro de la app) | ✅ publicada el 22/11/2026: https://coronadosdegloria.web.app/privacidad.html |
 | Consentimiento para anuncios en UE/Reino Unido (CMP certificado por Google) | ✅ UMP integrado; verificado en el emulador: aparece el formulario de Google antes de iniciar AdMob (`admob_ad_provider.gd`): pide consentimiento antes de iniciar AdMob y, si corresponde, muestra *Privacidad de los anuncios* en Configuración. ⏳ crear el mensaje GDPR en AdMob → Privacidad y mensajes |
-| Anuncios reales | ⏳ cuenta AdMob, IDs de producción en `data/ads.json` y `project.godot`, `app-ads.txt` (MONETIZACION.md). Sin IDs, la versión de Play sale **sin anuncios** y el juego lo dice |
+| Anuncios reales | ⚠️ **la versión de Play sale sin anuncios y sin el SDK de AdMob** (`tools/build_play.sh`). Decisión del 22/11/2026: no usar la cuenta de AdMob de benjann para esta app. Con una cuenta propia: IDs de producción en `data/ads.json` y `project.godot`, `app-ads.txt` (MONETIZACION.md) y sacar el `[admob] enabled=false` del script |
 | Público objetivo | ⚠️ ver "Público y clasificación" |
 | Contenido | ✅ sin apuestas con dinero real, sin compras, sin chat ni contenido generado por usuarios (sólo el nombre de la empresa, máx. 40 letras, visible para amigos) |
 
@@ -52,17 +52,17 @@ de lo que escribe ya cumple las reglas nuevas (mismos campos).
 
 ## Keystore de subida y AAB
 
+La clave está en `D:\Users\Family\Tools\keystores\upload\` (PC de la familia), con la
+contraseña en `LEER-clave-de-subida.txt` al lado. **Guardar copia de los dos archivos fuera de la PC**
+y nunca subirlos a GitHub. Si se pierde: Play Console → Integridad de la app → restablecer la clave de subida.
+
 ```bash
-keytool -genkeypair -v -keystore ~/claves/tycoon-upload.jks -alias tycoon-upload \
-  -keyalg RSA -keysize 2048 -validity 10000
-GODOT_ANDROID_KEYSTORE_RELEASE_PATH=~/claves/tycoon-upload.jks \
-GODOT_ANDROID_KEYSTORE_RELEASE_USER=tycoon-upload \
-GODOT_ANDROID_KEYSTORE_RELEASE_PASSWORD='…' \
-godot --headless --path . --export-release "Android Play Store" build/tycoon-argentina-0.7.1.aab
+KEYSTORE=/ruta/coronados-upload.jks KEYSTORE_PASS='…' GODOT=/ruta/godot tools/build_play.sh
 ```
-Guardar el `.jks` y la contraseña fuera del repo y con copia de respaldo. Activar
-Play App Signing al subir el primer AAB (si se pierde la clave de subida, Google
-permite cambiarla).
+Genera `build/CoronadosDeGloria-<versión>.aab` sin AdMob y falla si el AAB trae el SDK o AD_ID.
+Activar Play App Signing al subir el primer AAB. Los testers que tengan el APK de GitHub
+tienen que desinstalarlo antes (otra firma): conviene entrar con la cuenta para que la
+partida quede en la nube.
 
 ## Formulario "Seguridad de los datos" (respuestas)
 
@@ -73,15 +73,16 @@ permite cambiarla).
 - **Actividad en la app → Otro contenido generado por el usuario** (nombre de la empresa en el
   perfil público): recopilado, opcional, *Funcionalidad de la app*.
 - **Actividad en la app → Interacciones en la app / progreso** (partida en la nube): recopilado, opcional, *Funcionalidad de la app*.
-- **IDs de dispositivo u otros → ID de publicidad**: recopilado y **compartido** con Google (AdMob);
+- **Fotos y videos → Fotos** (desde la 15.0): miniatura 64×64 de la foto de perfil, **sólo si el jugador lo activa**
+  (viene apagado); recopilada, opcional, *Funcionalidad de la app*; se borra al desactivarlo o al borrar la cuenta.
+- **IDs de dispositivo u otros → ID de publicidad** (NO aplica mientras Play salga sin AdMob): recopilado y **compartido** con Google (AdMob);
   fines: *Publicidad o marketing*, *Estadísticas*, *Prevención de fraudes*. Sólo si la versión tiene anuncios.
 - **Información y rendimiento de la app → Diagnóstico**: lo recopila el SDK de AdMob (mismo caso).
-- No se recopilan: ubicación, contactos, fotos (la de perfil queda en el teléfono), mensajes, finanzas, salud.
+- No se recopilan: ubicación, contactos, mensajes, finanzas, salud.
 
-Declaraciones aparte en Contenido de la app: **Anuncios: Sí** (si hay IDs de producción;
-si no, *No*), **ID de publicidad: Sí, se usa para publicidad** (lo declara el SDK aunque no
-haya anuncios: responder según la versión), **Acceso a la app**: no requiere credenciales para
-revisar (se juega como invitado).
+Declaraciones aparte en Contenido de la app (AAB 15.1, sin AdMob): **Anuncios: No**,
+**ID de publicidad: No** (el AAB no tiene el permiso AD_ID), **Acceso a la app**: no requiere
+credenciales para revisar (se juega como invitado).
 
 ## Público y clasificación ⚠️
 
@@ -89,11 +90,15 @@ revisar (se juega como invitado).
   incluyen menores de 13, aplica la política de Familias: anuncios sólo de SDKs certificados
   para familias, sin ID de publicidad, y `tag_for_under_age_of_consent`; hoy el juego no está
   preparado para eso.
-- **Cuestionario IARC**: juego de simulación sin violencia ni lenguaje fuerte; *no* hay apuestas
+- **Cuestionario IARC** (actualizado 15.x): desde la 12.0 hay minijuegos con **violencia de fantasía**
+  (en el asalto se dispara a ladrones pixelados, sin sangre) y una **coima a la policía** (referencia a
+  actividad delictiva, en tono de humor). Responder eso con honestidad: el resultado ya no sería
+  PEGI 3 sino probablemente PEGI 7–12. Sin lenguaje fuerte; *no* hay apuestas
   (la animación "estilo casino" del saldo es sólo un contador, no se apuesta nada); interacción
-  entre usuarios limitada (amigos por código, sin chat). Resultado esperado: PEGI 3 / Todos.
-- Ficha: capturas en `build/shots_360x740/` (Play pide al menos 2, 16:9 o 9:16, lado mínimo 320 px),
-  ícono 512×512 y gráfico de 1024×500 (pendientes).
+  entre usuarios limitada (amigos por código, sin chat).
+- Ficha (22/11/2026): ícono 512, gráfico 1024×500, 8 capturas 1080×1920 y textos en
+  `D:\Users\Family\Download\PlayStore_Coronados\`. Capturas: `godot --path . --resolution 540x960 -- --shots=<dir> --shots-scale=1.5`,
+  ampliadas ×2 sin suavizado (Play pide proporción máxima 2:1; la ventana por defecto 405×880 no sirve).
 
 ## Cuentas de prueba para cerrar la prueba
 
