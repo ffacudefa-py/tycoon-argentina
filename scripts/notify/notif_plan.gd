@@ -17,6 +17,8 @@ const ID_EVENTS := [2, 3]
 const EVENTS_PER_DAY := 2
 ## Cuánto después de salir van los avisos de evento (segundos).
 const EVENT_DELAYS := [3.0 * 3600.0, 9.0 * 3600.0]
+## Separación mínima entre dos avisos de evento: sólo uno puede ser verdad a la vez.
+const MIN_EVENT_GAP := 3.0 * 3600.0
 ## Horario permitido (hora local): ni de madrugada ni muy tarde.
 const DAY_START := 10
 const DAY_END := 21
@@ -58,15 +60,18 @@ static func plan(m: GameModel, now: float, tz_minutes: int, state: Dictionary, r
 	var delivered: Dictionary = state.get("delivered", {})
 	var per_day := {}
 	var pool := EventSystem.eligible(m)
+	var last_at := -INF
 	for i in EVENT_DELAYS.size():
 		if pool.is_empty():
 			break
-		var at := into_daytime(now + float(EVENT_DELAYS[i]), tz_minutes)
+		# Dos avisos nocturnos caerían a la misma hora de la mañana: se separan.
+		var at := into_daytime(maxf(into_daytime(now + float(EVENT_DELAYS[i]), tz_minutes), last_at + MIN_EVENT_GAP), tz_minutes)
 		var day := day_key(at, tz_minutes)
 		var used := int(delivered.get(day, 0)) + int(per_day.get(day, 0))
 		if used >= EVENTS_PER_DAY:
 			continue
 		per_day[day] = int(per_day.get(day, 0)) + 1
+		last_at = at
 		var e: Dictionary = pool[rng.randi() % pool.size()]
 		out.append({"id": ID_EVENTS[i], "at": at, "event": e["id"],
 			"title": "%s en tus negocios" % e["name"],

@@ -85,3 +85,17 @@ func test_al_volver_se_dispara_el_evento_anunciado() -> void:
 	eq(NotifPlan.on_return(now, TZ, sched, state), "e1", "el que ya salió")
 	eq(int(state["delivered"][NotifPlan.day_key(now - 60.0, TZ)]), 1, "cuenta para el día")
 	eq(NotifPlan.on_return(now, TZ, [], state), "", "sin avisos no se dispara nada")
+
+
+## Al salir de noche los dos avisos caían a las 10:15: uno de los dos mentía.
+func test_salir_de_noche_separa_los_avisos_de_evento() -> void:
+	var m := _model()
+	for hour in [18, 20, 22, 0]:
+		var now: float = float(Time.get_unix_time_from_datetime_string("2026-11-06T00:00:00")) + (int(hour) + 3) * 3600.0
+		var plan := NotifPlan.plan(m, now, TZ, {}, _rng())
+		var evs: Array = plan.filter(func(n: Dictionary) -> bool: return n.has("event"))
+		eq(evs.size(), 2, "los dos avisos a las %d" % hour)
+		check(float(evs[1]["at"]) - float(evs[0]["at"]) >= NotifPlan.MIN_EVENT_GAP, "separados al salir a las %d" % hour)
+		for n in evs:
+			var h := NotifPlan.local_hour(float(n["at"]), TZ)
+			check(h >= NotifPlan.DAY_START and h < NotifPlan.DAY_END, "en horario permitido (%.2f)" % h)

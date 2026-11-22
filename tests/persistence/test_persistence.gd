@@ -223,3 +223,29 @@ func test_migration_v4_fresh_start_keeps_profile() -> void:
 	eq(m.zones.keys(), [Z0], "sólo la primera provincia")
 	eq(float(m.stats["created"]), 1700000000.0, "conserva la fecha de creación")
 	eq(int(m.social["gifts_claimed"]), 2, "conserva los regalos de amigos del día")
+
+
+## 15.0: los roles altos cobran con la base nueva; los demás no cambian.
+func test_migration_v5_sueldos_a_la_base_nueva() -> void:
+	var p := {
+		"employees": {
+			"e1": {"role": "director", "salary": 25.0},
+			"e2": {"role": "gerente", "salary": 8.0},
+			"e3": {"role": "vendedor", "salary": 5.0},
+		},
+		"businesses": {B0: {"candidates": [{"role": "supervisor", "salary": 3.5}, {"role": "cajero", "salary": 9.0}]}},
+	}
+	var out := Migrations.migrate(p, 4)
+	near(float(out["employees"]["e1"]["salary"]), 5.0, 0.001, "director de 2.5 a 0.5")
+	near(float(out["employees"]["e2"]["salary"]), 3.0, 0.001, "gerente de 0.8 a 0.3")
+	near(float(out["employees"]["e3"]["salary"]), 5.0, 0.001, "vendedor igual")
+	near(float(out["businesses"][B0]["candidates"][0]["salary"]), 1.5, 0.001, "candidato ajustado")
+	near(float(out["businesses"][B0]["candidates"][1]["salary"]), 9.0, 0.001, "cajero igual")
+	for role in Migrations.V5_SALARY_BASES:
+		near(float(Migrations.V5_SALARY_BASES[role][1]), float(data().role_by_id[role]["salary"]), 0.0001, "base nueva de %s" % role)
+
+
+## 15.0: la foto se comparte sólo si el jugador lo elige.
+func test_foto_no_se_comparte_de_fabrica() -> void:
+	eq(SettingsData.DEFAULTS["share_photo_ok"], false, "apagado de fábrica")
+	check(not SettingsData.DEFAULTS.has("share_photo"), "la clave de la beta no se respeta")

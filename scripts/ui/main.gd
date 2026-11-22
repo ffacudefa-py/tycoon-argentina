@@ -309,6 +309,7 @@ func _notification(what: int) -> void:
 			var now := Time.get_ticks_msec()
 			if now - _back_armed < 2000:
 				Game.save()
+				PushNotifications.on_leave()    # quit() no avisa que la app se va
 				Cloud.quit_after_upload()
 			else:
 				_back_armed = now

@@ -181,3 +181,16 @@ func test_pasante_aprende_rapido() -> void:
 	m.employees["b"] = {"id": "b", "name": "B", "role": "vendedor", "eff": 1.0, "salary": 0.0, "business": B0, "xp": 0.0, "variant": 0, "hired_at": 0.0}
 	EmployeeSystem.advance(m, 100.0, true)
 	near(float(m.employees["a"]["xp"]), float(m.employees["b"]["xp"]) * 3.0, 0.01, "el pasante gana experiencia x3")
+
+
+## El costo de contratar sigue el salary_exp del rol, igual que el sueldo.
+func test_contratar_usa_el_exponente_del_rol() -> void:
+	var m := make_model()
+	m.biz[B0]["level"] = 200
+	m.invalidate()
+	var idx := EmployeeSystem.salary_index(m, B0, "sobrino")
+	check(absf(idx - EmployeeSystem.salary_index(m, B0)) > 0.01, "el rol tiene otro exponente")
+	var c := EmployeeSystem._make_candidate(m, B0, "sobrino")
+	var q := (float(c["eff"]) - float(m.data.employees_cfg["efficiency_min"])) / (float(m.data.employees_cfg["efficiency_max"]) - float(m.data.employees_cfg["efficiency_min"]))
+	var want := float(m.data.role_by_id["sobrino"]["hire"]) * float(m.data.business_by_id[B0]["scale"]) * (0.8 + 0.4 * q) * idx
+	near(float(c["hire"]), ceilf(want), maxf(1.0, want * 0.02), "contratación con el índice del rol")

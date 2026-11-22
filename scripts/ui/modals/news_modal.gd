@@ -3,17 +3,17 @@ extends RefCounted
 ## "Novedades": se muestra una vez por versión al entrar al juego (Ajustes guarda
 ## la última vista en news_seen). No aparece en las capturas automáticas.
 
-const VERSION := "12.0"
-const TITLE := "Novedades 12.0"
+const VERSION := "15.1"
+const TITLE := "Novedades 15.1"
 const ITEMS := [
-	["alerta", "¡Asalto!", "Cuando una banda entra a robar, defendé tu negocio: tocá a los ladrones para dispararles y arrastrá las cajas a la bolsa. Lo que no recuperes, se pierde."],
-	["candado", "La coima", "En Administrar negocio podés arreglar con la comisaría: separá los papeles rojos de los blancos a toda velocidad. Si te equivocás, multa; si sale bien, 30 min sin robos."],
-	["mapa", "Conquista a tu ritmo", "La cuota de mercado avanza según cuánto gana tu negocio: cada nivel y cada mejora te acercan a conquistar la provincia, sin esperas con todo comprado."],
-	["tienda", "Juego rediseñado", "Paleta cálida nueva, edificios que cambian en cada nivel, interiores, personajes y paisajes propios de cada región."],
-	["regalo", "Combo, cofres y eventos", "Vendé a mano para llegar al combo x2, ganá cofres jugando y aprovechá la Vendimia, la Zafra o la Fiesta de la Yerba."],
-	["alerta", "Modo bien argentino", "Elegí al empezar: los dos modos tienen todo, pero en este la inflación, los juicios y los robos pegan más fuerte y los minijuegos son más difíciles. A cambio, +25 % de ingresos."],
-	["mapa", "Conquistá la Argentina", "Ganale el mercado al rival de cada provincia hasta el 100 %, región por región: NOA, NEA, Cuyo, Patagonia, Pampeana y Centro."],
-	["reloj", "Si venís de antes de la 10.0", "Con el juego nuevo arrancás de cero desde el NOA. Tu nombre, avatar y amigos siguen intactos."],
+	["estrella", "Sonidos y música propios", "Toques, subir de nivel, mejoras, fanfarrias y el tema de Coronados de Gloria, hechos especialmente para el juego."],
+	["persona", "Empleados nuevos", "Seis roles nuevos (del pasante al contador) y sueldos que siguen a la ganancia del local. Los sueldos de tu partida se ajustaron solos."],
+	["corona", "62 logros", "Seis categorías y cuatro rangos, con insignias nuevas."],
+	["reloj", "Notificaciones", "Caja llena, eventos, versión nueva y solicitudes de amistad. Ahora siguen funcionando aunque reinicies el teléfono."],
+	["candado", "Tu foto es privada", "La foto de perfil ya no se comparte sola: activala en Configuración si querés que la vean tus amigos."],
+	["engranaje", "Partida más segura", "La nube guarda tu progreso cada 5 minutos mientras jugás, y \"Sincronizar ahora\" sube la copia en el momento."],
+	["alerta", "Modo bien argentino", "Ya no bloquea nada: sólo endurece la inflación, los juicios, los robos y los minijuegos."],
+	["mapa", "Pantalla de inicio y tránsito", "Una postal animada del Noroeste, 15 vehículos redibujados y calles propias en cada provincia."],
 ]
 
 

@@ -27,7 +27,7 @@ Todo el arte, los sonidos, los nombres y las empresas son originales y ficticios
 
 - **Una sola rama: `main`.** Tiene toda la historia, de la 0.1.0 a la última,
   en orden y sin ramas paralelas.
-- **Cada versión tiene su etiqueta** (`v0.1.0` … `v15.0-prelanzamiento`) en el
+- **Cada versión tiene su etiqueta** (`v0.1.0` … `v15.1`) en el
   commit desde el que se armó. `git checkout v12.1` deja el código de esa versión.
 - **Los APK** están sólo en el repo público de descargas, uno por release, con
   la misma etiqueta que acá.
@@ -36,6 +36,18 @@ Todo el arte, los sonidos, los nombres y las empresas son originales y ficticios
 
 Lo más nuevo arriba. Cada versión dice sólo lo que **agregó**: lo anterior sigue
 incluido. "Sin APK" = la versión existe en el código pero no se publicó.
+
+### 15.1 — 22 nov 2026 · [APK](https://github.com/ffacudefa-py/tycoon-argentina-descargas/releases/tag/v15.1)
+Correcciones de la revisión de código de la 15.0-prelanzamiento:
+- Foto de perfil privada por defecto (se activa en Configuración); los envíos
+  del perfil van de a uno.
+- La nube sube una copia cada 5 min si hubo cambios; "Sincronizar ahora" sube
+  en el momento.
+- Notificaciones: se reprograman al reiniciar el teléfono, se agendan al salir
+  con "atrás", se atienden al abrir en frío y dos avisos de evento no coinciden.
+- Migración de partidas v5: sueldos de empleados ajustados a las bases nuevas;
+  el costo de contratar usa el exponente del rol.
+- Ventana de novedades actualizada a la 15.
 
 ### 15.0-prelanzamiento — 6 nov 2026 · [APK](https://github.com/ffacudefa-py/tycoon-argentina-descargas/releases/tag/v15.0-prelanzamiento)
 - Sonidos propios hechos en FL Studio (toques, subir de nivel, mejoras,

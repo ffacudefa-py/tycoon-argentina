@@ -18,7 +18,7 @@ const DEFAULTS := {
 	"scene_anim": true,         ## animaciones del escenario (clientes, humo, neón...)
 	"news_seen": "",            ## última versión cuyas novedades se mostraron
 	"reduce_motion": false,     ## accesibilidad: sin sacudidas ni rebotes de la interfaz
-	"share_photo": true,        ## los amigos ven la miniatura de la foto de perfil
+	"share_photo_ok": false,    ## el jugador eligió subir la miniatura de su foto (apagado de fábrica)
 	"notifications": true,      ## avisos para volver (caja llena, eventos, amigos, versiones)
 }
 

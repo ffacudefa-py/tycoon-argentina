@@ -29,6 +29,7 @@ var _uid := ""
 var _sent := {}                ## uid del amigo -> día en que le convidé un mate
 var _busy := false
 var _published := {}
+var _publishing := false           ## hay un PATCH del perfil en curso
 var _photo_key := ""            ## de qué archivo de foto salió _photo_b64
 var _photo_b64 := ""
 var _photo_rejected := false    ## las reglas de Firestore todavía no aceptan "photo"
@@ -41,9 +42,9 @@ func _ready() -> void:
 		if d is Dictionary:
 			project_id = str(d.get("project_id", ""))
 	Auth.changed.connect(_on_auth_changed)
-	# Dejar de compartir la foto la saca del perfil público en el momento.
+	# Compartir la foto es opcional; dejar de hacerlo la saca del perfil en el momento.
 	Settings.changed.connect(func(key: String, _v: Variant) -> void:
-		if key == "share_photo" and enabled() and my_code != "":
+		if key == "share_photo_ok" and enabled() and my_code != "":
 			publish_profile())
 	await get_tree().process_frame
 	_on_auth_changed()
@@ -103,7 +104,7 @@ func me() -> Dictionary:
 
 
 func my_photo() -> String:
-	if _photo_rejected or not Settings.get_value("share_photo") or not ProfileWidgets.has_photo():
+	if _photo_rejected or not Settings.get_value("share_photo_ok") or not ProfileWidgets.has_photo():
 		return ""
 	var path := ProfileImages.path_for("photo")
 	var key := "%s:%d" % [path, FileAccess.get_modified_time(path)]
@@ -203,7 +204,18 @@ func _ensure_profile() -> Dictionary:
 	return await publish_profile(true)
 
 
+## De a una por vez: cada PATCH reemplaza el documento entero, así que si se
+## cruzaran podría ganar uno viejo (por ejemplo, con la foto recién desactivada).
 func publish_profile(force := false) -> Dictionary:
+	while _publishing:
+		await get_tree().process_frame
+	_publishing = true
+	var r := await _publish_now(force)
+	_publishing = false
+	return r
+
+
+func _publish_now(force: bool) -> Dictionary:
 	var p := me()
 	if not force and p == _published:
 		return {"ok": true, "msg": ""}

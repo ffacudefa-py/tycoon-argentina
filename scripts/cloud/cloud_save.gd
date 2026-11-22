@@ -6,11 +6,12 @@ extends Node
 ## - Al iniciar sesión (o al abrir el juego con sesión) compara la partida del
 ##   teléfono con la de la nube y decide con CloudSync.decide(): sube, baja
 ##   o le pregunta al jugador cuál conservar.
-## - Durante el juego no escribe nada: sube una copia SÓLO al salir (la app pasa
-##   a segundo plano, se cierra o se sale con "atrás"), si hubo cambios. Así se
-##   evitan lecturas y escrituras de más. Cada subida lleva como condición el
-##   updateTime de la nube que vimos: si otro teléfono subió algo mientras
-##   tanto, el servidor la rechaza y se vuelve a comparar (no se pisa).
+## - Sube una copia al salir (la app pasa a segundo plano, se cierra o se sale
+##   con "atrás") y, como Android puede matar la app antes de que termine, una
+##   cada UPLOAD_EVERY segundos si hubo cambios. "Sincronizar ahora" sube en el
+##   momento. Cada subida lleva como condición el updateTime de la nube que
+##   vimos: si otro teléfono subió algo mientras tanto, el servidor la rechaza
+##   y se vuelve a comparar (no se pisa).
 ## - La partida del teléfono es de la última cuenta que entró. Si entra otra,
 ##   esa partida se aparta (CloudSync.stash_path) y se usa la de la cuenta nueva.
 ## - Sin internet no pasa nada: queda pendiente y se reintenta más tarde.
@@ -24,6 +25,9 @@ signal conflict(local: Dictionary, cloud: Dictionary)
 const STATE_PATH := "user://cloud.cfg"
 ## Si falló la primera consulta a la nube (sin internet), cada cuánto se reintenta.
 const RETRY_EVERY := 120.0
+## Cada cuánto se sube una copia mientras se juega, si hubo cambios: es lo máximo
+## que se pierde en la nube si el teléfono mata la app antes de la subida de salida.
+const UPLOAD_EVERY := 300.0
 ## Al salir con "atrás", cuánto se espera a que termine la subida antes de cerrar.
 const QUIT_WAIT := 4.0
 const TIMEOUT := 20.0
@@ -100,10 +104,12 @@ func _dev_mode() -> bool:
 func _process(delta: float) -> void:
 	if not enabled() or _inflight or status == "conflict":
 		return
-	# Sólo se reintenta la consulta inicial; las subidas esperan a la salida.
 	_timer += delta
 	if status == "error" and not _cloud_seen and _timer >= RETRY_EVERY:
 		sync_now()
+	elif _timer >= UPLOAD_EVERY and _can_upload():
+		_timer = 0.0
+		upload()
 
 
 func _notification(what: int) -> void:
@@ -111,13 +117,13 @@ func _notification(what: int) -> void:
 		upload_on_exit()
 
 
-func _can_upload_on_exit() -> bool:
+func _can_upload() -> bool:
 	return enabled() and _dirty and not _inflight and status != "conflict" and _cloud_seen
 
 
 ## El jugador sale del juego: sube la partida si cambió.
 func upload_on_exit(done := Callable()) -> void:
-	if _can_upload_on_exit():
+	if _can_upload():
 		upload(done)
 	elif done.is_valid():
 		done.call(true)
@@ -188,17 +194,23 @@ func _on_auth_changed() -> void:
 		_set_status("off")
 
 
-## Compara con la nube y decide (al conectarse).
-func sync_now() -> void:
+## Compara con la nube y decide (al conectarse). Con `push` (lo pidió el jugador,
+## o una subida rebotó) sube en el momento si la comparación dice que hay que subir.
+func sync_now(push := false, done := Callable()) -> void:
 	if not enabled() or _inflight:
+		if done.is_valid():
+			done.call(false)
 		return
 	_set_status("syncing")
-	_request(HTTPClient.METHOD_GET, "", _on_fetched)
+	_request(HTTPClient.METHOD_GET, "", func(ok: bool, code: int, doc: Dictionary) -> void:
+		_on_fetched(ok, code, doc, push, done))
 
 
-func _on_fetched(ok: bool, code: int, doc: Dictionary) -> void:
+func _on_fetched(ok: bool, code: int, doc: Dictionary, push := false, done := Callable()) -> void:
 	if not ok and code != 404:
 		_fail(code, doc)
+		if done.is_valid():
+			done.call(false)
 		return
 	var cloud := CloudSync.summary_from_doc(doc) if ok else {}
 	_cloud_update_time = str(doc.get("updateTime", "")) if ok else ""
@@ -206,16 +218,21 @@ func _on_fetched(ok: bool, code: int, doc: Dictionary) -> void:
 	var local := CloudSync.summary_of(Game.m, Game.m.now())
 	match CloudSync.decide(local, cloud, _synced_saved_at):
 		"upload":
-			# No se sube ahora: queda para cuando el jugador salga del juego.
 			_dirty = true
 			last_error = ""
 			_set_status("ok")
+			# Al entrar no se sube (queda para después), salvo que la nube esté vacía.
+			if push or cloud.is_empty():
+				upload(done)
+				return
 		"download":
 			_apply(doc, false)
 		"ask":
 			_conflict_doc = doc
 			_set_status("conflict")
 			conflict.emit(local, cloud)
+	if done.is_valid():
+		done.call(false)
 
 
 ## Sube la partida actual (reemplaza la de la nube).
@@ -240,7 +257,8 @@ func upload(done := Callable()) -> void:
 		elif CloudSync.is_stale_write(code, resp):
 			# Otro teléfono subió su partida: se compara de nuevo (y se pregunta).
 			_cloud_seen = false
-			sync_now.call_deferred()
+			sync_now.call_deferred(true, done)
+			return
 		else:
 			_fail(code, resp)
 		if done.is_valid():
@@ -342,6 +360,9 @@ func _request(method: int, body: String, cb: Callable, url := "") -> void:
 			return
 		var http := HTTPRequest.new()
 		http.timeout = TIMEOUT
+		# En su propio hilo: en segundo plano Android deja de correr el juego y
+		# la subida de salida no terminaría.
+		http.use_threads = true
 		add_child(http)
 		http.request_completed.connect(func(result: int, code: int, _h: PackedStringArray, raw: PackedByteArray) -> void:
 			http.queue_free()

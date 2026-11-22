@@ -84,4 +84,6 @@ addons/coronados_notif/android/build_aar.sh   # javac contra android.jar + godot
   releases públicas de `tycoon-argentina-descargas` y solicitudes de amistad nuevas
   (`players/<uid>/requests`, con la sesión del juego guardada en las preferencias
   privadas de la app). Configuración → "Notificaciones" lo apaga todo.
+- Android borra las alarmas al reiniciar: lo agendado queda en las preferencias de la
+  app y `NotifReceiver` lo vuelve a armar con `BOOT_COMPLETED` (lo vencido sale al minuto).
 - El permiso de Android 13+ se pide una vez, al entrar al juego después del tutorial.

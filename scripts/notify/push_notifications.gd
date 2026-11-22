@@ -25,6 +25,10 @@ func _ready() -> void:
 		if key == "notifications" and not Settings.get_value("notifications"):
 			_cancel_all()
 			_configure_check(false))
+	# Arranque en frío (Android mató la app o se salió con "atrás"): no llega
+	# RESUMED, pero hay que atender lo mismo lo que quedó agendado.
+	await get_tree().process_frame
+	_on_return()
 
 
 func available() -> bool:
@@ -43,12 +47,12 @@ func ask_permission() -> void:
 func _notification(what: int) -> void:
 	match what:
 		NOTIFICATION_APPLICATION_PAUSED, NOTIFICATION_WM_CLOSE_REQUEST:
-			_on_leave()
+			on_leave()
 		NOTIFICATION_APPLICATION_RESUMED:
 			_on_return()
 
 
-func _on_leave() -> void:
+func on_leave() -> void:
 	if not available() or _away:
 		return
 	_away = true

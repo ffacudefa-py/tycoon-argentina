@@ -12,6 +12,10 @@ import android.os.Build;
 import org.godotengine.godot.Godot;
 import org.godotengine.godot.plugin.GodotPlugin;
 import org.godotengine.godot.plugin.UsedByGodot;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.Iterator;
 
 /**
  * Notificaciones locales de Coronados de Gloria (15.0). Sin librerías externas:
@@ -23,10 +27,15 @@ import org.godotengine.godot.plugin.UsedByGodot;
  *   configureCheck(json)                    chequeo cada ~6 h en segundo plano:
  *                                           versión nueva y solicitudes de amistad
  *   enabled()                               el sistema permite notificaciones
+ *
+ * Android borra las alarmas al reiniciar el teléfono: lo agendado queda guardado
+ * en SharedPreferences y NotifReceiver lo vuelve a armar (restore) al encenderse.
  */
 public class CoronadosNotif extends GodotPlugin {
     static final String PREFS = "coronados_notif";
     static final int CHECK_REQUEST = 900;
+    /** Tras reiniciar, lo que venció con el teléfono apagado sale a este margen. */
+    static final long BOOT_DELAY_MS = 60 * 1000L;
 
     public CoronadosNotif(Godot godot) {
         super(godot);
@@ -57,10 +66,45 @@ public class CoronadosNotif extends GodotPlugin {
         return PendingIntent.getBroadcast(c, CHECK_REQUEST, i, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
     }
 
-    @UsedByGodot
-    public void schedule(int id, String title, String text, long atMillis) {
-        Context c = ctx();
-        if (c == null) return;
+    private static JSONObject pending(SharedPreferences sp) {
+        try {
+            return new JSONObject(sp.getString("pending", "{}"));
+        } catch (JSONException e) {
+            return new JSONObject();
+        }
+    }
+
+    private static void remember(Context c, int id, String title, String text, long atMillis) {
+        SharedPreferences sp = c.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+        JSONObject p = pending(sp);
+        try {
+            p.put(String.valueOf(id), new JSONObject().put("title", title).put("text", text).put("at", atMillis));
+            sp.edit().putString("pending", p.toString()).apply();
+        } catch (JSONException ignored) {
+            // no se recupera tras reiniciar, pero la alarma se arma igual
+        }
+    }
+
+    static void forget(Context c, int id) {
+        SharedPreferences sp = c.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+        JSONObject p = pending(sp);
+        if (p.remove(String.valueOf(id)) != null) sp.edit().putString("pending", p.toString()).apply();
+    }
+
+    /** Al encender el teléfono: vuelve a armar las notificaciones y el chequeo. */
+    static void restore(Context c) {
+        SharedPreferences sp = c.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+        armCheck(c, sp.getString("config", ""));
+        JSONObject p = pending(sp);
+        long soon = System.currentTimeMillis() + BOOT_DELAY_MS;
+        for (Iterator<String> it = p.keys(); it.hasNext(); ) {
+            String key = it.next();
+            JSONObject n = p.optJSONObject(key);
+            if (n != null) arm(c, Integer.parseInt(key), n.optString("title"), n.optString("text"), Math.max(n.optLong("at"), soon));
+        }
+    }
+
+    private static void arm(Context c, int id, String title, String text, long atMillis) {
         AlarmManager am = (AlarmManager) c.getSystemService(Context.ALARM_SERVICE);
         if (am == null) return;
         PendingIntent pi = showIntent(c, id, title, text);
@@ -73,9 +117,18 @@ public class CoronadosNotif extends GodotPlugin {
     }
 
     @UsedByGodot
+    public void schedule(int id, String title, String text, long atMillis) {
+        Context c = ctx();
+        if (c == null) return;
+        remember(c, id, title, text, atMillis);
+        arm(c, id, title, text, atMillis);
+    }
+
+    @UsedByGodot
     public void cancel(int id) {
         Context c = ctx();
         if (c == null) return;
+        forget(c, id);
         AlarmManager am = (AlarmManager) c.getSystemService(Context.ALARM_SERVICE);
         if (am != null) am.cancel(showIntent(c, id, "", ""));
         NotificationManager nm = (NotificationManager) c.getSystemService(Context.NOTIFICATION_SERVICE);
@@ -98,6 +151,10 @@ public class CoronadosNotif extends GodotPlugin {
         SharedPreferences.Editor ed = c.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit();
         ed.putString("config", json);
         ed.apply();
+        armCheck(c, json);
+    }
+
+    private static void armCheck(Context c, String json) {
         AlarmManager am = (AlarmManager) c.getSystemService(Context.ALARM_SERVICE);
         if (am == null) return;
         PendingIntent pi = checkIntent(c);

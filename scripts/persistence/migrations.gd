@@ -8,7 +8,7 @@ extends RefCounted
 ## Los campos que falten después se completan con valores por defecto en
 ## GameModel.from_dict(), así que agregar campos nuevos no requiere migración.
 
-const CURRENT_VERSION := 4
+const CURRENT_VERSION := 5
 
 
 static func migrate(payload: Dictionary, from_version: int) -> Dictionary:
@@ -22,6 +22,8 @@ static func migrate(payload: Dictionary, from_version: int) -> Dictionary:
 				p = _v2_to_v3(p)
 			3:
 				p = _v3_to_v4(p)
+			4:
+				p = _v4_to_v5(p)
 			_:
 				pass
 		v += 1
@@ -81,3 +83,35 @@ static func _v3_to_v4(p: Dictionary) -> Dictionary:
 	if not out.get("time") is Dictionary:
 		out["time"] = {}
 	return out
+
+
+## v4 -> v5 (15.0): los sueldos crecen con el negocio (EmployeeSystem) y por eso
+## bajaron las bases de los roles altos. El sueldo guardado se calculó con la
+## base vieja: se ajusta para que cobre lo mismo que uno contratado hoy.
+const V5_SALARY_BASES := {
+	"encargado": [0.22, 0.15],
+	"supervisor": [0.35, 0.15],
+	"gerente": [0.8, 0.3],
+	"director": [2.5, 0.5],
+}
+
+static func _v5_salary(person: Dictionary) -> void:
+	var bases = V5_SALARY_BASES.get(person.get("role", ""))
+	if bases != null and person.has("salary"):
+		person["salary"] = snappedf(float(person["salary"]) * float(bases[1]) / float(bases[0]), 0.01)
+
+
+static func _v4_to_v5(p: Dictionary) -> Dictionary:
+	var emps = p.get("employees")
+	if emps is Dictionary:
+		for e in emps.values():
+			if e is Dictionary:
+				_v5_salary(e)
+	var bdict = p.get("businesses")
+	if bdict is Dictionary:
+		for s in bdict.values():
+			if s is Dictionary and s.get("candidates") is Array:
+				for c in s["candidates"]:
+					if c is Dictionary:
+						_v5_salary(c)
+	return p

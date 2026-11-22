@@ -63,7 +63,7 @@
   empieza (menos de $500 ganados y sin prestigio), se baja la de la nube; si las dos
   tienen progreso distinto, `CloudConflictModal` pregunta cuál conservar (no se cierra
   sin elegir).
-- **Después**: copia cada 90 s si hubo cambios y al pasar a segundo plano. Sin
+- **Después**: copia cada 5 min si hubo cambios y al pasar a segundo plano. Sin
   internet queda pendiente y reintenta cada 2 min. La partida se guarda siempre primero
   en el teléfono.
 - Estado en Configuración → Cuenta ("Guardado en la nube hace 3 min", "Sincronizar

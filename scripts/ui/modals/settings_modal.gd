@@ -88,11 +88,11 @@ static func open() -> void:
 			body.add_child(ver)
 		else:
 			body.add_child(U.stat_row("Email", "Verificado", U.GREEN))
-			body.add_child(_toggle("Mostrar mi foto de perfil a mis amigos", "share_photo", "persona"))
+			body.add_child(_toggle("Mostrar mi foto de perfil a mis amigos", "share_photo_ok", "persona"))
 		var cloud_l := U.para(Cloud.status_text(), U.SIZE_SMALL, U.RED if Cloud.status == "error" else U.TEXT_SOFT)
 		body.add_child(cloud_l)
 		var sync := U.button("Sincronizar ahora", "verde", "check", 32, U.SIZE_SMALL)
-		U.on_press(sync, func() -> void: Cloud.sync_now())
+		U.on_press(sync, func() -> void: Cloud.sync_now(true))
 		body.add_child(sync)
 		var on_status := func() -> void:
 			if is_instance_valid(cloud_l):

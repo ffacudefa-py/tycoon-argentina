@@ -34,7 +34,10 @@ public class NotifReceiver extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         final Context c = context.getApplicationContext();
         String action = intent.getAction();
-        if (ACTION_SHOW.equals(action)) {
+        if (Intent.ACTION_BOOT_COMPLETED.equals(action)) {
+            CoronadosNotif.restore(c);
+        } else if (ACTION_SHOW.equals(action)) {
+            CoronadosNotif.forget(c, intent.getIntExtra("id", 1));
             show(c, intent.getIntExtra("id", 1), intent.getStringExtra("title"), intent.getStringExtra("text"));
         } else if (ACTION_CHECK.equals(action)) {
             final PendingResult pr = goAsync();
