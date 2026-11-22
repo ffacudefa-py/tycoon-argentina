@@ -4,7 +4,7 @@
  "environments": {
   "development": {"enabled": false, "app_id": "", "rewarded_unit": ""},
   "test": {"enabled": true, "app_id": "ca-app-pub-3940256099942544~3347511713", "rewarded_unit": "ca-app-pub-3940256099942544/5224354917"},
-  "production": {"enabled": true, "app_id": "", "rewarded_unit": ""}
+  "production": {"enabled": true, "app_id": "ca-app-pub-5630983612724561~7665288783", "rewarded_unit": "ca-app-pub-5630983612724561/6251426926"}
  },
  "official_test_ids": ["ca-app-pub-3940256099942544~3347511713", "ca-app-pub-3940256099942544/5224354917"],
  "daily_limit": 12,

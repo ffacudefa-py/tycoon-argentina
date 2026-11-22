@@ -29,8 +29,10 @@ func test_config_entornos() -> void:
 	check(t.enabled, "test habilitado con IDs oficiales de prueba")
 	eq(t.rewarded_unit, "ca-app-pub-3940256099942544/5224354917")
 	var p := AdConfig.load_default("production")
-	check(not p.enabled, "producción sin IDs reales queda desactivada")
-	check(p.disabled_reason != "", "con motivo claro")
+	check(p.enabled, "producción con los IDs reales de la cuenta de AdMob")
+	check(not p.app_id.begins_with("ca-app-pub-3940256099942544"), "producción no usa IDs de prueba")
+	eq(p.app_id.get_slice("~", 0), p.rewarded_unit.get_slice("/", 0), "app y unidad de la misma cuenta")
+	eq(ProjectSettings.get_setting("admob/general/android/app_id", ""), p.app_id, "el manifest lleva el mismo App ID")
 	var d := AdConfig.load_default("development")
 	check(not d.enabled, "desarrollo sin anuncios")
 

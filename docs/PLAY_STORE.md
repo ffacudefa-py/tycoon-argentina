@@ -22,7 +22,7 @@ Estado de la 15.1 frente a los requisitos de Google Play (revisado el 22/11/2026
 | Borrar la cuenta **desde la web** (sin reinstalar) | ✅ publicada el 22/11/2026: https://coronadosdegloria.web.app/borrar-cuenta.html |
 | Política de privacidad (URL en la ficha y dentro de la app) | ✅ publicada el 22/11/2026: https://coronadosdegloria.web.app/privacidad.html |
 | Consentimiento para anuncios en UE/Reino Unido (CMP certificado por Google) | ✅ UMP integrado; verificado en el emulador: aparece el formulario de Google antes de iniciar AdMob (`admob_ad_provider.gd`): pide consentimiento antes de iniciar AdMob y, si corresponde, muestra *Privacidad de los anuncios* en Configuración. ⏳ crear el mensaje GDPR en AdMob → Privacidad y mensajes |
-| Anuncios reales | ⚠️ **la versión de Play sale sin anuncios y sin el SDK de AdMob** (`tools/build_play.sh`). Decisión del 22/11/2026: no usar la cuenta de AdMob de benjann para esta app. Con una cuenta propia: IDs de producción en `data/ads.json` y `project.godot`, `app-ads.txt` (MONETIZACION.md) y sacar el `[admob] enabled=false` del script |
+| Anuncios reales | ✅ cuenta de AdMob de **Juan José Defagot** (pub-5630983612724561), creada el 22/11/2026 como app "no publicada en tienda": App ID en `data/ads.json` y `project.godot` (`[admob] general/android/app_id`), unidad Recompensado en `data/ads.json`, `web/app-ads.txt` publicado. **Nunca usar la cuenta de AdMob de benjann.** ⏳ vincular la app con Play en AdMob cuando esté publicada, y poner `https://coronadosdegloria.web.app` como sitio web del desarrollador en la ficha (app-ads.txt) |
 | Público objetivo | ⚠️ ver "Público y clasificación" |
 | Contenido | ✅ sin apuestas con dinero real, sin compras, sin chat ni contenido generado por usuarios (sólo el nombre de la empresa, máx. 40 letras, visible para amigos) |
 
@@ -59,7 +59,8 @@ y nunca subirlos a GitHub. Si se pierde: Play Console → Integridad de la app �
 ```bash
 KEYSTORE=/ruta/coronados-upload.jks KEYSTORE_PASS='…' GODOT=/ruta/godot tools/build_play.sh
 ```
-Genera `build/CoronadosDeGloria-<versión>.aab` sin AdMob y falla si el AAB trae el SDK o AD_ID.
+Genera `build/CoronadosDeGloria-<versión>.aab` con AdMob y falla si el manifest no lleva el App ID
+de producción o lleva uno de prueba. `SIN_ANUNCIOS=1` arma la versión sin el SDK (sin AD_ID).
 Activar Play App Signing al subir el primer AAB. Los testers que tengan el APK de GitHub
 tienen que desinstalarlo antes (otra firma): conviene entrar con la cuenta para que la
 partida quede en la nube.
@@ -75,14 +76,15 @@ partida quede en la nube.
 - **Actividad en la app → Interacciones en la app / progreso** (partida en la nube): recopilado, opcional, *Funcionalidad de la app*.
 - **Fotos y videos → Fotos** (desde la 15.0): miniatura 64×64 de la foto de perfil, **sólo si el jugador lo activa**
   (viene apagado); recopilada, opcional, *Funcionalidad de la app*; se borra al desactivarlo o al borrar la cuenta.
-- **IDs de dispositivo u otros → ID de publicidad** (NO aplica mientras Play salga sin AdMob): recopilado y **compartido** con Google (AdMob);
-  fines: *Publicidad o marketing*, *Estadísticas*, *Prevención de fraudes*. Sólo si la versión tiene anuncios.
+- **IDs de dispositivo u otros → ID de publicidad**: recopilado y **compartido** con Google (AdMob);
+  fines: *Publicidad o marketing*, *Estadísticas*, *Prevención de fraudes*.
 - **Información y rendimiento de la app → Diagnóstico**: lo recopila el SDK de AdMob (mismo caso).
 - No se recopilan: ubicación, contactos, mensajes, finanzas, salud.
 
-Declaraciones aparte en Contenido de la app (AAB 15.1, sin AdMob): **Anuncios: No**,
-**ID de publicidad: No** (el AAB no tiene el permiso AD_ID), **Acceso a la app**: no requiere
-credenciales para revisar (se juega como invitado).
+Declaraciones aparte en Contenido de la app (AAB 15.1 con AdMob): **Anuncios: Sí**,
+**ID de publicidad: Sí** → fines *Publicidad o marketing* y *Estadísticas* (el AAB tiene AD_ID),
+**Acceso a la app**: no requiere credenciales para revisar (se juega como invitado).
+Si algún día se arma con `SIN_ANUNCIOS=1`, las dos respuestas pasan a **No**.
 
 ## Público y clasificación ⚠️
 

@@ -8,6 +8,10 @@
 
 config_version=5
 
+[admob]
+
+general/android/app_id="ca-app-pub-5630983612724561~7665288783"
+
 [application]
 
 config/name="Coronados de Gloria"
