@@ -83,6 +83,11 @@ static func open(mode := "login") -> void:
 		body.add_child(forgot)
 	else:
 		body.add_child(U.para("Te vamos a mandar un correo para confirmar que el email es tuyo. Con la cuenta verificada tu partida se guarda en la nube y podés agregar amigos.", U.SIZE_SMALL, U.TEXT_SOFT))
+		# 15.2: Play exige aceptar las reglas antes de crear contenido visible para otros.
+		body.add_child(U.para("Al crear la cuenta aceptás las Condiciones del servicio y las reglas de convivencia: nada de insultos, acoso ni fotos o nombres inapropiados.", U.SIZE_SMALL, U.TEXT))
+		var terms := U.button("Leer las condiciones", "crema", "info", 28, U.SIZE_SMALL)
+		U.on_press(terms, func() -> void: OS.shell_open(str(SettingsModal._legal().get("terms_url", ""))))
+		body.add_child(terms)
 	var back := U.button("Volver", "crema", "izquierda", 32, U.SIZE_SMALL)
 	U.on_press(back, func() -> void: w_ref[0].close())
 	body.add_child(back)

@@ -134,6 +134,10 @@ static func open() -> void:
 	var pol := U.button("Política de privacidad", "crema", "info", 28, U.SIZE_SMALL)
 	U.on_press(pol, func() -> void: OS.shell_open(str(legal.get("privacy_url", ""))))
 	body.add_child(pol)
+	# 15.2: condiciones y reglas de convivencia (política de contenido de usuarios de Play).
+	var terms := U.button("Condiciones y reglas de convivencia", "crema", "info", 28, U.SIZE_SMALL)
+	U.on_press(terms, func() -> void: OS.shell_open(str(legal.get("terms_url", ""))))
+	body.add_child(terms)
 	if not Auth.signed_in():
 		body.add_child(U.para("¿Tuviste una cuenta y querés borrarla? Iniciá sesión y usá «Borrar mi cuenta», o pedilo en:", U.SIZE_SMALL, U.TEXT_SOFT))
 		var web_del := U.button("Borrar una cuenta desde la web", "crema", "izquierda", 28, U.SIZE_SMALL)
