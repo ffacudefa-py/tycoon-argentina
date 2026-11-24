@@ -63,16 +63,95 @@ service cloud.firestore {
       allow delete: if verified() && resource.data.uid == request.auth.uid;
     }
 
-    // Perfil público (empresa, avatar, etapa, ganado y, desde la 15.0, la
-    // miniatura JPEG de la foto en base64 si el jugador la comparte). Se lee de
-    // a uno, no se lista.
+    // ¿{other} está en mi lista de amigos o me mandó una solicitud?
+    function knowsMe(other) {
+      return verified() && (
+        exists(/databases/$(database)/documents/players/$(request.auth.uid)/friends/$(other))
+        || exists(/databases/$(database)/documents/players/$(request.auth.uid)/requests/$(other)));
+    }
+    // ¿El dueño {uid} bloqueó a quien hace la petición?
+    function blockedBy(uid) {
+      return exists(/databases/$(database)/documents/players/$(uid)/blocked/$(request.auth.uid));
+    }
+    // 15.2: la foto sólo puede ser una imagen JPEG o PNG en base64 (por la
+    // firma: "/9j/" es FF D8 FF de JPEG, "iVBORw0KGgo" es la cabecera de PNG).
+    function photoB64(v) {
+      return v is string && v.size() <= 24000
+        && v.matches('^(/9j/|iVBORw0KGgo)[A-Za-z0-9+/]*={0,2}$');
+    }
+    // 15.2: tope de solicitudes de amistad por día y por cuenta (contra el spam).
+    // Cada solicitud tiene que sumar 1 a limits/{uid} en la misma escritura.
+    function today() {
+      return math.floor(request.time.toMillis() / 86400000);
+    }
+    function nextCount(uid) {
+      let path = /databases/$(database)/documents/limits/$(uid);
+      return exists(path) && get(path).data.day == today() ? get(path).data.count + 1 : 1;
+    }
+    function countedRequest(uid) {
+      let after = getAfter(/databases/$(database)/documents/limits/$(uid)).data;
+      return after.day == today() && after.count == nextCount(uid);
+    }
+    // ⚠️ INTERRUPTOR: true mientras haya jugadores con la 15.1 (manda las
+    // solicitudes sin el contador). Pasarlo a false el día que sale la 15.2
+    // (docs/PLAY_STORE.md). Con true, el tope lo respeta sólo el juego 15.2.
+    function compat151() {
+      return true;
+    }
+
+    // 15.2: administración de la prueba cerrada (planilla web/pioneros-admin.html).
+    // Sólo cuentas con estos emails VERIFICADOS (Firebase los verifica; no se
+    // puede "hacer admin" registrándose con otro email).
+    function isAdmin() {
+      return verified() && request.auth.token.email in ["facundo.n.defagot@gmail.com"];
+    }
+
+    // 15.2: moderación por denuncias. moderation/{uid} lo escribe la
+    // administración (web/pioneros-admin.html): photo_off = sin foto en el
+    // perfil, name_off = la empresa se muestra como modName(), banned = no
+    // puede publicar perfil, mandar solicitudes ni mates.
+    function modFlag(uid, k) {
+      let p = /databases/$(database)/documents/moderation/$(uid);
+      return exists(p) && get(p).data.get(k, false) == true;
+    }
+    // Igual que FriendLogic.MOD_NAME en el juego.
+    function modName() {
+      return "Empresa moderada";
+    }
+    function modOk(uid) {
+      return !modFlag(uid, "banned")
+        && (!modFlag(uid, "name_off") || data().company == modName());
+    }
+
+    // Insignias que muestra (15.2): hasta 3 ids cortos.
+    function badgeList(v) {
+      return v is list && v.size() <= 3
+        && (v.size() < 1 || avatarId(v[0]))
+        && (v.size() < 2 || avatarId(v[1]))
+        && (v.size() < 3 || avatarId(v[2]));
+    }
+
+    // Perfil público (empresa, avatar, etapa, ganado, desde la 15.0 la
+    // miniatura JPEG de la foto en base64 si el jugador la comparte y desde la
+    // 15.2 las insignias que muestra). Desde la 15.2 sólo lo leen el dueño, sus
+    // amigos y quien le mandó una solicitud al que lee (para verla); antes lo
+    // podía leer cualquiera que supiera el uid. No se lista.
     match /players/{uid} {
-      allow get: if verified();
-      allow delete: if isMe(uid);
+      allow get: if isMe(uid) || knowsMe(uid) || isAdmin();
+      allow delete: if isMe(uid) || isAdmin();
+      // La administración sólo puede sacar la foto o poner el nombre moderado.
+      allow update: if isAdmin()
+        && data().diff(resource.data).affectedKeys().hasOnly(["photo", "company"])
+        && !data().diff(resource.data).addedKeys().hasAny(["photo"])
+        && !data().diff(resource.data).changedKeys().hasAny(["photo"])
+        && (data().company == resource.data.company || data().company == modName());
       allow create, update: if isMe(uid)
-        && onlyKeys(["company", "avatar", "stage", "lifetime", "prestige", "code", "updated", "photo"])
+        && modOk(uid)
+        && (!modFlag(uid, "photo_off") || !("photo" in data()))
+        && onlyKeys(["company", "avatar", "stage", "lifetime", "prestige", "code", "updated", "photo", "badges"])
         && shortText(data().company, 40)
-        && (!("photo" in data()) || shortText(data().photo, 24000))
+        && (!("photo" in data()) || photoB64(data().photo))
+        && (!("badges" in data()) || badgeList(data().badges))
         && avatarId(data().avatar)
         && data().stage is int && data().stage >= 1 && data().stage <= 20
         && count(data().lifetime)
@@ -90,7 +169,21 @@ service cloud.firestore {
           && onlyKeys(["from", "company", "avatar", "at"])
           && data().from == from
           && shortText(data().company, 40) && avatarId(data().avatar)
-          && !exists(/databases/$(database)/documents/players/$(uid)/friends/$(from));
+          && !exists(/databases/$(database)/documents/players/$(uid)/friends/$(from))
+          && !blockedBy(uid)
+          // 15.2: quien la manda tiene perfil y la cuenta en su tope diario.
+          && exists(/databases/$(database)/documents/players/$(from))
+          && modOk(from)
+          && (compat151() || countedRequest(from));
+      }
+
+      // 15.2: a quién bloqueó el dueño (sólo él lo ve). Mientras exista, esa
+      // cuenta no le puede mandar solicitudes ni mates ni leer su perfil.
+      match /blocked/{bid} {
+        allow read, delete: if isMe(uid);
+        allow create, update: if isMe(uid) && bid != uid
+          && onlyKeys(["company", "at"])
+          && shortText(data().company, 40) && data().at is number;
       }
 
       // Lista de amigos. El dueño maneja la suya; quien acepta una solicitud
@@ -113,8 +206,87 @@ service cloud.firestore {
         allow create, update: if verified() && request.auth.uid == from
           && onlyKeys(["from", "company", "day", "at"])
           && data().from == from && shortText(data().company, 40) && data().day is int
-          && exists(/databases/$(database)/documents/players/$(uid)/friends/$(from));
+          && exists(/databases/$(database)/documents/players/$(uid)/friends/$(from))
+          && !blockedBy(uid)
+          && modOk(from);
       }
+    }
+
+    // 15.2: contador de solicitudes enviadas hoy (día UTC). Sólo sube de a 1
+    // y hasta 20 por día; no se borra (si no, se podría reiniciar el tope).
+    // No tiene datos personales: sólo {day, count}.
+    match /limits/{uid} {
+      allow get: if isMe(uid);
+      allow create, update: if isMe(uid)
+        && onlyKeys(["day", "count"])
+        && data().day == today()
+        && data().count == nextCount(uid)
+        && data().count <= 20;
+    }
+
+    // 15.2: inscripción a la prueba cerrada desde coronadosdegloria.web.app/pioneros.html.
+    // Cualquiera (sin cuenta) se anota UNA vez por email (el id es el email en
+    // minúsculas); nadie la puede leer ni cambiar salvo la administración.
+    match /signups/{email} {
+      allow create: if onlyKeys(["name", "email", "created", "consent", "android"])
+        && email == data().email
+        && data().email.matches('^[a-z0-9._%+-]{1,64}@[a-z0-9.-]{1,120}[.][a-z]{2,24}$')
+        && shortText(data().name, 40) && data().name.size() >= 2
+        && data().created == request.time
+        && data().consent == true
+        && data().android is bool;
+      allow get, list, delete: if isAdmin();
+      // La administración marca a quién invitó y anota cosas.
+      allow update: if isAdmin()
+        && data().diff(resource.data).affectedKeys().hasOnly(["invited", "note"])
+        && (!("invited" in data()) || data().invited is bool)
+        && (!("note" in data()) || shortText(data().note, 200));
+    }
+
+    // 15.2: registro de pioneros desde el juego (AAB de la prueba cerrada, con
+    // cuenta): días distintos que jugó. Sólo sube de a un día por día real.
+    match /pioneers/{uid} {
+      allow get: if isMe(uid) || isAdmin();
+      allow list: if isAdmin();
+      allow delete: if isMe(uid) || isAdmin();
+      allow create: if isMe(uid)
+        && onlyKeys(["email", "company", "first_day", "last_day", "days", "version"])
+        && data().email == request.auth.token.email
+        && shortText(data().company, 40) && shortText(data().version, 20)
+        && data().first_day == today() && data().last_day == today() && data().days == 1;
+      allow update: if isMe(uid)
+        && onlyKeys(["email", "company", "first_day", "last_day", "days", "version"])
+        && data().email == request.auth.token.email
+        && shortText(data().company, 40) && shortText(data().version, 20)
+        && data().first_day == resource.data.first_day
+        && ((data().last_day == resource.data.last_day && data().days == resource.data.days)
+            || (data().last_day == today() && resource.data.last_day < today()
+                && data().days == resource.data.days + 1));
+    }
+
+    // 15.2: decisiones de moderación (ver modFlag). Sólo la administración las
+    // escribe; el jugador lee la suya para avisarle y respetarla.
+    match /moderation/{uid} {
+      allow get: if isMe(uid) || isAdmin();
+      allow list, delete: if isAdmin();
+      allow create, update: if isAdmin()
+        && onlyKeys(["photo_off", "name_off", "banned", "reason", "at"])
+        && data().photo_off is bool && data().name_off is bool && data().banned is bool
+        && shortText(data().reason, 200) && data().at is number;
+    }
+
+    // 15.2: denuncias (nombre, foto, acoso). Las crea cualquiera verificado a
+    // su nombre y las revisa el equipo en la consola; el que denunció sólo las
+    // puede listar y borrar (al borrar su cuenta), nadie más las lee.
+    match /reports/{rid} {
+      allow create: if verified()
+        && onlyKeys(["reporter", "target", "reason", "company", "at"])
+        && data().reporter == request.auth.uid
+        && data().target is string && data().target.size() > 0 && data().target.size() <= 128
+        && data().target != request.auth.uid
+        && data().reason in ["nombre", "foto", "acoso", "otro"]
+        && shortText(data().company, 40) && data().at is number;
+      allow list, delete: if (verified() && resource.data.reporter == request.auth.uid) || isAdmin();
     }
   }
 }

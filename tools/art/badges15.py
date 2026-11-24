@@ -12,8 +12,8 @@ Adentro va el ícono de 16 px del logro (assets/iconos/icons/<icon>.png) con
 sombra. Estilo de docs/style-guide.md: contorno 1 px #3D1B0B, luz desde arriba
 a la izquierda, 3 tonos + brillo.
 
-Escribe assets/iconos/badges/<id>.png y una versión bloqueada por categoría
-(badges/locked_<categoría>.png).
+Escribe assets/iconos/badges/<id>.png, una versión bloqueada por categoría
+(badges/locked_<categoría>.png) y las especiales (15.2: badges/pionero.png).
 Uso: python3 tools/art/badges15.py
 """
 import json
@@ -313,6 +313,48 @@ def badge(category, tier, icon, locked=False):
     return img
 
 
+def special_pionero():
+    """Insignia especial Pionero (15.2, prueba cerrada): cinta celeste y blanca,
+    corona de laurel, borde de oro y campo celeste con la bandera plantada."""
+    img = Image.new("RGBA", (S, S), (0, 0, 0, 0))
+    ribbon(img, 20)
+    laurels(img)
+    field = (hexc("1E3A66"), hexc("2F5A92"))
+    paint_shape(img, circle(16, 15, 10.5), TIERS["oro"], field, 16, 15, rim=3)
+    # Lomita verde donde se planta la bandera
+    for y in range(19, 24):
+        for x in range(8, 25):
+            if circle(16, 15, 6.6)(x, y) and (x + 0.5 - 16) ** 2 / 49 + (y + 0.5 - 23.5) ** 2 / 16 <= 1:
+                img.putpixel((x, y), HOJA[1] if y < 21 else HOJA[0])
+    # Mástil (con sombra a la derecha)
+    for y in range(8, 22):
+        img.putpixel((12, y), OUTLINE)
+        img.putpixel((13, y), hexc("E0A060") if y < 21 else hexc("B8743A"))
+        img.putpixel((14, y), OUTLINE)
+    img.putpixel((13, 7), OUTLINE)
+    img.putpixel((13, 6), hexc("F6B40E"))
+    # Bandera celeste y blanca con el sol, flameando (el borde de la derecha ondea)
+    for y in range(8, 17):
+        wave = 1 if y in (8, 9, 15, 16) else 0
+        for x in range(15, 23 - wave):
+            edge = y in (8, 16) or x == 22 - wave
+            if edge:
+                c = OUTLINE
+            elif y <= 10 or y >= 14:
+                c = CELESTE if x < 19 else hexc("4E8FC9")
+            else:
+                c = BLANCO
+            img.putpixel((x, y), c)
+    img.putpixel((18, 12), hexc("F6B40E"))
+    img.putpixel((19, 12), hexc("F6B40E"))
+    sparkle(img, 7, 6)
+    sparkle(img, 25, 22)
+    return img
+
+
+SPECIALS = {"pionero": special_pionero}
+
+
 def main():
     os.makedirs(OUT, exist_ok=True)
     mis = json.load(open(os.path.join(ROOT, "data", "missions.json"), encoding="utf-8"))
@@ -322,7 +364,9 @@ def main():
         n += 1
     for cat in FIELDS:
         badge(cat, "bronce", "candado", locked=True).save(os.path.join(OUT, "locked_%s.png" % cat))
-    print("insignias:", n, "+", len(FIELDS), "bloqueadas en", OUT)
+    for sid, fn in SPECIALS.items():
+        fn().save(os.path.join(OUT, sid + ".png"))
+    print("insignias:", n, "+", len(FIELDS), "bloqueadas +", len(SPECIALS), "especiales en", OUT)
 
 
 if __name__ == "__main__":

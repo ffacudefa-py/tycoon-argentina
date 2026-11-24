@@ -1,0 +1,363 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Planilla de pioneros · Coronados de Gloria</title>
+<style>
+  :root { --bg: #f5efdc; --card: #fffaf0; --text: #2b2746; --soft: #5d5b7a; --accent: #3a7bd5; --ok: #256b42; --warn: #a8611a; --bad: #c0394a; --line: #d9cfb8; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #1e1c30; --card: #2a2840; --text: #f2f0e6; --soft: #c2c0d6; --accent: #8ab8f2; --ok: #67d08e; --warn: #f2b56b; --bad: #ff8a9a; --line: #45425f; } }
+  * { box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text); font: 15px/1.5 system-ui, sans-serif; margin: 0; padding: 20px 16px; }
+  main { max-width: 1100px; margin: 0 auto; }
+  h1 { font-size: 1.4rem; margin: 0 0 4px; } h2 { font-size: 1.1rem; margin: 0 0 8px; }
+  .soft { color: var(--soft); } a { color: var(--accent); }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px; margin-top: 16px; }
+  input[type=email], input[type=password], input.note { padding: 8px 10px; font: inherit; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--text); }
+  button { padding: 8px 12px; font: 600 .9rem system-ui, sans-serif; border: 1px solid var(--line); border-radius: 8px; background: var(--card); color: var(--text); cursor: pointer; }
+  button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+  button.danger { color: var(--bad); }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+  .kpi { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 12px; }
+  .kpi b { display: block; font-size: 1.7rem; line-height: 1.2; font-variant-numeric: tabular-nums; }
+  .bar { height: 8px; background: var(--line); border-radius: 4px; overflow: hidden; margin-top: 6px; }
+  .bar i { display: block; height: 100%; background: var(--ok); }
+  .wrap { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; min-width: 640px; }
+  th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+  th { font-size: .8rem; text-transform: uppercase; letter-spacing: .03em; color: var(--soft); }
+  td.num { font-variant-numeric: tabular-nums; text-align: right; }
+  .ok { color: var(--ok); font-weight: 600; } .warn { color: var(--warn); font-weight: 600; } .bad { color: var(--bad); font-weight: 600; }
+  .tabs { display: flex; gap: 6px; margin-top: 16px; flex-wrap: wrap; }
+  .tabs button[aria-selected=true] { background: var(--accent); color: #fff; border-color: var(--accent); }
+  [hidden] { display: none !important; }
+  #toast { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); background: var(--text); color: var(--bg); padding: 8px 14px; border-radius: 8px; opacity: 0; transition: opacity .2s; pointer-events: none; }
+  #toast.on { opacity: 1; }
+</style>
+</head>
+<body><main>
+<h1>Planilla de pioneros</h1>
+<p class="soft">Prueba cerrada de Coronados de Gloria: inscripciones (<a href="pioneros.html">pioneros.html</a>), registro desde el juego y denuncias. Sólo para la cuenta administradora.</p>
+
+<section class="card" id="login">
+  <h2>Entrar</h2>
+  <p class="soft">Con la cuenta del juego de la administración (email verificado). Si no la tenés, creala acá y tocá el enlace del correo.</p>
+  <div class="row">
+    <input type="email" id="em" placeholder="email" autocomplete="username">
+    <input type="password" id="pw" placeholder="contraseña" autocomplete="current-password">
+    <button class="primary" id="in">Entrar</button>
+    <button id="mk">Crear cuenta</button>
+  </div>
+  <p id="lmsg" class="bad" role="status"></p>
+</section>
+
+<div id="app" hidden>
+  <div class="row" style="justify-content:space-between;margin-top:12px">
+    <span class="soft" id="who"></span>
+    <span class="row"><button id="reload">Actualizar</button><button id="out">Salir</button></span>
+  </div>
+  <div class="kpis" style="margin-top:12px">
+    <div class="kpi"><span class="soft">Inscriptos</span><b id="k1">–</b></div>
+    <div class="kpi"><span class="soft">Invitados en Play</span><b id="k2">–</b></div>
+    <div class="kpi"><span class="soft">Jugando (con cuenta)</span><b id="k3">–</b></div>
+    <div class="kpi"><span class="soft">Cumplen 14 días (meta 12)</span><b id="k4">–</b><div class="bar"><i id="k4bar" style="width:0"></i></div></div>
+  </div>
+
+  <div class="tabs" role="tablist">
+    <button role="tab" data-tab="t-signups" aria-selected="true">Inscriptos</button>
+    <button role="tab" data-tab="t-players" aria-selected="false">Jugando</button>
+    <button role="tab" data-tab="t-reports" aria-selected="false">Denuncias</button>
+  </div>
+
+  <section class="card" id="t-signups">
+    <div class="row" style="justify-content:space-between">
+      <h2 style="margin:0">Inscriptos</h2>
+      <span class="row">
+        <button class="primary" id="copy">Copiar emails sin invitar</button>
+        <button id="markall">Marcar esos como invitados</button>
+        <button id="csv">Descargar CSV</button>
+      </span>
+    </div>
+    <p class="soft">Para invitarlos: Play Console → Prueba cerrada → Testers → lista de emails → pegar. Después marcalos como invitados.</p>
+    <div class="wrap"><table><thead><tr><th>Nombre</th><th>Email</th><th>Anotado</th><th>Android</th><th>Invitado</th><th>En el juego</th><th>Nota</th><th></th></tr></thead><tbody id="sb"></tbody></table></div>
+  </section>
+
+  <section class="card" id="t-players" hidden>
+    <h2>Jugando (registro desde el juego)</h2>
+    <p class="soft">Lo escribe el AAB de la prueba cerrada en jugadores con cuenta. "En la prueba" cuenta desde el primer día que abrió el juego; Google pide 12 testers con 14 días seguidos inscriptos.</p>
+    <div class="wrap"><table><thead><tr><th>Empresa</th><th>Email de la cuenta</th><th>Primer día</th><th>Último día</th><th>Días jugados</th><th>En la prueba</th><th>Versión</th><th>Estado</th></tr></thead><tbody id="pb"></tbody></table></div>
+  </section>
+
+  <section class="card" id="t-reports" hidden>
+    <h2>Denuncias</h2>
+    <p class="soft">Tocá <b>Revisar</b> para ver el perfil denunciado y decidir. <b>Ocultar foto</b> y <b>Quitar nombre</b> se aplican en el momento y el juego no deja volver a ponerlos; <b>Expulsar</b> borra su perfil público y no puede usar Amigos (ni solicitudes ni mates). Todo se deshace con <b>Levantar sanción</b>. Después marcá la denuncia como resuelta.</p>
+    <div id="review" class="card" hidden style="margin-top:0">
+      <div class="row" style="align-items:flex-start">
+        <img id="rv-photo" alt="Foto del perfil denunciado" width="96" height="96" style="border-radius:10px;object-fit:cover;background:var(--line)">
+        <div style="flex:1;min-width:220px">
+          <h2 id="rv-name" style="margin:0"></h2>
+          <p class="soft" id="rv-meta" style="margin:2px 0 8px"></p>
+          <p id="rv-state" style="margin:0 0 8px"></p>
+          <div class="row">
+            <input class="note" id="rv-reason" maxlength="200" placeholder="motivo (queda registrado)" style="flex:1;min-width:200px">
+          </div>
+          <div class="row" style="margin-top:8px">
+            <button class="danger" id="rv-photo-off">Ocultar foto</button>
+            <button class="danger" id="rv-name-off">Quitar nombre</button>
+            <button class="danger" id="rv-ban">Expulsar de Amigos</button>
+            <button id="rv-lift">Levantar sanción</button>
+            <button id="rv-close">Cerrar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="wrap"><table><thead><tr><th>Fecha</th><th>Motivo</th><th>Nombre denunciado</th><th>uid denunciado</th><th>Denunció</th><th>Sanción</th><th></th></tr></thead><tbody id="rb"></tbody></table></div>
+    <h2 style="margin-top:16px">Sanciones vigentes</h2>
+    <p class="soft">Las de cuentas borradas se conservan como máximo 6 meses (política de privacidad): borralas con Levantar cuando pase ese plazo.</p>
+    <div class="wrap"><table><thead><tr><th>uid</th><th>Sanción</th><th>Motivo</th><th>Desde</th><th></th></tr></thead><tbody id="mb"></tbody></table></div>
+  </section>
+</div>
+<div id="toast"></div>
+</main>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, connectAuthEmulator, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendEmailVerification, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, connectFirestoreEmulator, collection, getDocs, getDoc, setDoc, doc, updateDoc, deleteDoc, deleteField } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const app = initializeApp({ apiKey: "AIzaSyCQMudrTolNqv76fCax76g5fzLp3Dgw_gQ", authDomain: "coronadosdegloria.firebaseapp.com", projectId: "coronadosdegloria" });
+const auth = getAuth(app);
+const db = getFirestore(app);
+if (new URLSearchParams(location.search).has("emu")) {
+  connectAuthEmulator(auth, "http://127.0.0.1:9099", { disableWarnings: true });
+  connectFirestoreEmulator(db, "127.0.0.1", 8080);
+}
+
+const $ = (id) => document.getElementById(id);
+const REASONS = { nombre: "Nombre ofensivo", foto: "Foto inapropiada", acoso: "Spam o acoso", otro: "Otro" };
+const GOAL = 12, DAYS = 14;
+let signups = [], pioneers = [], reports = [], mods = new Map();
+const MOD_NAME = "Empresa moderada";   // igual que firestore.rules (modName) y FriendLogic.MOD_NAME
+
+function toast(t) { const el = $("toast"); el.textContent = t; el.classList.add("on"); clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove("on"), 2200); }
+const today = () => Math.floor(Date.now() / 86400000);
+const dayStr = (d) => new Date(d * 86400000).toLocaleDateString("es-AR", { timeZone: "UTC", day: "2-digit", month: "2-digit", year: "numeric" });
+const tsStr = (t) => t && t.toDate ? t.toDate().toLocaleString("es-AR", { dateStyle: "short", timeStyle: "short" }) : (typeof t === "number" ? new Date(t * 1000).toLocaleString("es-AR", { dateStyle: "short", timeStyle: "short" }) : "–");
+// Siempre texto (nunca innerHTML con datos de usuarios: nombres y emails son de terceros).
+function td(text, cls) { const c = document.createElement("td"); c.textContent = text; if (cls) c.className = cls; return c; }
+function inTest(p) { return today() - p.first_day + 1; }
+function status(p) {
+  const idle = today() - p.last_day;
+  if (inTest(p) >= DAYS) return idle > 3 ? ["14 días ✓ (sin abrir hace " + idle + ")", "warn"] : ["14 días ✓", "ok"];
+  if (idle > 3) return ["Sin abrir hace " + idle + " días", "bad"];
+  return ["Faltan " + (DAYS - inTest(p)) + " días", ""];
+}
+
+// ---------------------------------------------------------------- sesión
+$("in").onclick = async () => {
+  $("lmsg").textContent = "";
+  try { await signInWithEmailAndPassword(auth, $("em").value.trim(), $("pw").value); }
+  catch (e) { $("lmsg").textContent = "No se pudo entrar: " + (e.code || e.message); }
+};
+let creating = false;
+$("mk").onclick = async () => {
+  $("lmsg").textContent = "";
+  creating = true;
+  try {
+    const c = await createUserWithEmailAndPassword(auth, $("em").value.trim(), $("pw").value);
+    await sendEmailVerification(c.user);
+    await signOut(auth);
+    $("lmsg").textContent = "Cuenta creada: tocá el enlace que te llegó por email y después entrá.";
+  } catch (e) { $("lmsg").textContent = "No se pudo crear: " + (e.code || e.message); }
+  creating = false;
+};
+$("out").onclick = () => signOut(auth);
+$("reload").onclick = () => load();
+
+onAuthStateChanged(auth, async (u) => {
+  if (creating) return;
+  $("login").hidden = !!u; $("app").hidden = !u;
+  if (!u) return;
+  await u.reload();
+  if (!u.emailVerified) { $("app").hidden = true; $("login").hidden = false; $("lmsg").textContent = "Verificá el email (enlace del correo) y volvé a entrar."; await signOut(auth); return; }
+  $("who").textContent = "Administración: " + u.email;
+  await u.getIdToken(true);
+  load();
+});
+
+// ---------------------------------------------------------------- datos
+async function load() {
+  try {
+    const [s, p, r, m] = await Promise.all([getDocs(collection(db, "signups")), getDocs(collection(db, "pioneers")), getDocs(collection(db, "reports")), getDocs(collection(db, "moderation"))]);
+    mods = new Map(m.docs.map((d) => [d.id, d.data()]));
+    signups = s.docs.map((d) => ({ id: d.id, ...d.data() })).sort((a, b) => (b.created?.seconds || 0) - (a.created?.seconds || 0));
+    pioneers = p.docs.map((d) => ({ id: d.id, ...d.data() })).sort((a, b) => inTest(b) - inTest(a));
+    reports = r.docs.map((d) => ({ id: d.id, ...d.data() })).sort((a, b) => (b.at || 0) - (a.at || 0));
+    render();
+  } catch (e) {
+    console.warn(e);
+    $("app").hidden = true; $("login").hidden = false;
+    $("lmsg").textContent = e.code === "permission-denied" ? "Esta cuenta no es administradora (firestore.rules → isAdmin)." : "No se pudieron cargar los datos: " + (e.code || e.message);
+  }
+}
+
+function render() {
+  const byEmail = new Map(pioneers.map((p) => [String(p.email).toLowerCase(), p]));
+  const done = pioneers.filter((p) => inTest(p) >= DAYS).length;
+  $("k1").textContent = signups.length;
+  $("k2").textContent = signups.filter((s) => s.invited).length;
+  $("k3").textContent = pioneers.length;
+  $("k4").textContent = done + " / " + GOAL;
+  $("k4bar").style.width = Math.min(100, done / GOAL * 100) + "%";
+
+  const sb = $("sb"); sb.replaceChildren();
+  for (const s of signups) {
+    const tr = document.createElement("tr");
+    tr.append(td(s.name), td(s.email), td(tsStr(s.created)), td(s.android ? "Sí" : "No", s.android ? "" : "warn"));
+    const inv = document.createElement("td");
+    const cb = document.createElement("input"); cb.type = "checkbox"; cb.checked = !!s.invited; cb.setAttribute("aria-label", "Invitado");
+    cb.onchange = async () => { try { await updateDoc(doc(db, "signups", s.id), { invited: cb.checked }); s.invited = cb.checked; render(); } catch (e) { cb.checked = !cb.checked; toast("No se pudo guardar"); } };
+    inv.append(cb); tr.append(inv);
+    const p = byEmail.get(s.email);
+    tr.append(p ? td(p.days + " días · " + p.company, "ok") : td("–", "soft"));
+    const nt = document.createElement("td");
+    const ni = document.createElement("input"); ni.className = "note"; ni.maxLength = 200; ni.value = s.note || ""; ni.placeholder = "nota";
+    ni.onchange = async () => { try { await updateDoc(doc(db, "signups", s.id), { note: ni.value }); s.note = ni.value; toast("Nota guardada"); } catch (e) { toast("No se pudo guardar"); } };
+    nt.append(ni); tr.append(nt);
+    const del = document.createElement("td");
+    const db_ = document.createElement("button"); db_.className = "danger"; db_.textContent = "Borrar";
+    db_.onclick = async () => { if (!confirm("¿Borrar la inscripción de " + s.email + "?")) return; await deleteDoc(doc(db, "signups", s.id)); signups = signups.filter((x) => x !== s); render(); };
+    del.append(db_); tr.append(del);
+    sb.append(tr);
+  }
+  if (!signups.length) { const tr = document.createElement("tr"); const c = td("Todavía no se anotó nadie. Compartí coronadosdegloria.web.app/pioneros.html", "soft"); c.colSpan = 8; tr.append(c); sb.append(tr); }
+
+  const pb = $("pb"); pb.replaceChildren();
+  for (const p of pioneers) {
+    const [st, cls] = status(p);
+    const tr = document.createElement("tr");
+    tr.append(td(p.company), td(p.email), td(dayStr(p.first_day)), td(dayStr(p.last_day)), td(String(p.days), "num"), td(inTest(p) + " días", "num"), td(p.version), td(st, cls));
+    pb.append(tr);
+  }
+  if (!pioneers.length) { const tr = document.createElement("tr"); const c = td("Nadie con cuenta abrió todavía el AAB de la prueba cerrada.", "soft"); c.colSpan = 8; tr.append(c); pb.append(tr); }
+
+  const rb = $("rb"); rb.replaceChildren();
+  for (const r of reports) {
+    const tr = document.createElement("tr");
+    tr.append(td(tsStr(r.at)), td(REASONS[r.reason] || r.reason), td(r.company), td(r.target), td(r.reporter), td(modText(mods.get(r.target)), mods.has(r.target) ? "bad" : "soft"));
+    const c = document.createElement("td");
+    const rv = document.createElement("button"); rv.className = "primary"; rv.textContent = "Revisar";
+    rv.onclick = () => openReview(r.target, r);
+    const b = document.createElement("button"); b.textContent = "Resuelta"; b.title = "Borra la denuncia";
+    b.onclick = async () => { await deleteDoc(doc(db, "reports", r.id)); reports = reports.filter((x) => x !== r); render(); };
+    c.append(rv, " ", b); tr.append(c); rb.append(tr);
+  }
+  if (!reports.length) { const tr = document.createElement("tr"); const c = td("Sin denuncias.", "soft"); c.colSpan = 7; tr.append(c); rb.append(tr); }
+
+  const mb = $("mb"); mb.replaceChildren();
+  for (const [uid, m] of mods) {
+    const tr = document.createElement("tr");
+    tr.append(td(uid), td(modText(m), "bad"), td(m.reason || "–"), td(tsStr(m.at)));
+    const c = document.createElement("td");
+    const rv = document.createElement("button"); rv.textContent = "Revisar"; rv.onclick = () => openReview(uid, null);
+    c.append(rv); tr.append(c); mb.append(tr);
+  }
+  if (!mods.size) { const tr = document.createElement("tr"); const c = td("Ninguna.", "soft"); c.colSpan = 5; tr.append(c); mb.append(tr); }
+}
+
+// ---------------------------------------------------------------- moderación
+function modText(m) {
+  if (!m) return "–";
+  if (m.banned) return "Expulsado";
+  return [m.photo_off && "Sin foto", m.name_off && "Sin nombre"].filter(Boolean).join(" + ") || "–";
+}
+let reviewing = null;   // {uid, profile}
+async function openReview(uid, report) {
+  reviewing = { uid, profile: null };
+  $("review").hidden = false;
+  $("rv-name").textContent = "Cargando…"; $("rv-meta").textContent = uid; $("rv-state").textContent = "";
+  $("rv-photo").removeAttribute("src");
+  $("rv-reason").value = report ? (REASONS[report.reason] || report.reason) + " (denuncia del " + tsStr(report.at) + ")" : (mods.get(uid)?.reason || "");
+  $("review").scrollIntoView({ behavior: "smooth", block: "nearest" });
+  try {
+    const ps = await getDoc(doc(db, "players", uid));
+    const p = ps.exists() ? ps.data() : null;
+    reviewing.profile = p;
+    $("rv-name").textContent = p ? p.company : (report ? report.company + " (sin perfil público)" : "(sin perfil público)");
+    $("rv-meta").textContent = uid + (p ? " · código " + p.code + " · etapa " + p.stage : "");
+    // La foto es un JPEG/PNG en base64 validado por las reglas; se muestra como imagen, nunca como HTML.
+    if (p && p.photo) $("rv-photo").src = "data:image/" + (p.photo.startsWith("iVBOR") ? "png" : "jpeg") + ";base64," + p.photo;
+    $("rv-state").textContent = "Sanción actual: " + modText(mods.get(uid));
+  } catch (e) { $("rv-name").textContent = "No se pudo cargar: " + (e.code || e.message); }
+}
+// Guarda la decisión y la aplica ya al perfil público (el juego la respeta al volver a publicar).
+async function moderate(changes) {
+  if (!reviewing) return;
+  const uid = reviewing.uid;
+  const reason = $("rv-reason").value.trim().slice(0, 200);
+  if (!reason) return toast("Escribí el motivo");
+  const cur = mods.get(uid) || {};
+  const next = { photo_off: !!cur.photo_off, name_off: !!cur.name_off, banned: !!cur.banned, ...changes, reason, at: Date.now() / 1000 };
+  try {
+    await setDoc(doc(db, "moderation", uid), next);
+    mods.set(uid, next);
+    const pref = doc(db, "players", uid);
+    const ps = await getDoc(pref);
+    if (ps.exists()) {
+      if (next.banned) await deleteDoc(pref);
+      else {
+        const upd = {};
+        if (next.photo_off && "photo" in ps.data()) upd.photo = deleteField();
+        if (next.name_off && ps.data().company !== MOD_NAME) upd.company = MOD_NAME;
+        if (Object.keys(upd).length) await updateDoc(pref, upd);
+      }
+    }
+    toast("Sanción aplicada");
+  } catch (e) { toast("No se pudo: " + (e.code || e.message)); }
+  render(); openReview(uid, null);
+}
+$("rv-photo-off").onclick = () => moderate({ photo_off: true });
+$("rv-name-off").onclick = () => moderate({ name_off: true });
+$("rv-ban").onclick = () => { if (confirm("¿Expulsar de Amigos? Se borra su perfil público y no puede mandar solicitudes ni mates.")) moderate({ banned: true }); };
+$("rv-lift").onclick = async () => {
+  if (!reviewing || !mods.has(reviewing.uid)) return toast("No tiene sanción");
+  if (!confirm("¿Levantar la sanción? Puede volver a poner su foto y nombre.")) return;
+  try { await deleteDoc(doc(db, "moderation", reviewing.uid)); mods.delete(reviewing.uid); toast("Sanción levantada"); }
+  catch (e) { toast("No se pudo: " + (e.code || e.message)); }
+  render(); openReview(reviewing.uid, null);
+};
+$("rv-close").onclick = () => { $("review").hidden = true; reviewing = null; };
+
+// ---------------------------------------------------------------- acciones
+const pending = () => signups.filter((s) => !s.invited);
+$("copy").onclick = async () => {
+  const list = pending().map((s) => s.email);
+  if (!list.length) return toast("No hay inscriptos sin invitar");
+  await navigator.clipboard.writeText(list.join(", "));
+  toast(list.length + " emails copiados");
+};
+$("markall").onclick = async () => {
+  const list = pending();
+  if (!list.length) return toast("No hay inscriptos sin invitar");
+  if (!confirm("¿Marcar " + list.length + " como invitados en Play?")) return;
+  await Promise.all(list.map((s) => updateDoc(doc(db, "signups", s.id), { invited: true }).then(() => { s.invited = true; })));
+  render(); toast("Marcados como invitados");
+};
+$("csv").onclick = () => {
+  const byEmail = new Map(pioneers.map((p) => [String(p.email).toLowerCase(), p]));
+  const esc = (v) => '"' + String(v ?? "").replace(/"/g, '""') + '"';
+  const rows = [["nombre", "email", "anotado", "android", "invitado", "dias_jugados", "empresa", "nota"]];
+  for (const s of signups) { const p = byEmail.get(s.email); rows.push([s.name, s.email, tsStr(s.created), s.android ? "si" : "no", s.invited ? "si" : "no", p ? p.days : "", p ? p.company : "", s.note || ""]); }
+  const blob = new Blob(["﻿" + rows.map((r) => r.map(esc).join(",")).join("\n")], { type: "text/csv;charset=utf-8" });
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "pioneros.csv"; a.click();
+};
+for (const b of document.querySelectorAll("[role=tab]")) {
+  b.onclick = () => {
+    for (const o of document.querySelectorAll("[role=tab]")) { o.setAttribute("aria-selected", o === b); $(o.dataset.tab).hidden = o !== b; }
+  };
+}
+</script>
+</body>
+</html>

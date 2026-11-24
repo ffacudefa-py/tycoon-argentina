@@ -9,6 +9,27 @@ extends RefCounted
 ##   players/<uid>/requests/<de>   solicitudes recibidas
 ##   players/<uid>/friends/<uid2>  lista de amigos (se escribe de los dos lados)
 ##   players/<uid>/gifts/<de>      regalos recibidos sin abrir (uno por amigo)
+##   players/<uid>/blocked/<uid2>  (15.2) a quién bloqueó: no le puede mandar nada
+##   reports/<auto>                (15.2) denuncias; sólo las lee el equipo (consola)
+
+## 15.2: solicitudes de amistad por día y por cuenta (firestore.rules: limits/{uid}, mismo número).
+const REQUESTS_PER_DAY := 20
+
+
+## Día UTC (el mismo que usan las reglas: request.time / 86400000).
+static func utc_day(unix: float) -> int:
+	return floori(unix / 86400.0)
+
+
+## Contador después de mandar una solicitud ({day, count} de limits/<uid>).
+static func next_limit(current: Dictionary, now: float) -> Dictionary:
+	var day := utc_day(now)
+	var count := int(current.get("count", 0)) + 1 if int(current.get("day", -1)) == day else 1
+	return {"day": day, "count": count}
+
+
+## Motivos de denuncia (firestore.rules acepta sólo estos).
+const REPORT_REASONS := {"nombre": "Nombre ofensivo", "foto": "Foto inapropiada", "acoso": "Spam o acoso", "otro": "Otro motivo"}
 
 ## Sin letras ni números que se confundan (O/0, I/1, L).
 const CODE_CHARS := "ABCDEFGHJKMNPQRSTUVWXYZ23456789"
@@ -91,7 +112,36 @@ static func profile_of(m: GameModel, uid: String, code: String) -> Dictionary:
 		"prestige": int(m.prestige.get("count", 0)),
 		"code": code,
 		"photo": "",
+		"badges": Badges.shown(m),
 	}
+
+
+## (15.2) Nombre que se muestra si la administración sacó el nombre de empresa
+## por una denuncia. Tiene que coincidir con firestore.rules (modName).
+const MOD_NAME := "Empresa moderada"
+
+
+## Documento moderation/{uid} -> {photo_off, name_off, banned}.
+static func moderation_from_doc(doc: Dictionary) -> Dictionary:
+	var f: Dictionary = doc.get("fields", {})
+	var out := {}
+	for k in ["photo_off", "name_off", "banned"]:
+		var v = f.get(k)
+		out[k] = v is Dictionary and v.get("booleanValue", false) == true
+	return out
+
+
+static func moderation_note(mod: Dictionary) -> String:
+	if mod.get("banned", false):
+		return "Por denuncias de otros jugadores, tu cuenta ya no puede usar Amigos. Si creés que es un error, escribinos al contacto de la política de privacidad."
+	var parts: Array = []
+	if mod.get("name_off", false):
+		parts.append("tu nombre de empresa se muestra como \"%s\"" % MOD_NAME)
+	if mod.get("photo_off", false):
+		parts.append("tu foto ya no se muestra")
+	if parts.is_empty():
+		return ""
+	return "Por una denuncia, %s a tus amigos." % " y ".join(parts)
 
 
 ## Hasta cuánto texto (base64) puede ocupar la miniatura de la foto (reglas: 24000).
@@ -111,6 +161,13 @@ static func profile_fields(p: Dictionary, now: float) -> Dictionary:
 	var photo := str(p.get("photo", ""))
 	if photo != "" and photo.length() <= PHOTO_MAX:
 		out["fields"]["photo"] = {"stringValue": photo}
+	# 15.2: insignias que muestra (ids cortos, hasta Badges.MAX_SHOWN).
+	var badges: Array = p.get("badges", [])
+	if not badges.is_empty():
+		var vals: Array = []
+		for id in badges.slice(0, Badges.MAX_SHOWN):
+			vals.append({"stringValue": str(id)})
+		out["fields"]["badges"] = {"arrayValue": {"values": vals}}
 	return out
 
 
@@ -129,7 +186,22 @@ static func profile_from_doc(doc: Dictionary) -> Dictionary:
 		"code": text(f, "code"),
 		"updated": num(f, "updated"),
 		"photo": text(f, "photo"),
+		"badges": strings(f, "badges"),
 	}
+
+
+static func report_fields(reporter: String, target: String, reason: String, company: String, now: float) -> Dictionary:
+	return {"fields": {
+		"reporter": {"stringValue": reporter},
+		"target": {"stringValue": target},
+		"reason": {"stringValue": reason if REPORT_REASONS.has(reason) else "otro"},
+		"company": {"stringValue": company.left(40)},
+		"at": {"doubleValue": now},
+	}}
+
+
+static func block_fields(company: String, now: float) -> Dictionary:
+	return {"fields": {"company": {"stringValue": company.left(40)}, "at": {"doubleValue": now}}}
 
 
 static func request_fields(from_uid: String, p: Dictionary, now: float) -> Dictionary:
@@ -153,6 +225,17 @@ static func gift_fields(from_uid: String, company: String, day: int, now: float)
 ## Último tramo del nombre del documento (".../friends/<uid>" -> uid).
 static func doc_id(doc: Dictionary) -> String:
 	return str(doc.get("name", "")).get_file()
+
+
+## Lista de textos (arrayValue) -> Array de String.
+static func strings(f: Dictionary, key: String) -> Array:
+	var v = f.get(key)
+	var out: Array = []
+	if v is Dictionary and v.get("arrayValue") is Dictionary:
+		for item in v["arrayValue"].get("values", []):
+			if item is Dictionary and item.has("stringValue"):
+				out.append(str(item["stringValue"]))
+	return out
 
 
 static func text(f: Dictionary, key: String) -> String:

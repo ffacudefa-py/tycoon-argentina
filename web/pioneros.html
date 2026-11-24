@@ -1,0 +1,421 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Pioneros · Coronados de Gloria</title>
+<meta name="description" content="Coronados de Gloria: armá tu imperio de negocios y conquistá la Argentina, provincia por provincia. Anotate en la prueba cerrada y ganá la insignia exclusiva Pionero.">
+<meta property="og:title" content="Sé Pionero de Coronados de Gloria">
+<meta property="og:description" content="Probá el juego antes que nadie y llevate una insignia que nunca más se va a poder conseguir.">
+<meta property="og:image" content="https://coronadosdegloria.web.app/img/pilares.png">
+<meta name="theme-color" content="#1a1730">
+<link rel="icon" href="img/icono.png">
+<link rel="preload" href="img/pilares.png" as="image">
+<link rel="preload" href="fonts/VT323-Regular.ttf" as="font" type="font/ttf" crossorigin>
+<style>
+  @font-face { font-family: "VT323"; src: url("fonts/VT323-Regular.ttf") format("truetype"); font-display: swap; }
+  :root {
+    /* Paleta del juego (scripts/ui/u.gd y las texturas de assets/iconos/ui) */
+    --ink: #3d1b0b; --ink-soft: #6b3f26; --wood: #5c3520; --wood-dark: #2e1a10;
+    --crema: #f6efe2; --crema-2: #f7e7c4; --gold: #f2d173; --gold-2: #f6b40e; --gold-dark: #8e5a10;
+    --green: #256b42; --celeste: #74acdf; --night: #1a1730; --night-2: #24203f; --night-3: #2b2746;
+    --text-light: #fff6e6; --text-dim: #c9c2dc;
+    --px: 3px;                                  /* tamaño de un píxel del arte de la interfaz */
+    --wrap: min(1120px, 100% - 32px);
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: var(--night); color: var(--ink); font: 17px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+  img { max-width: 100%; display: block; }
+  .px { image-rendering: pixelated; image-rendering: crisp-edges; }
+  .vt { font-family: "VT323", ui-monospace, monospace; font-weight: 400; letter-spacing: .02em; }
+  a { color: inherit; }
+  .wrap { width: var(--wrap); margin-inline: auto; }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+
+  /* ---------- piezas de la interfaz del juego (9-slice con border-image) ---------- */
+  .panel { border: calc(var(--px) * 9) solid transparent; border-image: url("img/ui/panel.png") 9 fill / calc(var(--px) * 9) round; image-rendering: pixelated; color: var(--ink); }
+  .panel-gold { border: calc(var(--px) * 9) solid transparent; border-image: url("img/ui/panel_gold.png") 9 fill / calc(var(--px) * 9) round; image-rendering: pixelated; }
+  .panel-dark { border: calc(var(--px) * 9) solid transparent; border-image: url("img/ui/panel_dark.png") 9 fill / calc(var(--px) * 9) round; image-rendering: pixelated; color: var(--text-light); }
+  .inset { border: calc(var(--px) * 3) solid transparent; border-image: url("img/ui/inset.png") 3 fill / calc(var(--px) * 3); image-rendering: pixelated; }
+  .btn { --s: url("img/ui/btn_verde_normal.png"); --h: url("img/ui/btn_verde_hover.png"); --p: url("img/ui/btn_verde_pressed.png");
+    display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 60px; padding: 0 18px;
+    font: 30px/1 "VT323", monospace; color: #fff; text-decoration: none; text-shadow: 0 3px 0 rgba(0,0,0,.28), 2px 0 0 #1d5a34, -2px 0 0 #1d5a34, 0 -2px 0 #1d5a34, 0 2px 0 #1d5a34;
+    border: solid transparent; border-width: 15px 15px 21px; border-image: var(--s) 5 5 7 5 fill / 15px 15px 21px 15px; image-rendering: pixelated;
+    cursor: pointer; background: none; transition: transform .08s; }
+  .btn:hover { border-image-source: var(--h); }
+  .btn:active, .btn.down { border-image-source: var(--p); transform: translateY(3px); }
+  .btn:focus-visible { outline: 3px solid var(--celeste); outline-offset: 4px; }
+  .btn.gold { --s: url("img/ui/btn_amarillo_normal.png"); --h: url("img/ui/btn_amarillo_hover.png"); --p: url("img/ui/btn_amarillo_pressed.png"); color: var(--ink); text-shadow: 0 2px 0 rgba(255,255,255,.35); }
+  .btn.crema { --s: url("img/ui/btn_crema_normal.png"); --h: url("img/ui/btn_crema_hover.png"); --p: url("img/ui/btn_crema_pressed.png"); color: var(--ink); text-shadow: none; }
+  .btn[disabled] { filter: grayscale(.6) brightness(.9); cursor: default; }
+
+  /* ---------- rótulo con chevrones (estilo de títulos de sección) ---------- */
+  /* Rótulo "cinta con chevrones" (el de PRUEBA CERRADA · ANDROID): se usa en todos los
+     carteles de la página. Doble filete dorado, brillo arriba, rombos y sombra de píxel. */
+  .tag { --h: 40px; display: inline-flex; align-items: stretch; height: var(--h); font: 22px/1 "VT323", monospace; color: var(--text-light); letter-spacing: .09em;
+    filter: drop-shadow(0 3px 0 rgba(20, 10, 6, .55)); white-space: nowrap; }
+  .tag span { display: flex; align-items: center; gap: 10px; padding: 0 14px; position: relative;
+    background: linear-gradient(180deg, #4a2a18 0 12%, #2e1a10 12% 88%, #1e0f08 88%);
+    box-shadow: inset 0 3px 0 var(--gold), inset 0 5px 0 #8e5a10, inset 0 -3px 0 var(--gold-2), inset 0 -5px 0 #5c3520;
+    text-shadow: 0 2px 0 #140a06; }
+  .tag span::before, .tag span::after { content: ""; width: 7px; height: 7px; background: var(--gold); transform: rotate(45deg); box-shadow: 0 0 0 1px #8e5a10; flex: none; }
+  .tag::before, .tag::after { content: ""; width: 18px; background: linear-gradient(180deg, #f7eda4 0 50%, #f6b40e 50%); }
+  .tag::before { clip-path: polygon(100% 0, 0 50%, 100% 100%, 100% 80%, 36% 50%, 100% 20%); margin-right: -1px; }
+  .tag::after { clip-path: polygon(0 0, 100% 50%, 0 100%, 0 80%, 64% 50%, 0 20%); margin-left: -1px; }
+  .tag.sm { --h: 30px; font-size: 18px; letter-spacing: .07em; }
+  .tag.sm span { padding: 0 9px; gap: 7px; }
+  .tag.sm span::before, .tag.sm span::after { width: 5px; height: 5px; }
+  .tag.sm::before, .tag.sm::after { width: 13px; }
+  .h2 { display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; margin: 0 0 36px; }
+  .h2 b { font: 64px/0.9 "VT323", monospace; font-weight: 400; letter-spacing: .02em; }
+  .h2 i { display: block; width: 180px; height: 9px; font-style: normal; background:
+      linear-gradient(90deg, transparent 0 12px, var(--gold) 12px calc(100% - 12px), transparent 0) center/100% 3px no-repeat,
+      conic-gradient(from 45deg, var(--gold) 0 25%, transparent 0) center/9px 9px no-repeat; }
+  .h2 p { margin: 4px 0 0; max-width: 620px; font-size: 18px; }
+
+  /* ---------- barra superior ---------- */
+  .top { position: fixed; inset: 0 0 auto; z-index: 20; display: flex; justify-content: space-between; align-items: center; padding: 8px 18px;
+    background: linear-gradient(180deg, #221d3e, #1a1730); box-shadow: 0 3px 0 #8e5a10, 0 6px 0 rgba(20, 10, 6, .45); }
+  .top::after { content: ""; position: absolute; left: 0; right: 0; bottom: -3px; height: 3px; background: linear-gradient(90deg, transparent, var(--gold) 15% 85%, transparent); }
+  .top nav { display: flex; gap: 22px; }
+  .top nav a { font: 24px/1 "VT323", monospace; color: var(--text-light); text-decoration: none; letter-spacing: .05em; opacity: .9; }
+  .top nav a:hover { color: var(--gold); }
+  .top .mini { display: flex; align-items: center; gap: 12px; color: var(--text-light); text-decoration: none; font: 26px/1 "VT323", monospace; letter-spacing: .04em; text-shadow: 0 2px 0 #140a06; }
+  .top .mini img { width: 44px; height: 44px; border-radius: 10px; box-shadow: 0 0 0 2px var(--gold), 0 0 0 4px #3d1b0b, 0 3px 0 4px rgba(0,0,0,.35); }
+  .top .btn { min-height: 44px; font-size: 24px; border-width: 12px 12px 17px; border-image-width: 12px 12px 17px 12px; padding: 0 8px; }
+
+  /* ---------- héroe: los seis pilares ---------- */
+  .hero { position: relative; min-height: max(100svh, 680px); display: grid; grid-template-rows: auto 1fr auto; justify-items: center; overflow: hidden; isolation: isolate; color: var(--text-light); }
+  .hero .bg { position: absolute; inset: 0; z-index: -2; background: #141226 url("img/pilares.png") center 42% / cover no-repeat; image-rendering: pixelated; transform-origin: 50% 60%; animation: breathe 24s ease-in-out infinite alternate; }
+  .hero::after { content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none; background:
+      radial-gradient(60% 38% at 50% 10%, rgba(20,18,38,.70), transparent 70%),
+      linear-gradient(180deg, rgba(20,18,38,.25) 0%, transparent 22%, transparent 46%, rgba(26,23,48,.78) 70%, rgba(26,23,48,.62) 86%, rgba(26,23,48,.12) 96%, transparent 100%); }
+  @keyframes breathe { from { transform: scale(1.0); } to { transform: scale(1.04); } }
+  /* el logo siempre a escala entera (1x o 2x) para que los píxeles queden parejos */
+  .hero .logo { margin-top: max(92px, 10vh); width: 351px; filter: drop-shadow(0 6px 0 rgba(20,18,38,.55)) drop-shadow(0 0 24px rgba(255,214,120,.35)); animation: drop .9s cubic-bezier(.2,1.4,.4,1) both, bob 5s 1s ease-in-out infinite; }
+  @media (min-width: 820px) and (min-height: 760px) { .hero .logo { width: 702px; } }
+  @keyframes drop { from { transform: translateY(-60px); opacity: 0; } to { transform: none; opacity: 1; } }
+  @keyframes bob { 50% { transform: translateY(-6px); } }
+  .hero .copy { align-self: end; text-align: center; padding: 0 16px 104px; display: grid; justify-items: center; gap: 14px; }
+  .hero h1 { margin: 0; font: 58px/0.95 "VT323", monospace; font-weight: 400; max-width: 900px; text-shadow: 0 4px 0 rgba(20,18,38,.8), 0 0 30px rgba(20,18,38,.7); }
+  .hero h1 em { font-style: normal; color: var(--gold); }
+  .hero .lead { margin: 0; max-width: 600px; font-size: 18px; color: #f3ecdf; text-shadow: 0 2px 8px rgba(20,18,38,.9); }
+  .cta { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; margin-top: 6px; }
+  .scroll { position: absolute; bottom: 10px; left: 50%; translate: -50% 0; width: 22px; opacity: .7; animation: hint 1.6s ease-in-out infinite; }
+  @keyframes hint { 50% { transform: translateY(6px); } }
+
+  /* ---------- banda oscura con líneas (debajo del héroe) ---------- */
+  .band { position: relative; background: var(--night); color: var(--text-light); overflow: hidden; }
+  .band::before { content: ""; position: absolute; inset: 0; opacity: .14; pointer-events: none; background:
+      linear-gradient(30deg, transparent 49.6%, var(--gold) 49.8% 50.2%, transparent 50.4%) 0 0/240px 140px,
+      linear-gradient(150deg, transparent 49.6%, var(--gold) 49.8% 50.2%, transparent 50.4%) 0 0/240px 140px; }
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; padding: 34px 0; position: relative; }
+  .stat { text-align: center; }
+  .stat b { display: block; font: 54px/0.9 "VT323", monospace; font-weight: 400; color: var(--gold); }
+  .stat span { font: 20px/1.1 "VT323", monospace; letter-spacing: .05em; color: var(--text-dim); text-transform: uppercase; }
+  .stat b { text-shadow: 0 3px 0 #5c3520; }
+  .soon { position: relative; display: flex; justify-content: center; padding: 0 0 34px; }
+
+  /* ---------- secciones ---------- */
+  section { position: relative; padding: 96px 0; }
+  .light { background: var(--crema); color: var(--ink);
+    background-image: radial-gradient(rgba(142,90,16,.10) 1.5px, transparent 1.6px); background-size: 18px 18px; }
+  .light .h2 p { color: var(--ink-soft); }
+  .dark { background: linear-gradient(180deg, var(--night-2), var(--night)); color: var(--text-light); }
+  .dark .h2 p { color: var(--text-dim); }
+  .edge-top::before { content: ""; position: absolute; inset: -1px 0 auto; height: 24px; background: var(--night);
+    clip-path: polygon(0 0, 100% 0, 100% 30%, 52% 100%, 48% 100%, 0 30%); }
+
+  /* juego: teléfonos */
+  .phones { display: grid; grid-template-columns: repeat(3, 1fr); gap: 34px; align-items: start; }
+  .phone { margin: 0; text-align: center; }
+  .phone .frame { position: relative; padding: 12px; border-radius: 34px; background: linear-gradient(160deg, #4a2c1c, #241208); box-shadow: 0 0 0 3px var(--ink), 0 22px 40px rgba(61,27,11,.35), inset 0 0 0 2px rgba(255,214,140,.25); }
+  .phone .frame img { border-radius: 22px; width: 100%; height: auto; }
+  .phone:nth-child(2) { transform: translateY(-26px); }
+  .phone figcaption { margin-top: 18px; }
+  .phone figcaption b { display: block; font: 32px/1 "VT323", monospace; font-weight: 400; }
+  .phone figcaption span { color: var(--ink-soft); font-size: 16px; }
+
+  /* regiones */
+  .regions { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+  .region { position: relative; display: grid; grid-template-rows: 200px auto; overflow: hidden; }
+  .region .art { position: relative; overflow: hidden; margin: calc(var(--px) * -2); }
+  .region .art img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 52%; transition: transform 6s ease-out; }
+  .region:hover .art img { transform: scale(1.08) translateY(-8px); }
+  .region .num { position: absolute; top: 10px; left: 8px; }
+  .region .body { padding: 16px 6px 4px; color: var(--ink); }
+  .region h3 { margin: 0; font: 40px/0.9 "VT323", monospace; font-weight: 400; }
+  .region .long { color: var(--ink-soft); font-size: 15px; }
+  .region .star { display: flex; align-items: center; gap: 10px; margin-top: 12px; padding-top: 12px; border-top: 2px dashed rgba(142,90,16,.45); font-size: 15px; }
+  .region .star img { width: 32px; height: 32px; }
+  .region .star b { font: 22px/1 "VT323", monospace; font-weight: 400; display: block; }
+
+  /* insignia */
+  .badge-wrap { display: grid; grid-template-columns: 340px 1fr; gap: 56px; align-items: center; }
+  .badge { position: relative; width: 300px; aspect-ratio: 1; margin: 0 auto; display: grid; place-items: center; }
+  .badge::before { content: ""; position: absolute; inset: -10%; border-radius: 50%; background: repeating-conic-gradient(from 0deg, rgba(246,180,14,.28) 0 8deg, transparent 8deg 22.5deg); mask: radial-gradient(circle, #000 30%, transparent 70%); animation: spin 40s linear infinite; }
+  .badge::after { content: ""; position: absolute; inset: 18%; border-radius: 50%; background: radial-gradient(circle, rgba(255,226,140,.55), transparent 68%); }
+  .badge img { position: relative; z-index: 1; width: 192px; animation: bob 4s ease-in-out infinite; filter: drop-shadow(0 8px 0 rgba(61,27,11,.25)); }
+  @keyframes spin { to { rotate: 1turn; } }
+  .steps { display: grid; gap: 14px; margin: 26px 0 0; padding: 0; list-style: none; counter-reset: s; }
+  .steps li { counter-increment: s; display: grid; grid-template-columns: 54px 1fr; gap: 14px; align-items: center; }
+  .steps li::before { content: counter(s); display: grid; place-items: center; width: 54px; height: 54px; font: 34px/1 "VT323", monospace; color: var(--ink);
+    background: var(--gold); clip-path: polygon(25% 0, 75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%); box-shadow: inset 0 -5px 0 var(--gold-2); }
+  .steps b { font-weight: 700; }
+  .note { margin-top: 18px; display: flex; gap: 10px; align-items: center; font-size: 15px; color: var(--ink-soft); }
+
+  /* formulario */
+  .join { display: grid; grid-template-columns: 1fr 460px; gap: 56px; align-items: center; }
+  .join .pitch h2 { margin: 12px 0 10px; font: 64px/0.9 "VT323", monospace; font-weight: 400; }
+  .join .pitch p { color: var(--text-dim); margin: 0 0 12px; }
+  .join .pitch ul { list-style: none; padding: 0; margin: 18px 0 0; display: grid; gap: 10px; }
+  .join .pitch li { display: flex; gap: 12px; align-items: center; color: #efe7f8; }
+  .join .pitch li img { width: 32px; flex: none; }
+  form.panel { padding: 8px 10px 10px; }
+  form h3 { margin: 0 0 6px; font: 40px/1 "VT323", monospace; font-weight: 400; }
+  form label { display: block; margin-top: 14px; font: 24px/1 "VT323", monospace; letter-spacing: .03em; }
+  form .inset { display: block; margin-top: 6px; }
+  form input[type=text], form input[type=email] { width: 100%; border: 0; background: transparent; padding: 8px 6px; font: 18px/1.2 system-ui, sans-serif; color: var(--ink); outline: none; }
+  form .inset:focus-within { filter: drop-shadow(0 0 0 var(--celeste)) drop-shadow(0 0 4px rgba(116,172,223,.9)); }
+  form input::placeholder { color: rgba(107,63,38,.6); }
+  .check { display: flex; gap: 12px; align-items: flex-start; margin-top: 14px; font: 16px/1.45 system-ui, sans-serif !important; letter-spacing: 0 !important; cursor: pointer; }
+  .check input { appearance: none; flex: none; width: 26px; height: 26px; margin: 0; border: 3px solid var(--ink); background: var(--crema-2); box-shadow: inset 0 3px 0 rgba(61,27,11,.18); cursor: pointer; display: grid; place-items: center; }
+  .check input:checked { background: #3fb06a; }
+  .check input:checked::after { content: ""; width: 12px; height: 7px; border: solid #fff; border-width: 0 0 4px 4px; transform: rotate(-45deg) translate(1px, -1px); }
+  .check input:focus-visible { outline: 3px solid var(--celeste); outline-offset: 2px; }
+  .check a { color: var(--green); font-weight: 600; }
+  form .btn { width: 100%; margin-top: 20px; }
+  .msg { min-height: 26px; margin-top: 10px; font: 22px/1.1 "VT323", monospace; }
+  .msg.ok { color: var(--green); } .msg.bad { color: #b0303e; }
+  .hp { position: absolute; left: -9999px; }
+  .done { text-align: center; padding: 10px 4px; }
+  .done img { width: 128px; margin: 0 auto 8px; animation: bob 4s ease-in-out infinite; }
+  .done h3 { font-size: 44px; }
+
+  /* pie */
+  footer { background: #120f22; color: var(--text-dim); padding: 46px 0 28px; font-size: 15px; }
+  footer .row { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 24px; align-items: center; }
+  footer img.flogo { width: 351px; max-width: 100%; }
+  footer nav { display: flex; gap: 20px; flex-wrap: wrap; }
+  footer nav a { color: var(--text-light); text-decoration: none; font: 22px/1 "VT323", monospace; }
+  footer nav a:hover { color: var(--gold); }
+  footer .legal { margin-top: 26px; padding-top: 18px; border-top: 2px solid rgba(242,209,115,.18); display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+
+  /* aparición al hacer scroll */
+  .rv { opacity: 0; transform: translateY(24px); transition: opacity .7s ease, transform .7s ease; }
+  .rv.in { opacity: 1; transform: none; }
+
+  @media (max-width: 980px) {
+    .badge-wrap, .join { grid-template-columns: 1fr; gap: 36px; }
+    .join form { max-width: 520px; width: 100%; margin: 0 auto; }
+    .regions { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 720px) {
+    :root { --px: 2px; }
+    body { font-size: 16px; }
+    .top nav { display: none; }
+    .hero .bg { background-size: auto 100%; background-position: 0 50%; animation: pan 60s linear infinite alternate; }
+    @keyframes pan { to { background-position: 100% 50%; } }
+    .hero h1 { font-size: 42px; }
+    .hero .copy { padding-bottom: 64px; }
+    .h2 b, .join .pitch h2 { font-size: 50px; }
+    .stats { grid-template-columns: repeat(2, 1fr); row-gap: 22px; }
+    section { padding: 72px 0; }
+    .phones { grid-template-columns: 1fr; max-width: 300px; margin: 0 auto; }
+    .phone:nth-child(2) { transform: none; }
+    .regions { grid-template-columns: 1fr; }
+    .badge { width: 240px; } .badge img { width: 160px; }
+    .btn { font-size: 26px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+    .rv { opacity: 1; transform: none; }
+  }
+</style>
+</head>
+<body>
+
+<header class="top" id="top">
+  <a class="mini" href="#inicio"><img src="img/icono.png" alt="" width="44" height="44">Coronados de Gloria</a>
+  <span style="display:flex;gap:22px;align-items:center">
+    <nav aria-label="Secciones"><a href="#juego">El juego</a><a href="#regiones">Regiones</a><a href="#pionero">Pionero</a></nav>
+    <a class="btn gold" href="#anotarme">Anotarme</a>
+  </span>
+</header>
+
+<main>
+<div class="hero" id="inicio">
+  <div class="bg" role="img" aria-label="Las seis regiones del juego como pilares: NOA, NEA, Cuyo, Patagonia, Pampeana y Centro, a la hora dorada"></div>
+  <img class="logo px" src="img/logo.png" alt="Coronados de Gloria" width="351" height="146">
+  <div></div>
+  <div class="copy">
+    <span class="tag"><span>PRUEBA CERRADA · ANDROID</span></span>
+    <h1>Armá tu imperio y <em>conquistá la Argentina</em>, provincia por provincia.</h1>
+    <p class="lead">Un juego de negocios en pixel art. Anotate para probarlo antes que nadie y llevate la insignia <b>Pionero</b>.</p>
+    <div class="cta">
+      <a class="btn" href="#anotarme">Quiero ser Pionero</a>
+      <a class="btn crema" href="#juego">Ver el juego</a>
+    </div>
+  </div>
+</div>
+
+<div class="band">
+  <div class="wrap stats">
+    <div class="stat rv"><b>6</b><span>regiones</span></div>
+    <div class="stat rv"><b>24</b><span>provincias para conquistar</span></div>
+    <div class="stat rv"><b>62</b><span>logros con insignia</span></div>
+    <div class="stat rv"><b>0</b><span>pesos: es gratis</span></div>
+  </div>
+  <div class="soon"><span class="tag"><span>PRÓXIMAMENTE EN GOOGLE PLAY</span></span></div>
+</div>
+
+<section class="light edge-top" id="juego">
+  <div class="wrap">
+    <div class="h2 rv"><span class="tag"><span>EL JUEGO</span></span><b>De un puesto a un imperio</b><i></i>
+      <p>Empezás con un campo de algodón en el NOA. Contratás empleados, mejorás tus negocios y le ganás mercado a la competencia hasta que la Argentina entera sea tuya.</p></div>
+    <div class="phones">
+      <figure class="phone rv"><div class="frame"><img src="img/cap_imperio.jpg" alt="Pantalla Imperio del juego" loading="lazy" width="540" height="960"></div>
+        <figcaption><b>Tu imperio</b><span>Negocios que venden solos, aun con el juego cerrado.</span></figcaption></figure>
+      <figure class="phone rv"><div class="frame"><img src="img/cap_mapa.jpg" alt="Mapa de la Argentina con las regiones" loading="lazy" width="540" height="960"></div>
+        <figcaption><b>El mapa</b><span>24 provincias, rivales y campañas para ganar cada una.</span></figcaption></figure>
+      <figure class="phone rv"><div class="frame"><img src="img/cap_negocio.jpg" alt="Interior de un negocio" loading="lazy" width="540" height="960"></div>
+        <figcaption><b>Cada negocio</b><span>Mercadería, mejoras, empleados… y algún que otro asalto.</span></figcaption></figure>
+    </div>
+  </div>
+</section>
+
+<section class="dark" id="regiones">
+  <div class="wrap">
+    <div class="h2 rv"><span class="tag"><span>MAPA</span></span><b>Seis regiones, seis paisajes</b><i></i>
+      <p>Cada región tiene su producto estrella y su bonificación. Conquistalas en orden y avanzá de etapa.</p></div>
+    <div class="regions" id="rg"></div>
+  </div>
+</section>
+
+<section class="light" id="pionero">
+  <div class="wrap badge-wrap">
+    <div class="badge rv"><img class="px" src="img/pionero.png" alt="Insignia Pionero: medalla de oro con laureles y una bandera argentina plantada"></div>
+    <div class="rv">
+      <span class="tag"><span>RECOMPENSA EXCLUSIVA</span></span>
+      <div class="h2" style="align-items:flex-start;text-align:left;margin:12px 0 0"><b>La insignia Pionero</b><i style="margin-left:-12px"></i></div>
+      <p style="margin:14px 0 0;color:var(--ink-soft)">Sólo la tienen quienes jueguen la prueba cerrada. Cuando el juego salga para todos, <b>nunca más se va a poder conseguir</b>. Se muestra en tu perfil y la ven tus amigos.</p>
+      <ol class="steps">
+        <li><span>Te anotás acá con el <b>email de tu cuenta de Google</b> (el del Play Store de tu celular).</span></li>
+        <li><span>Te llega la <b>invitación de Google Play</b> para instalar la prueba.</span></li>
+        <li><span>Lo dejás instalado <b>al menos 14 días</b> y lo abrís cuando puedas.</span></li>
+        <li><span>La insignia es tuya. Con una cuenta en el juego, <b>la conservás para siempre</b>.</span></li>
+      </ol>
+      <p class="note"><img class="px" src="img/ico/regalo32.png" alt="" width="32">Necesitás un celular Android. Es gratis y los anuncios de la prueba son de prueba.</p>
+    </div>
+  </div>
+</section>
+
+<section class="dark" id="anotarme">
+  <div class="wrap join">
+    <div class="pitch rv">
+      <span class="tag"><span>CUPOS LIMITADOS</span></span>
+      <h2>Sumate a los pioneros</h2>
+      <p>Buscamos jugadores que nos ayuden a pulir el juego antes del lanzamiento.</p>
+      <ul>
+        <li><img class="px" src="img/ico/corona32.png" alt="">Jugás antes que nadie</li>
+        <li><img class="px" src="img/ico/estrella32.png" alt="">Insignia Pionero exclusiva</li>
+        <li><img class="px" src="img/ico/persona32.png" alt="">Tus ideas llegan directo al equipo</li>
+      </ul>
+    </div>
+    <form class="panel rv" id="f" novalidate>
+      <h3>Anotarme</h3>
+      <label for="name">Tu nombre o apodo</label>
+      <span class="inset"><input type="text" id="name" maxlength="40" autocomplete="nickname" required></span>
+      <label for="email">Email de tu cuenta de Google</label>
+      <span class="inset"><input type="email" id="email" maxlength="190" autocomplete="email" placeholder="nombre@gmail.com" required></span>
+      <input type="text" id="web" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <label class="check"><input type="checkbox" id="android"><span>Tengo un celular Android</span></label>
+      <label class="check"><input type="checkbox" id="consent"><span>Tengo 13 años o más y acepto que usen este email sólo para invitarme a la prueba y escribirme sobre ella (<a href="privacidad.html" target="_blank">política de privacidad</a>).</span></label>
+      <button type="submit" class="btn" id="go">Quiero ser Pionero</button>
+      <div class="msg" id="msg" role="status"></div>
+    </form>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="row">
+      <img class="flogo px" src="img/logo.png" alt="Coronados de Gloria" width="351" height="146">
+      <nav aria-label="Pie"><a href="#juego">El juego</a><a href="#regiones">Regiones</a><a href="#anotarme">Anotarme</a><a href="privacidad.html">Privacidad</a><a href="borrar-cuenta.html">Borrar cuenta</a></nav>
+    </div>
+    <div class="legal">
+      <span>© 2026 Sarce · Coronados de Gloria. Hecho en Argentina.</span>
+      <span>¿Te querés bajar de la prueba? Escribinos a <a href="mailto:facundo.n.defagot@gmail.com">facundo.n.defagot@gmail.com</a></span>
+    </div>
+  </div>
+</footer>
+
+<script>
+// Regiones (mismos datos que data/world.json) con su pilar de arte.
+const REGIONS = [
+  ["noa", "NOA", "Noroeste Argentino", "Limón", "Tucumán", "p_limon", 62],
+  ["nea", "NEA", "Noreste Argentino", "Yerba mate", "Misiones", "yerba", 68],
+  ["cuyo", "Cuyo", "Región de Cuyo", "Vino Malbec", "Mendoza", "p_vino", 64],
+  ["patagonia", "Patagonia", "Patagonia", "Cordero patagónico", "Santa Cruz", "p_cordero", 64],
+  ["pampeana", "Pampeana", "Región Pampeana", "Carne vacuna", "Buenos Aires", "p_carne", 74],
+  ["centro", "Centro", "Región Centro", "Maquinaria agrícola", "Córdoba", "p_tractor", 76],
+];   // el último número: qué altura del pilar se ve en la tarjeta (%)
+const rg = document.getElementById("rg");
+REGIONS.forEach(([id, name, long, prod, prov, icon, focus], i) => {
+  const a = document.createElement("article");
+  a.className = "region panel-gold rv";
+  a.innerHTML = `<div class="art"><img class="px" src="img/region_${id}.png" alt="Paisaje de la región ${name}" width="300" height="900" style="object-position:50% ${focus}%"><span class="num tag sm"><span>ETAPA ${i + 1}</span></span></div>
+    <div class="body"><h3>${name}</h3><div class="long">${long}</div>
+    <div class="star"><img class="px" src="img/ico/${icon}.png" alt=""><span><b>${prod}</b>Producto estrella · ${prov}</span></div></div>`;
+  rg.append(a);
+});
+// Barra superior sólida al bajar y aparición de bloques.
+const io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } }), { threshold: 0.12 });
+document.querySelectorAll(".rv").forEach((el, i) => { el.style.transitionDelay = (i % 3) * 90 + "ms"; io.observe(el); });
+</script>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, connectFirestoreEmulator, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const app = initializeApp({ apiKey: "AIzaSyCQMudrTolNqv76fCax76g5fzLp3Dgw_gQ", authDomain: "coronadosdegloria.firebaseapp.com", projectId: "coronadosdegloria" });
+const db = getFirestore(app);
+// Pruebas locales contra el emulador: pioneros.html?emu=1
+if (new URLSearchParams(location.search).has("emu")) connectFirestoreEmulator(db, "127.0.0.1", 8080);
+
+const $ = (id) => document.getElementById(id);
+const EMAIL = /^[a-z0-9._%+-]{1,64}@[a-z0-9.-]{1,120}\.[a-z]{2,24}$/;
+function say(text, ok) { $("msg").textContent = text; $("msg").className = "msg " + (ok ? "ok" : "bad"); }
+
+$("f").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  if ($("web").value) return;                       // trampa para bots
+  const name = $("name").value.trim().replace(/\s+/g, " ");
+  const email = $("email").value.trim().toLowerCase();
+  if (name.length < 2) return say("Poné tu nombre o un apodo (2 letras o más).");
+  if (!EMAIL.test(email)) return say("Ese email no parece válido. Usá el de tu cuenta de Google.");
+  if (!$("consent").checked) return say("Para anotarte tenés que aceptar la casilla de abajo.");
+  $("go").disabled = true;
+  try {
+    await setDoc(doc(db, "signups", email), { name, email, created: serverTimestamp(), consent: true, android: $("android").checked });
+    const f = $("f");
+    f.replaceChildren();
+    const box = document.createElement("div"); box.className = "done";
+    const img = document.createElement("img"); img.className = "px"; img.src = "img/pionero.png"; img.alt = "";
+    const h = document.createElement("h3"); h.textContent = "¡Listo, " + name + "!";
+    const p = document.createElement("p");
+    p.textContent = "Quedaste anotado con " + email + ". Cuando abramos la prueba cerrada te llega la invitación de Google Play a ese email. ¡Gracias por ayudarnos!";
+    box.append(img, h, p); f.append(box);
+  } catch (err) {
+    console.warn(err);
+    $("go").disabled = false;
+    say(err && err.code === "permission-denied"
+      ? "Ese email ya está anotado. Si no te llegó la invitación, escribinos."
+      : "No se pudo enviar (¿sin internet?). Probá de nuevo en un rato.");
+  }
+});
+</script>
+</body>
+</html>

@@ -3,6 +3,9 @@
 # reales (cuenta de Juan José Defagot; IDs en data/ads.json y project.godot).
 # Controla que el AAB lleve el App ID de producción y ningún ID de prueba.
 # SIN_ANUNCIOS=1 arma la versión sin el SDK de AdMob (sin AD_ID).
+# PRUEBA_CERRADA=1 (15.2) arma el AAB de la prueba cerrada: etiqueta "prueba_cerrada"
+#   -> anuncios de PRUEBA de Google (los testers no generan clics inválidos) y
+#   la insignia Pionero para quien lo juegue. Para producción, sin esta variable.
 #
 # Uso: KEYSTORE=/ruta/coronados-upload.jks KEYSTORE_PASS='…' GODOT=/ruta/godot tools/build_play.sh
 # La clave de subida NO va en el repo (ver docs/PLAY_STORE.md).
@@ -13,15 +16,32 @@ cd "$(dirname "$0")/.."
 : "${KEYSTORE_PASS:?falta KEYSTORE_PASS}"
 GODOT="${GODOT:-godot}"
 SIN_ANUNCIOS="${SIN_ANUNCIOS:-0}"
+PRUEBA_CERRADA="${PRUEBA_CERRADA:-0}"
 VERSION=$(sed -n 's/^config\/version="\(.*\)"/\1/p' project.godot)
-OUT="build/CoronadosDeGloria-${VERSION}.aab"
+OUT="build/CoronadosDeGloria-${VERSION}$([ "$PRUEBA_CERRADA" = 1 ] && echo -prueba-cerrada || true).aab"
 mkdir -p build
+
+# Lo que se toca para exportar se restaura siempre al salir.
+cp project.godot build/project.godot.bak
+cp export_presets.cfg build/export_presets.cfg.bak
+trap 'cp build/project.godot.bak project.godot; cp build/export_presets.cfg.bak export_presets.cfg' EXIT
+
+if [ "$PRUEBA_CERRADA" = 1 ]; then
+  python - <<'EOF'
+p = "export_presets.cfg"
+s = open(p, encoding="utf-8", newline="").read()
+i = s.index('name="Android Play Store"')
+j = s.index('custom_features="', i) + len('custom_features="')
+k = s.index('"', j)
+feats = [f for f in s[j:k].split(",") if f] + ["prueba_cerrada"]
+s = s[:j] + ",".join(feats) + s[k:]
+open(p, "w", encoding="utf-8", newline="").write(s)
+EOF
+fi
 
 if [ "$SIN_ANUNCIOS" = 1 ]; then
   # El plugin lee admob/general/android/enabled al exportar (override.cfg no se
   # aplica en la exportación): se agrega a la sección [admob] y se restaura.
-  cp project.godot build/project.godot.bak
-  trap 'cp build/project.godot.bak project.godot' EXIT
   python - <<'EOF'
 p = "project.godot"
 s = open(p, encoding="utf-8", newline="").read()
@@ -41,10 +61,15 @@ GODOT_ANDROID_KEYSTORE_RELEASE_PASSWORD="$KEYSTORE_PASS" \
 # si pasa, cerrarlo a mano; lo que importa es que el archivo exista y pase el control.)
 [ -f "$OUT" ] || { echo "ERROR: no se generó $OUT (ver la salida de Godot)"; exit 1; }
 
-python - "$OUT" "$SIN_ANUNCIOS" <<'EOF'
+python - "$OUT" "$SIN_ANUNCIOS" "$PRUEBA_CERRADA" <<'EOF'
 import json, re, sys, zipfile
 z = zipfile.ZipFile(sys.argv[1])
 sin = sys.argv[2] == "1"
+# La etiqueta "prueba_cerrada" (anuncios de prueba + insignia Pionero) tiene que
+# estar sólo en el AAB de la prueba cerrada, nunca en el de producción.
+blob = b"".join(z.read(n) for n in z.namelist() if n.endswith((".pck", "project.binary")))
+if (b"prueba_cerrada" in blob) != (sys.argv[3] == "1"):
+    sys.exit("ERROR: la etiqueta prueba_cerrada " + ("falta en el AAB de la prueba" if sys.argv[3] == "1" else "quedó en el AAB de producción"))
 m = z.read("base/manifest/AndroidManifest.xml")
 dex = b"".join(z.read(n) for n in z.namelist() if n.endswith(".dex"))
 test = b"ca-app-pub-3940256099942544"
@@ -64,4 +89,4 @@ if b"com/google/android/gms/ads/MobileAds" not in dex:
     errs.append("falta el SDK de AdMob")
 sys.exit("ERROR: " + "; ".join(errs) if errs else 0)
 EOF
-echo "OK: $OUT ($([ "$SIN_ANUNCIOS" = 1 ] && echo 'sin anuncios' || echo 'con anuncios de AdMob'))"
+echo "OK: $OUT ($([ "$SIN_ANUNCIOS" = 1 ] && echo 'sin anuncios' || echo 'con anuncios de AdMob'))$([ "$PRUEBA_CERRADA" = 1 ] && echo ' · PRUEBA CERRADA: anuncios de prueba + insignia Pionero' || true)"

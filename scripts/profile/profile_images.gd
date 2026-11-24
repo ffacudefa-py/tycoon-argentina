@@ -24,8 +24,9 @@ static func path_for(kind: String, dir := DIR) -> String:
 	return "%s/%s.png" % [dir, kind]
 
 
-## Decodifica PNG / JPEG / WEBP según su firma (no según la extensión: en
-## Android el selector devuelve URIs content:// sin extensión).
+## Decodifica PNG o JPEG según su firma (no según la extensión: en Android el
+## selector devuelve URIs content:// sin extensión). 15.2: nada más (ni WEBP,
+## ni GIF, ni otros archivos renombrados a .jpg).
 static func decode(bytes: PackedByteArray) -> Image:
 	if bytes.size() < 12:
 		return null
@@ -37,8 +38,6 @@ static func decode(bytes: PackedByteArray) -> Image:
 		err = img.load_jpg_from_buffer(bytes)
 		if err == OK:
 			apply_orientation(img, jpeg_orientation(bytes))
-	elif bytes.slice(0, 4).get_string_from_ascii() == "RIFF" and bytes.slice(8, 12).get_string_from_ascii() == "WEBP":
-		err = img.load_webp_from_buffer(bytes)
 	if err != OK or img.is_empty():
 		return null
 	# Trabajar con imágenes enormes gasta memoria al pedo: se achican.
@@ -159,8 +158,15 @@ static func texture_from_b64(b64: String) -> Texture2D:
 	if b64 == "" or b64.length() % 4 != 0 or not _B64.search(b64):
 		return null
 	var bytes := Marshalls.base64_to_raw(b64)
+	if bytes.size() < 4:
+		return null
 	var img := Image.new()
-	if bytes.size() < 4 or img.load_jpg_from_buffer(bytes) != OK or img.is_empty():
+	var err := ERR_FILE_UNRECOGNIZED
+	if bytes[0] == 0xFF and bytes[1] == 0xD8:
+		err = img.load_jpg_from_buffer(bytes)
+	elif bytes[0] == 0x89 and bytes[1] == 0x50:
+		err = img.load_png_from_buffer(bytes)       # 15.2: también PNG (las reglas aceptan los dos)
+	if err != OK or img.is_empty():
 		return null
 	return ImageTexture.create_from_image(img)
 

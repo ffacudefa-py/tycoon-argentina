@@ -133,3 +133,10 @@ static func on_return(now: float, tz_minutes: int, scheduled: Array, state: Dict
 		delivered.erase(keys.pop_front())
 	state["delivered"] = delivered
 	return fire
+
+
+## 15.2: la versión de Google Play se actualiza desde la tienda; avisar de un
+## APK nuevo en GitHub mandaría a instalar algo por fuera de Play (lo prohíben
+## sus políticas). Sólo los APK de GitHub (sin la etiqueta "play") lo chequean.
+static func releases_url(url: String, play := OS.has_feature("play")) -> String:
+	return "" if play else url

@@ -5,13 +5,13 @@ extends Control
 ## Fases: intro (alarma, cartel, la banda que cruza, instrucciones y 3-2-1),
 ## juego y resultado. Se dibuja todo en _draw() con las hojas de
 ## assets/pixel_art/minigames (x2), sin crear nodos por cuadro.
-## Sensación: fogonazo y trazo del disparo, sacudón de pantalla, congelado de
+## Sensación: chancleta que vuela girando, sacudón de pantalla, congelado de
 ## 50 ms al acertar, chispas, estela de los ladrones a la carrera, aro de
 ## tiempo en las cajas del piso, imán de la bolsa y textos flotantes.
-## 12.1: en primera persona. Abajo a la derecha la mano con guante y la pistola
-## (apunta hacia el toque, retrocede con la corredera atrás, escupe la vaina y
-## humea; recarga cambiando el cargador). Abajo a la izquierda la otra mano
-## sostiene la bolsa. Piso de baldosas calcáreas con alfombra, luces de techo,
+## 12.1: en primera persona. Abajo a la izquierda la otra mano sostiene la bolsa.
+## 15.2: la pistola se reemplazó por la chancleta de la abuela (clasificación
+## por edades para Play): la mano la revolea hacia el toque y agarra otra; sin
+## chancletas, tocar la mano trae más. Los ladrones quedan mareados. Piso de baldosas calcáreas con alfombra, luces de techo,
 ## viñeta tramada, balizas de alarma y polvo en el aire.
 
 signal finished(saved: float, perfect: bool)    ## al terminar el juego (se aplica en el modelo)
@@ -20,7 +20,8 @@ signal dismissed                                ## al tocar SEGUIR (cierra la pa
 const INTRO := 3.4
 const SPR := 2.0                     ## escala de cajas, bolsa y efectos
 const CHAR := 3.0                    ## escala de ladrones y clientes
-const GUN := 2.5                     ## 12.2: escala de la mano con la pistola (antes SPR = 2)
+const GUN := 2.5                     ## escala de la mano con la chancleta (cuadros de 96x96)
+const FLY := 0.16                    ## 15.2: segundos que vuela la chancleta
 const OUTLINE := Color("3d1b0b")
 const GOLD := Color("f2d173")
 const CREAM := Color("fff6e6")
@@ -46,14 +47,12 @@ var _bag_squash := 0.0
 var _dragging := -1
 var _drag_off := Vector2.ZERO
 var _fx: Array = []                  ## {kind, pos, t, dur, ...}
-var _holes: Array = []               ## {pos, t}
 var _trails := {}                    ## id ladrón -> [Vector2]
 var _down_t := {}                    ## id ladrón -> segundos en el piso
 var _drop_t := {}                    ## id caja -> segundos desde que cayó
-var _tracer := {}                    ## {from, to, t}
-var _aim := Vector2.ZERO             ## hacia dónde mira la pistola (suavizado)
+var _throws: Array = []              ## 15.2: chancletas en vuelo {from, to, t, dur, spin}
+var _aim := Vector2.ZERO             ## hacia dónde mira la mano (suavizado)
 var _aim_target := Vector2.ZERO
-var _shot_flash := 0.0               ## destello de pantalla del disparo
 var _drag_last := Vector2.ZERO
 var _motes: Array = []               ## polvo en el aire {pos, vel, ph}
 var _run := {}                       ## id ladrón -> {ph: fase del paso, spd: velocidad suavizada, flip, land}
@@ -101,8 +100,8 @@ func _ready() -> void:
 		_tex_casco.append(U.tex("minigames/thief_casco_%d.png" % i))
 	for i in 4:
 		_tex_civ.append(U.tex("characters/customer_%d.png" % i))
-	for k in ["crate", "bullet", "siren", "pistol_hand", "bag_hand", "muzzle", "impact", "smoke", "shell", "hole2",
-			"mag", "floor_tiles", "rug", "shelf", "beacon", "plant", "boxes"]:
+	for k in ["crate", "siren", "chancla_hand", "chancla", "chancla_icon", "bag_hand", "impact",
+			"floor_tiles", "rug", "shelf", "beacon", "plant", "boxes"]:
 		_tex[k] = U.tex("minigames/%s.png" % k)
 	for i in 14:
 		_motes.append({"pos": Vector2(_rng.randf(), _rng.randf()), "vel": Vector2(_rng.randf_range(-6, 6), _rng.randf_range(-4, 2)), "ph": _rng.randf() * TAU})
@@ -132,7 +131,6 @@ func _process(dt: float) -> void:
 	_shake = maxf(0.0, _shake - dt * 30.0)
 	_recoil = maxf(0.0, _recoil - dt)
 	_bag_squash = maxf(0.0, _bag_squash - dt * 3.0)
-	_shot_flash = maxf(0.0, _shot_flash - dt)
 	if _aim_target == Vector2.ZERO:
 		_aim_target = Vector2(size.x * 0.5, size.y * 0.45)
 		_aim = _aim_target
@@ -167,9 +165,7 @@ func _process(dt: float) -> void:
 			if pt > 20.0:
 				_dismiss()
 	_age(_fx, dt, -1.0)
-	_age(_holes, dt, 3.0)
-	if _tracer.size() > 0:
-		_tracer["t"] = float(_tracer["t"]) + dt
+	_age(_throws, dt, -1.0)
 	queue_redraw()
 
 
@@ -226,28 +222,25 @@ func _handle(events: Array) -> void:
 		var p: Vector2 = e.get("pos", Vector2.ZERO)
 		match e["type"]:
 			"hit":
-				Sfx.play("hit")
+				Sfx.play("slap", 1.0 + _rng.randf_range(-0.08, 0.08))
 				Sfx.vibrate(25)
 				_kick(7.0, 0.06)
 				_sparks(p - Vector2(0, TheftGame.BODY_OFFSET), Color("ffe07a"), 14)
 				_fx.append({"kind": "impact", "pos": p - Vector2(0, TheftGame.BODY_OFFSET), "t": 0.0, "dur": 0.22, "s": 3.0})
 				_fx.append({"kind": "ring", "pos": p - Vector2(0, TheftGame.BODY_OFFSET), "t": 0.0, "dur": 0.25})
 				var c := int(e.get("combo", 1))
-				_float_text(p - Vector2(0, 150), "¡PUM!" if c < 2 else "¡COMBO x%d!" % c, GOLD if c < 2 else Color("ffb070"), 22 if c < 2 else 26)
+				_float_text(p - Vector2(0, 150), "¡PAF!" if c < 2 else "¡COMBO x%d!" % c, GOLD if c < 2 else Color("ffb070"), 22 if c < 2 else 26)
 			"armor":
-				Sfx.play("ricochet")
+				Sfx.play("bonk")
 				_kick(3.0)
 				_sparks(p - Vector2(0, 110), Color("c9c7da"), 12)
 				_fx.append({"kind": "impact", "pos": p - Vector2(0, 110), "t": 0.0, "dur": 0.18, "s": 2.0})
 				_float_text(p - Vector2(0, 150), "¡CASCO!", Color("c9c7da"), 20)
 			"miss":
-				_holes.append({"pos": p, "t": 0.0})
+				# La chancleta cae al piso, rebota y se desvanece.
+				Sfx.play("flap", 0.8, 0.1)
 				_fx.append({"kind": "dust", "pos": p, "t": 0.0, "dur": 0.4})
-				_fx.append({"kind": "impact", "pos": p, "t": 0.0, "dur": 0.14, "s": 1.5})
-				for i in 7:      # esquirlas de baldosa
-					var a := -PI * _rng.randf()
-					_fx.append({"kind": "spark", "pos": p, "vel": Vector2(cos(a), sin(a)) * _rng.randf_range(60, 170),
-						"t": 0.0, "dur": _rng.randf_range(0.25, 0.4), "color": [Color("ebd3ae"), Color("b4643f"), Color("5a3424")][i % 3]})
+				_fx.append({"kind": "floor_chancla", "pos": p, "t": 0.0, "dur": 1.1, "rot": _rng.randf_range(-0.6, 0.6)})
 			"civilian":
 				Sfx.play("error")
 				Sfx.vibrate(60)
@@ -255,15 +248,13 @@ func _handle(events: Array) -> void:
 				_float_text(p - Vector2(0, 150), "¡ERA UN CLIENTE!", RED, 20)
 			"stunned":
 				Sfx.play("empty", 0.8, 0.15)
-				_float_text(_gun_rect().get_center() - Vector2(0, 50), "¡TRABADO!", RED, 18)
+				_float_text(_gun_rect().get_center() - Vector2(0, 50), "¡PERDÓN!", RED, 18)
 			"empty":
 				Sfx.play("empty", 1.0, 0.1)
 				Sfx.vibrate(30)
-				_float_text(_gun_rect().get_center() - Vector2(0, 50), "¡RECARGÁ!", GOLD, 20)
+				_float_text(_gun_rect().get_center() - Vector2(0, 50), "¡SIN CHANCLETAS!", GOLD, 20)
 			"reload":
-				Sfx.play("reload")
-				# El cargador vacío cae de la empuñadura.
-				_fx.append({"kind": "mag", "pos": _gun_point(Vector2(56, 70)), "vel": Vector2(-30, -60), "t": 0.0, "dur": 0.6})
+				Sfx.play("flap")
 			"reloaded":
 				Sfx.play("tap", 1.4)
 				Sfx.vibrate(15)
@@ -350,13 +341,13 @@ func _dismiss() -> void:
 
 # ------------------------------------------------------------------ toques
 
-## Zona de la pistola (abajo a la derecha): tocarla recarga.
+## Zona de la mano con la chancleta (abajo a la derecha): tocarla trae más.
 func _gun_rect() -> Rect2:
 	return Rect2(size.x - 210, size.y - 180, 210, 180)
 
 
-## Pose de la mano con la pistola: [pivote de la muñeca en pantalla, rotación].
-## Apunta hacia el último toque, respira, retrocede al disparar y baja a recargar.
+## Pose de la mano: [pivote de la muñeca en pantalla, rotación].
+## Mira hacia el último toque, respira, revolea hacia adelante y baja a buscar más.
 func _gun_pose() -> Array:
 	var base := Vector2(size.x - 18, size.y - 16)          # muñeca (cuadro 80,80 a x2)
 	var off := Vector2.ZERO
@@ -369,9 +360,9 @@ func _gun_pose() -> Array:
 			off.y += sin(pt * 2.2) * 2.0
 		var e := clampf(_recoil / 0.16, 0.0, 1.0)
 		if e > 0.0:
-			var k := e * e if e < 0.6 else 1.0 - (e - 0.6) * 0.5        # golpe seco y vuelta suave
-			off += Vector2(12, 14) * k
-			rot += 0.22 * k
+			var k := e * e if e < 0.6 else 1.0 - (e - 0.6) * 0.5        # revoleo seco y vuelta suave
+			off += Vector2(-26, -16) * k
+			rot -= 0.34 * k
 		if game.reload_t > 0.0:
 			var r := 1.0 - game.reload_t / TheftGame.RELOAD_TIME
 			var dip := sin(r * PI)
@@ -384,7 +375,7 @@ func _gun_pose() -> Array:
 	return [(base + off).round(), rot]
 
 
-## Punto del cuadro de la pistola (en píxeles del arte) llevado a la pantalla.
+## Punto del cuadro de la mano (en píxeles del arte) llevado a la pantalla.
 func _gun_point(art: Vector2) -> Vector2:
 	var pose := _gun_pose()
 	return (pose[0] as Vector2) + ((art - Vector2(80, 80)) * GUN).rotated(float(pose[1]))
@@ -420,7 +411,7 @@ func _gui_input(ev: InputEvent) -> void:
 				game.reload()
 				_handle(game.take_events())
 				return
-			# Cargador vacío: cualquier toque empieza a recargar (no gasta el tiempo en buscar la pistola).
+			# Sin chancletas: cualquier toque trae más (no gasta el tiempo en buscar la mano).
 			if game.ammo <= 0 and game.reload_t <= 0.0 and game.stun_t <= 0.0 and not _crate_at(p):
 				game.reload()
 				_handle(game.take_events())
@@ -449,24 +440,15 @@ func _gui_input(ev: InputEvent) -> void:
 		accept_event()
 
 
-## Todo lo que pasa en la pistola al disparar: retroceso con la corredera atrás,
-## fogonazo con luz, destello de pantalla, trazo, vaina servida y humo.
+## 15.2: el revoleo. La mano se va hacia adelante y la chancleta sale girando
+## desde donde la tenía agarrada hasta el toque, con una parábola chica.
 func _shoot_fx(target: Vector2) -> void:
-	Sfx.play("shot", 1.0 + _rng.randf_range(-0.06, 0.06), 0.02)
+	Sfx.play("throw", 1.0 + _rng.randf_range(-0.08, 0.08), 0.02)
 	_recoil = 0.16
-	_shot_flash = 0.06
-	_kick(2.5)
-	# La pose ya mira al blanco al disparar (si no, el trazo sale torcido).
+	_kick(1.5)
 	_aim = _aim.lerp(_aim_target, 0.85)
-	var muzzle := _gun_point(Vector2(12, 36))
-	_fx.append({"kind": "muzzle", "t": 0.0, "dur": 0.13})
-	_tracer = {"from": muzzle, "to": target, "t": 0.0}
-	var port := _gun_point(Vector2(42, 32))
-	_fx.append({"kind": "shell", "pos": port, "vel": Vector2(_rng.randf_range(120, 210), _rng.randf_range(-330, -240)),
-		"t": 0.0, "dur": 0.6, "spin": _rng.randf_range(18.0, 30.0)})
-	for i in 2:
-		_fx.append({"kind": "smoke", "pos": muzzle + Vector2(-6 * i, 0), "vel": Vector2(_rng.randf_range(-40, -10), _rng.randf_range(-60, -35)),
-			"t": -0.05 * i, "dur": 0.7})
+	_throws.append({"from": _gun_point(Vector2(44, 34)), "to": target, "t": 0.0, "dur": FLY,
+		"spin": (1.0 if _rng.randf() < 0.5 else -1.0) * _rng.randf_range(16.0, 24.0)})
 
 
 # ------------------------------------------------------------------ dibujo
@@ -483,9 +465,6 @@ func _draw() -> void:
 		_draw_intro()
 		return
 	_draw_shelf()
-	for hh in _holes:
-		var a := 1.0 - maxf(0.0, float(hh["t"]) - 2.2) / 0.8
-		_spr(_tex["hole2"], 0, 12, 10, hh["pos"] + Vector2(0, 10), false, Color(1, 1, 1, a))
 	_draw_entities()
 	_draw_fx()
 	_draw_ambient()
@@ -495,8 +474,6 @@ func _draw() -> void:
 	_draw_bag()
 	_draw_gun()
 	_draw_gun_fx()
-	if _shot_flash > 0.0 and not _rm:
-		draw_rect(Rect2(Vector2.ZERO, size), Color(1, 0.92, 0.7, 0.16 * _shot_flash / 0.06))
 	if phase == "result":
 		_draw_result()          # el HUD de juego ya no hace falta
 	else:
@@ -860,80 +837,50 @@ func _draw_bag() -> void:
 	_text(cnt, cp + Vector2(28, 15), 24, CREAM, 2)
 
 
-## La mano derecha con la pistola (abajo a la derecha, como en la referencia).
+## La mano derecha con la chancleta (abajo a la derecha). Cuadros: 0 con
+## chancleta · 1 recién tirada · 2 sin chancletas (o yendo a buscar más).
 func _draw_gun() -> void:
 	var pose := _gun_pose()
 	var piv: Vector2 = pose[0]
 	var rot: float = pose[1]
 	var frame := 0
 	var empty := game != null and game.ammo <= 0 and game.reload_t <= 0.0
-	if _recoil > 0.1:
+	if _recoil > 0.04:
 		frame = 1
 	elif empty:
+		frame = 2
+	elif game != null and game.reload_t > 0.0 and game.reload_t > TheftGame.RELOAD_TIME * 0.5:
 		frame = 2
 	var mod := Color.WHITE
 	if game != null and game.stun_t > 0.0:
 		mod = Color(0.62, 0.6, 0.66)
 	draw_set_transform(piv, rot)
-	draw_texture_rect_region(_tex["pistol_hand"], Rect2(-Vector2(80, 80) * GUN, Vector2(96, 96) * GUN), Rect2(frame * 96, 0, 96, 96), mod)
-	# Recarga: el cargador nuevo entra por la empuñadura en la segunda mitad.
-	if game != null and game.reload_t > 0.0:
-		var r := 1.0 - game.reload_t / TheftGame.RELOAD_TIME
-		if r > 0.45:
-			var k := clampf((r - 0.45) / 0.4, 0.0, 1.0)
-			var mp := (Vector2(54, 64) + Vector2(-6, 30) * (1.0 - k) - Vector2(80, 80)) * GUN
-			draw_texture_rect(_tex["mag"], Rect2(mp, Vector2(10, 18) * GUN), false)
+	draw_texture_rect_region(_tex["chancla_hand"], Rect2(-Vector2(80, 80) * GUN, Vector2(96, 96) * GUN), Rect2(frame * 96, 0, 96, 96), mod)
 	draw_set_transform(Vector2.ZERO)
 
 
-## Fogonazo (sigue a la pistola), su luz, humo y vaina.
+## Chancletas en vuelo y cajas que entran a la bolsa (arriba de todo).
 func _draw_gun_fx() -> void:
+	for f in _throws:
+		var k := float(f["t"]) / float(f["dur"])
+		var a: Vector2 = f["from"]
+		var b: Vector2 = f["to"]
+		var p := a.lerp(b, k) - Vector2(0, sin(k * PI) * clampf(a.distance_to(b) * 0.18, 20.0, 80.0))
+		var s := lerpf(2.8, 1.8, k)          # se aleja: se achica
+		draw_set_transform(p.round(), float(f["t"]) * float(f["spin"]))
+		draw_texture_rect(_tex["chancla"], Rect2(-Vector2(17, 9) * s, Vector2(34, 18) * s), false)
+		draw_set_transform(Vector2.ZERO)
 	for f in _fx:
 		var t := float(f["t"])
 		if t < 0.0:
 			continue
 		var k := t / float(f["dur"])
 		match f["kind"]:
-			"muzzle":
-				var pose := _gun_pose()
-				var mp := _gun_point(Vector2(12, 36))
-				var fr := mini(3, int(k * 4.0))
-				draw_texture_rect(_tex["siren"], Rect2(mp - Vector2(130, 130), Vector2(260, 260)), false, Color(1, 0.75, 0.35, 0.55 * (1.0 - k)))
-				draw_set_transform(mp, float(pose[1]))
-				var ms := SPR * 1.3
-				draw_texture_rect_region(_tex["muzzle"], Rect2(-Vector2(44, 20) * ms, Vector2(48, 40) * ms), Rect2(fr * 48, 0, 48, 40))
-				draw_set_transform(Vector2.ZERO)
-			"smoke":
-				var p: Vector2 = (f["pos"] as Vector2) + (f["vel"] as Vector2) * t
-				var fr := mini(4, int(k * 5.0))
-				var s := SPR * (1.0 + k * 0.8)
-				draw_texture_rect_region(_tex["smoke"], Rect2((p - Vector2(8, 8) * s).round(), Vector2(16, 16) * s), Rect2(fr * 16, 0, 16, 16))
-			"shell":
-				var v: Vector2 = f["vel"]
-				var p: Vector2 = (f["pos"] as Vector2) + v * t + Vector2(0, 1100.0 * t * t * 0.5)
-				var fr := int(t * float(f["spin"])) % 4
-				draw_texture_rect_region(_tex["shell"], Rect2((p - Vector2(8, 8)).round(), Vector2(16, 16)), Rect2(fr * 8, 0, 8, 8))
-			"mag":
-				var p: Vector2 = (f["pos"] as Vector2) + (f["vel"] as Vector2) * t + Vector2(0, 900.0 * t * t * 0.5)
-				var c := Color(1, 1, 1, 1.0 - maxf(0.0, k - 0.7) / 0.3)
-				draw_set_transform(p.round(), -0.6 - t * 5.0)
-				draw_texture_rect(_tex["mag"], Rect2(-Vector2(10, 18), Vector2(20, 36)), false, c)
-				draw_set_transform(Vector2.ZERO)
 			"into_bag":
 				var a: Vector2 = f["pos"]
 				var e := k * k
 				var p := a.lerp(_bag_mouth(), e) - Vector2(0, sin(k * PI) * 40.0)
 				_crate(p, int(f["product"]), 1.0, k * 2.0, lerpf(1.1, 0.4, e))
-	# Trazo de la bala: núcleo blanco, halo dorado y estela que se acorta.
-	if _tracer.size() > 0 and float(_tracer["t"]) < 0.08:
-		var k := float(_tracer["t"]) / 0.08
-		var a: Vector2 = _tracer["from"]
-		var b: Vector2 = _tracer["to"]
-		var head := a.lerp(b, minf(1.0, k * 3.0 + 0.35))
-		var tail := a.lerp(b, k)
-		draw_line(tail, head, Color(1, 0.7, 0.3, 0.5 * (1.0 - k)), 7.0)
-		draw_line(tail, head, Color(1, 0.95, 0.6, 1.0 - k), 3.0)
-		draw_line(tail, head, Color(1, 1, 1, 1.0 - k), 1.0)
 
 
 ## Polvo en el aire en los charcos de luz (sólo decorado).
@@ -956,6 +903,13 @@ func _draw_fx() -> void:
 				var s := float(f.get("s", 2.0))
 				var sz := Vector2(32, 32) * s
 				draw_texture_rect_region(_tex["impact"], Rect2(((f["pos"] as Vector2) - sz / 2.0).round(), sz), Rect2(fr * 32, 0, 32, 32))
+			"floor_chancla":
+				# La chancleta que no le pegó a nadie: rebota una vez y se desvanece.
+				var t := float(f["t"])
+				var hop := -absf(sin(minf(t / 0.3, 1.0) * PI)) * 16.0 * maxf(0.0, 1.0 - t / 0.3)
+				draw_set_transform(((f["pos"] as Vector2) + Vector2(0, hop)).round(), float(f["rot"]))
+				draw_texture_rect(_tex["chancla"], Rect2(-Vector2(17, 9) * 1.7, Vector2(34, 18) * 1.7), false, Color(1, 1, 1, 1.0 - maxf(0.0, k - 0.7) / 0.3))
+				draw_set_transform(Vector2.ZERO)
 			"ring":
 				# Onda de choque: aro que se abre y se afina.
 				draw_arc(f["pos"], 18.0 + 60.0 * k, 0, TAU, 24, Color(1, 0.95, 0.7, 0.7 * (1.0 - k)), maxf(1.0, 6.0 * (1.0 - k)))
@@ -994,27 +948,27 @@ func _draw_hud() -> void:
 			left += 1
 	draw_rect(Rect2(10, 28, 156, 28), Color(0.24, 0.1, 0.04, 0.85))
 	_text("LADRONES: %d" % left, Vector2(88, 42), 20, CREAM)
-	# Balas del cargador: una fila sobre la pistola, a la derecha.
+	# Chancletas que quedan: una fila sobre la mano, a la derecha.
 	var g := _gun_rect()
 	var stunned := game.stun_t > 0.0
 	var empty := game.ammo <= 0 and game.reload_t <= 0.0
 	var shown := game.ammo
 	if game.reload_t > 0.0:
 		shown = int((1.0 - game.reload_t / TheftGame.RELOAD_TIME) * TheftGame.AMMO)
-	var bt: Texture2D = _tex["bullet"]
-	var row := Vector2(w - 14 - TheftGame.AMMO * 15, g.position.y - 30)
-	draw_rect(Rect2(row - Vector2(6, 4), Vector2(TheftGame.AMMO * 15 + 8, 32)), Color(0.12, 0.08, 0.1, 0.55))
+	var bt: Texture2D = _tex["chancla_icon"]
+	var row := Vector2(w - 14 - TheftGame.AMMO * 16, g.position.y - 30)
+	draw_rect(Rect2(row - Vector2(6, 4), Vector2(TheftGame.AMMO * 16 + 8, 30)), Color(0.12, 0.08, 0.1, 0.55))
 	for i in TheftGame.AMMO:
 		var full := i < shown
-		draw_texture_rect_region(bt, Rect2(row + Vector2(i * 15, 0), Vector2(12, 24)), Rect2(0 if full else 6, 0, 6, 12))
+		draw_texture_rect_region(bt, Rect2(row + Vector2(i * 16, 0), Vector2(13, 22)), Rect2(0 if full else 9, 0, 9, 15))
 	if empty:
 		var pulse := 0.5 + 0.5 * sin(pt * 6.0)
 		draw_rect(g.grow(-2), Color(0.84, 0.34, 0.43, 0.35 + 0.25 * pulse), false, 3.0)
-		var bx := Rect2(Vector2(w - 228, g.position.y - 66), Vector2(220, 26))
+		var bx := Rect2(Vector2(w - 258, g.position.y - 66), Vector2(250, 26))
 		draw_rect(bx, Color(0.24, 0.1, 0.04, 0.9))
-		_text("¡SIN BALAS! TOCÁ Y RECARGÁ", bx.get_center(), 16, GOLD, 2)
+		_text("SIN CHANCLETAS: TOCÁ LA MANO", bx.get_center(), 16, GOLD, 2)
 	elif stunned:
-		_text("¡TRABADO!", g.get_center() + Vector2(0, -38), 18, RED)
+		_text("¡PERDÓN!", g.get_center() + Vector2(0, -38), 18, RED)
 	# Combo (al medio, entre las dos manos).
 	if game.combo >= 2:
 		_text("COMBO x%d" % game.combo, Vector2(w / 2 + 10, size.y - 34), 24, Color("ffb070"))
@@ -1054,7 +1008,7 @@ func _draw_intro() -> void:
 	# Instrucciones.
 	if t > 1.5 and (t < INTRO - 1.45 or _waiting):
 		var a := clampf((t - 1.5) * 8.0, 0.0, 1.0)
-		var lines := [["TOCÁ a los ladrones", "para dispararles"], ["ARRASTRÁ las cajas", "hasta la bolsa"], ["TOCÁ la pistola", "para recargar"]]
+		var lines := [["TOCÁ a los ladrones", "para revolearles la chancleta"], ["ARRASTRÁ las cajas", "hasta la bolsa"], ["TOCÁ la mano", "para agarrar más chancletas"]]
 		for i in 3:
 			var y := h * 0.52 + i * 58.0
 			draw_rect(Rect2(24, y - 24, w - 48, 50), Color(0.24, 0.1, 0.04, 0.95 * a))
@@ -1091,7 +1045,7 @@ func _draw_result() -> void:
 		_star(Vector2(w / 2 + (i - 1) * 64, h * 0.33), 24.0 * sc, c)
 		if i < stars and st > 0.0 and st < 0.1:
 			Sfx.play("coin", 1.0 + i * 0.15, 0.1)
-	var lines := ["Salvaste el %d %% de la caja" % int(round(r * 100)), "Aciertos %d de %d disparos" % [game.hits, game.shots], "Mejor combo x%d" % maxi(1, game.best_combo)]
+	var lines := ["Salvaste el %d %% de la caja" % int(round(r * 100)), "Chancletazos: %d de %d" % [game.hits, game.shots], "Mejor combo x%d" % maxi(1, game.best_combo)]
 	if practice:
 		lines.append("Práctica: no perdés nada")
 	elif r < 0.999:

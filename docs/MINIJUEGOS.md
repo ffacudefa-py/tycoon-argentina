@@ -81,3 +81,20 @@ explicación se saltea tocando la pantalla.
   los dos minijuegos con toques y arrastres reales.
 - Película para revisar animaciones (un cuadro cada ~0,1 s):
   `godot --path . -- --shots=<carpeta> --shots-set=minijuegos --dev-save=user://film.json`
+
+## Chancleta de la abuela (15.2)
+
+- Para bajar la clasificación por edades de Google Play (con la pistola daba 16+ por
+  "violencia realista con armas contra personas"), el asalto se juega con chancletas de
+  goma: la mano (mismo guante y manga) la revolea hacia el toque, vuela girando con una
+  parábola (`_throws`, `FLY` = 0,16 s) y el ladrón queda mareado con estrellitas ("¡PAF!").
+  La que no pega en nadie rebota en el piso y se desvanece (ya no hay agujeros de bala).
+- Misma lógica (`TheftGame`): 6 chancletas (`AMMO`), sin chancletas se toca la mano para
+  traer más (`reload()`), pegarle a un cliente deja la mano quieta 1,2 s ("¡PERDÓN!").
+- Arte: `tools/art/chancla_art.py` -> `chancla_hand.png` (3 cuadros 96x96, muñeca en 80,80),
+  `chancla.png` (34x18) y `chancla_icon.png` (contador). Usa `hands_vol.pistol_hand_layers`
+  con `index_curled=True, warm=False` (puño cerrado, sin luz de fogonazo).
+- Sonidos: `throw`, `slap`, `bonk` (casco) y `flap` (traer más), al final de `tools/sfx.py`.
+  Ojo: correr `tools/sfx.py` regenera también bag/hit/shot/shred/stamp/swipe con otro azar;
+  restaurarlos con git si no se quieren cambiar.
+- Cuestionario de Play: violencia de dibujos animados (no realista), sin armas, sin sangre.

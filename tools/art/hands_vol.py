@@ -26,8 +26,12 @@ def _sleeve_folds(cx, cy, ang, period=11.0, amp=1.8):
     return f
 
 
-def pistol_hand_layers(frame):
-    """Devuelve (atrás, adelante): la mano sin el índice y el índice (va sobre la pistola)."""
+def pistol_hand_layers(frame, index_curled=None, warm=None):
+    """Devuelve (atrás, adelante): la mano sin el índice y el índice (va sobre la pistola).
+    15.2 (chancla_art): index_curled / warm fuerzan el índice doblado y la luz del
+    fogonazo (por defecto, como siempre: los dos sólo en el cuadro 1)."""
+    curled = (frame == 1) if index_curled is None else index_curled
+    lit = (frame == 1) if warm is None else warm
     # --------- atrás de la pistola: manga, puño, dorso, mayor/anular/meñique
     sc = V.Scene(96, 96)
     # puño elástico corto en la muñeca; la manga lo tapa con su dobladillo
@@ -55,20 +59,20 @@ def pistol_hand_layers(frame):
         sc.ellipsoid(pts[1][0], pts[1][1] - 0.4, 1.6, 1.4, 0, "glove_pad", z=4.2 + i * 0.7, depth=1.0)
     # costura del dorso (pespunte claro que sigue el borde de la nudillera)
     sc.push(lambda X, Y: -0.5 * ((np.abs((X - 62.5) * 0.95 + (Y - 56) * -0.3) < 0.35) & (Y > 46) & (Y < 66)), "glove")
-    back = sc.render(outline=None, warm=(12, 36, 40, 0.15) if frame == 1 else None)
+    back = sc.render(outline=None, warm=(12, 36, 40, 0.15) if lit else None)
     back = back.copy()
     _stitch(back, [(63.5, 47), (65, 52), (66, 57), (66.5, 62), (66.5, 66)])
 
     # --------- adelante: el índice (estirado sobre el armazón o en el gatillo)
     fi = V.Scene(96, 96)
-    if frame == 1:
+    if curled:
         pts = [(56, 45), (47.5, 46.6), (41.6, 49.6), (39.8, 53.2)]
     else:
         pts = [(56, 45), (46.5, 45.4), (37.5, 45.9), (31, 46.4)]
     fi.chain(pts, [3.3, 2.95, 2.6, 2.3], ["glove", "glove", "glove"], z=1.0)   # misma luz que los otros dedos
     fi.ellipsoid(56, 45, 3.2, 3.0, 0, "glove_pad", z=3.2, depth=1.8)          # nudillo del índice
     # (el pulgar va del lado izquierdo del arma: desde este lado no se ve)
-    front = fi.render(outline=None, warm=(12, 36, 40, 0.18) if frame == 1 else None)
+    front = fi.render(outline=None, warm=(12, 36, 40, 0.18) if lit else None)
     return back, front
 
 

@@ -21,6 +21,8 @@ var _ad: RewardedAd
 var _loader: RewardedAdLoader
 var _done: Callable
 var _earned := false
+var _sdk_started := false
+var _debug_eea := false
 
 
 static func native_available() -> bool:
@@ -33,12 +35,24 @@ func provider_name() -> String:
 
 func setup(cfg: AdConfig) -> void:
 	_unit = cfg.rewarded_unit
+	_debug_eea = cfg.environment == "test"
 	_set_state("initializing")
-	_gather_consent(cfg.environment == "test", func() -> void:
-		var listener := OnInitializationCompleteListener.new()
-		listener.on_initialization_complete = func(_status: InitializationStatus) -> void:
-			load_ad()
-		MobileAds.initialize(listener))
+	_gather_consent(_debug_eea, func() -> void: load_ad())
+
+
+## Inicia el SDK una sola vez, y sólo con consentimiento.
+func _start_sdk(then: Callable) -> void:
+	if _sdk_started:
+		then.call()
+		return
+	_sdk_started = true
+	# Juego para 13+: anuncios con clasificación máxima T (adolescentes).
+	var rc := RequestConfiguration.new()
+	rc.max_ad_content_rating = RequestConfiguration.MAX_AD_CONTENT_RATING_T
+	MobileAds.set_request_configuration(rc)
+	var listener := OnInitializationCompleteListener.new()
+	listener.on_initialization_complete = func(_status: InitializationStatus) -> void: then.call()
+	MobileAds.initialize(listener)
 
 
 func _gather_consent(debug_eea: bool, then: Callable) -> void:
@@ -63,6 +77,11 @@ func _gather_consent(debug_eea: bool, then: Callable) -> void:
 			then.call())
 
 
+func can_request_ads() -> bool:
+	var s := UserMessagingPlatform.consent_information.get_consent_status()
+	return s == ConsentInformation.ConsentStatus.OBTAINED or s == ConsentInformation.ConsentStatus.NOT_REQUIRED
+
+
 func privacy_options_required() -> bool:
 	return UserMessagingPlatform.consent_information.get_privacy_options_requirement_status() == ConsentInformation.PrivacyOptionsRequirementStatus.REQUIRED
 
@@ -73,6 +92,28 @@ func show_privacy_options(done: Callable) -> void:
 
 func load_ad() -> void:
 	if state in ["loading", "ready", "showing"]:
+		return
+	# Sin consentimiento (UE/Reino Unido: formulario rechazado, cerrado o no se
+	# pudo consultar) no se inicia el SDK ni se pide ningún anuncio, tampoco en
+	# los reintentos. Equivale a canRequestAds() de UMP.
+	if not can_request_ads():
+		# Sin internet al abrir no se pudo consultar: se vuelve a consultar en el
+		# reintento (y si hace falta se muestra el formulario).
+		if UserMessagingPlatform.consent_information.get_consent_status() == ConsentInformation.ConsentStatus.UNKNOWN and state != "initializing":
+			_set_state("initializing")
+			_gather_consent(_debug_eea, func() -> void:
+				if can_request_ads():
+					load_ad()
+				else:
+					_set_state("error", "No se pudo consultar tu consentimiento para los anuncios. Se reintenta solo."))
+			return
+		_set_state("error", "Para ver anuncios hace falta tu consentimiento (Configuración → Privacidad de los anuncios).")
+		return
+	if not _sdk_started:
+		_set_state("loading")
+		_start_sdk(func() -> void:
+			_set_state("initializing")
+			load_ad())
 		return
 	_set_state("loading")
 	_loader = RewardedAdLoader.new()

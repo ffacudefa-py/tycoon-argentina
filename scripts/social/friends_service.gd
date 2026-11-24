@@ -24,6 +24,7 @@ var my_code := ""
 var friends: Array = []        ## perfiles de los amigos (FriendLogic.profile_from_doc)
 var requests: Array = []       ## [{uid, company, avatar, at}]
 var gifts: Array = []          ## [{uid, company, day}]
+var blocked: Array = []        ## (15.2) [{uid, company}] a quién bloqueé
 
 var _uid := ""
 var _sent := {}                ## uid del amigo -> día en que le convidé un mate
@@ -33,6 +34,10 @@ var _publishing := false           ## hay un PATCH del perfil en curso
 var _photo_key := ""            ## de qué archivo de foto salió _photo_b64
 var _photo_b64 := ""
 var _photo_rejected := false    ## las reglas de Firestore todavía no aceptan "photo"
+## (15.2) Moderación por denuncias (moderation/{uid}, la escribe la administración
+## desde web/pioneros-admin.html): {photo_off, name_off, banned}. Las reglas la
+## exigen al publicar el perfil, las solicitudes y los mates.
+var moderation := {}
 
 
 func _ready() -> void:
@@ -76,6 +81,8 @@ func _on_auth_changed() -> void:
 		friends = []
 		requests = []
 		gifts = []
+		blocked = []
+		moderation = {}
 		_published = {}
 		_set_status("off")
 
@@ -92,6 +99,13 @@ func is_friend(uid: String) -> bool:
 	return false
 
 
+func is_blocked(uid: String) -> bool:
+	for b in blocked:
+		if b["uid"] == uid:
+			return true
+	return false
+
+
 func sent_today(uid: String) -> bool:
 	return int(_sent.get(uid, -1)) == ProgressionSystem.day_index(Game.m)
 
@@ -100,11 +114,18 @@ func sent_today(uid: String) -> bool:
 func me() -> Dictionary:
 	var p := FriendLogic.profile_of(Game.m, Auth.uid, my_code)
 	p["photo"] = my_photo()
+	if moderation.get("name_off", false):
+		p["company"] = FriendLogic.MOD_NAME
 	return p
 
 
+## Aviso para la ventana de amigos si la administración moderó algo ("" si nada).
+func moderation_note() -> String:
+	return FriendLogic.moderation_note(moderation)
+
+
 func my_photo() -> String:
-	if _photo_rejected or not Settings.get_value("share_photo_ok") or not ProfileWidgets.has_photo():
+	if _photo_rejected or moderation.get("photo_off", false) or not Settings.get_value("share_photo_ok") or not ProfileWidgets.has_photo():
 		return ""
 	var path := ProfileImages.path_for("photo")
 	var key := "%s:%d" % [path, FileAccess.get_modified_time(path)]
@@ -127,6 +148,8 @@ func refresh() -> Dictionary:
 	if r["ok"]:
 		last_error = ""
 		_set_status("ok")
+		if PioneerRegistry.active():
+			register_pioneer()
 	else:
 		last_error = r["msg"]
 		_set_status("error")
@@ -137,13 +160,21 @@ func _refresh_inner() -> Dictionary:
 	var r := await _ensure_profile()
 	if not r["ok"]:
 		return r
+	var bl := await _list("players/%s/blocked" % Auth.uid)
+	if not bl["ok"]:
+		return bl
+	blocked = []
+	for d in bl["docs"]:
+		blocked.append({"uid": FriendLogic.doc_id(d), "company": FriendLogic.text(d.get("fields", {}), "company")})
 	var reqs := await _list("players/%s/requests" % Auth.uid)
 	if not reqs["ok"]:
 		return reqs
 	requests = []
 	for d in reqs["docs"]:
 		var f: Dictionary = d.get("fields", {})
-		requests.append({"uid": FriendLogic.doc_id(d), "company": FriendLogic.text(f, "company"), "avatar": FriendLogic.text(f, "avatar"), "at": FriendLogic.num(f, "at")})
+		var rid := FriendLogic.doc_id(d)
+		if not is_blocked(rid):
+			requests.append({"uid": rid, "company": FriendLogic.text(f, "company"), "avatar": FriendLogic.text(f, "avatar"), "at": FriendLogic.num(f, "at")})
 	# Solicitudes de cuentas que se borraron (ya no tienen perfil): se descartan.
 	if not requests.is_empty():
 		var senders := await _batch_get(requests.map(func(q: Dictionary) -> String: return "players/" + q["uid"]))
@@ -179,6 +210,14 @@ func _refresh_inner() -> Dictionary:
 
 ## Perfil público + código propio (se crea la primera vez).
 func _ensure_profile() -> Dictionary:
+	var mod := await _call(HTTPClient.METHOD_GET, "moderation/" + Auth.uid)
+	if mod["code"] == 200:
+		moderation = FriendLogic.moderation_from_doc(mod["data"])
+	elif mod["code"] == 404:
+		moderation = {}
+	# Otro error (reglas viejas sin moderation, sin red): se sigue con lo último conocido.
+	if moderation.get("banned", false):
+		return GameModel.fail(FriendLogic.moderation_note(moderation))
 	if my_code == "":
 		var got := await _call(HTTPClient.METHOD_GET, "players/" + Auth.uid)
 		if got["code"] == 200:
@@ -252,16 +291,37 @@ func add_by_code(text: String) -> Dictionary:
 		return GameModel.fail("Ese código no sirve.")
 	if is_friend(fid):
 		return GameModel.fail("Ya son amigos.")
+	if is_blocked(fid):
+		return GameModel.fail("Tenés bloqueado a ese jugador. Desbloquealo en Amigos → Bloqueados.")
 	for rq in requests:
 		if rq["uid"] == fid:
 			return await accept(fid)        # ya me había mandado una: se acepta
-	var sent := await _call(HTTPClient.METHOD_PATCH, "players/%s/requests/%s" % [fid, Auth.uid],
-		FriendLogic.request_fields(Auth.uid, me(), Time.get_unix_time_from_system()))
-	if sent["code"] == 403:
-		return GameModel.fail("Ya le mandaste una solicitud a ese código: falta que la acepte.")
+	# 15.2: la solicitud y el contador del día van juntos (las reglas lo exigen).
+	var now := Time.get_unix_time_from_system()
+	var lim := await _call(HTTPClient.METHOD_GET, "limits/" + Auth.uid)
+	if lim["code"] != 200 and lim["code"] != 404:
+		return _fail(lim)
+	var cur := {}
+	if lim["code"] == 200:
+		var lf: Dictionary = lim["data"].get("fields", {})
+		cur = {"day": FriendLogic.integer(lf, "day"), "count": FriendLogic.integer(lf, "count")}
+	var nxt := FriendLogic.next_limit(cur, now)
+	if int(nxt["count"]) > FriendLogic.REQUESTS_PER_DAY:
+		return GameModel.fail("Mandaste %d solicitudes hoy, el máximo por día. Mañana podés mandar más." % FriendLogic.REQUESTS_PER_DAY)
+	var req := FriendLogic.request_fields(Auth.uid, me(), now)
+	var sent := await _commit([
+		{"update": {"name": _name("players/%s/requests/%s" % [fid, Auth.uid]), "fields": req["fields"]},
+			"currentDocument": {"exists": false}},
+		{"update": {"name": _name("limits/" + Auth.uid), "fields": {
+			"day": {"integerValue": str(nxt["day"])}, "count": {"integerValue": str(nxt["count"])}}}},
+	])
+	if sent["code"] == 403 or sent["code"] == 409 or sent["code"] == 400:
+		# Ya existe (409/400 por la condición) o las reglas no la dejan (403):
+		# pendiente, bloqueado o el reloj del teléfono muy corrido.
+		return GameModel.fail("No se pudo mandar: quizás ya le mandaste una solicitud y falta que la acepte.")
 	if sent["code"] != 200:
 		return _fail(sent)
-	return GameModel.ok("¡Solicitud enviada! Cuando la acepte, aparece en tu ranking.")
+	return GameModel.ok("¡Solicitud enviada! Cuando la acepte, aparece en tu ranking. (%d/%d hoy)" % [int(nxt["count"]), FriendLogic.REQUESTS_PER_DAY])
 
 
 ## Acepta una solicitud: los dos quedan en la lista del otro (un solo commit).
@@ -299,13 +359,84 @@ func remove(fid: String) -> Dictionary:
 	return GameModel.ok("Lo sacaste de tus amigos.")
 
 
+## 15.2: anota (o suma un día) en el registro de pioneros. Sólo en el AAB de
+## la prueba cerrada y con cuenta verificada; si falla no molesta al jugador.
+func register_pioneer(force_active := false) -> Dictionary:
+	if not enabled() or not (force_active or PioneerRegistry.active()):
+		return {"ok": false, "msg": ""}
+	var got := await _call(HTTPClient.METHOD_GET, "pioneers/" + Auth.uid)
+	if got["code"] != 200 and got["code"] != 404:
+		return _fail(got)
+	var cur := PioneerRegistry.from_fields(got["data"]) if got["code"] == 200 else {}
+	var doc := PioneerRegistry.next_doc(cur, Auth.email, str(Game.m.profile["company"]),
+		str(ProjectSettings.get_setting("application/config/version")), Time.get_unix_time_from_system())
+	if doc.is_empty():
+		return {"ok": true, "msg": "", "doc": cur}
+	var res := await _call(HTTPClient.METHOD_PATCH, "pioneers/" + Auth.uid, PioneerRegistry.to_fields(doc))
+	if res["code"] != 200:
+		return _fail(res)
+	return {"ok": true, "msg": "", "doc": doc}
+
+
+## 15.2 (política de contenido de usuarios de Google Play): bloquear corta todo
+## con esa cuenta en un solo commit: la saca de amigos (de los dos lados), borra
+## su solicitud y su mate, y las reglas ya no le dejan mandar nada nuevo ni ver
+## mi perfil.
+func block(fid: String, company: String) -> Dictionary:
+	if not enabled():
+		return GameModel.fail("Verificá tu email para usar Amigos.")
+	if fid == "" or fid == Auth.uid:
+		return GameModel.fail("No podés bloquearte a vos.")
+	var writes := [
+		{"update": {"name": _name("players/%s/blocked/%s" % [Auth.uid, fid]), "fields": FriendLogic.block_fields(company, Time.get_unix_time_from_system())["fields"]}},
+		{"delete": _name("players/%s/friends/%s" % [Auth.uid, fid])},
+		{"delete": _name("players/%s/friends/%s" % [fid, Auth.uid])},
+		{"delete": _name("players/%s/requests/%s" % [Auth.uid, fid])},
+		{"delete": _name("players/%s/gifts/%s" % [Auth.uid, fid])},
+	]
+	var res := await _commit(writes)
+	if res["code"] != 200:
+		return _fail(res)
+	friends = friends.filter(func(p: Dictionary) -> bool: return p["uid"] != fid)
+	requests = requests.filter(func(q: Dictionary) -> bool: return q["uid"] != fid)
+	gifts = gifts.filter(func(g: Dictionary) -> bool: return g["uid"] != fid)
+	if not is_blocked(fid):
+		blocked.append({"uid": fid, "company": company.left(40)})
+	changed.emit()
+	return GameModel.ok("Bloqueaste a %s: ya no te puede mandar solicitudes ni ver tu perfil." % company)
+
+
+func unblock(fid: String) -> Dictionary:
+	var res := await _call(HTTPClient.METHOD_DELETE, "players/%s/blocked/%s" % [Auth.uid, fid])
+	if res["code"] != 200 and res["code"] != 404:
+		return _fail(res)
+	blocked = blocked.filter(func(b: Dictionary) -> bool: return b["uid"] != fid)
+	changed.emit()
+	return GameModel.ok("Desbloqueado. Si quieren volver a ser amigos, se agregan con el código.")
+
+
+## Denuncia (nombre, foto, acoso…) y bloqueo. La denuncia la revisa el equipo
+## desde la consola de Firebase; nadie más la puede leer.
+func report(fid: String, company: String, reason: String) -> Dictionary:
+	if not enabled():
+		return GameModel.fail("Verificá tu email para usar Amigos.")
+	var res := await _call(HTTPClient.METHOD_POST, "reports",
+		FriendLogic.report_fields(Auth.uid, fid, reason, company, Time.get_unix_time_from_system()))
+	if res["code"] != 200:
+		return _fail(res)
+	var b := await block(fid, company)
+	if not b["ok"]:
+		return b
+	return GameModel.ok("Gracias: recibimos la denuncia y bloqueaste a %s." % company)
+
+
 ## Convida un mate a un amigo (uno por día por amigo).
 func send_gift(fid: String) -> Dictionary:
 	if sent_today(fid):
 		return GameModel.fail("Hoy ya le convidaste un mate.")
 	var day := ProgressionSystem.day_index(Game.m)
 	var res := await _call(HTTPClient.METHOD_PATCH, "players/%s/gifts/%s" % [fid, Auth.uid],
-		FriendLogic.gift_fields(Auth.uid, str(Game.m.profile["company"]), day, Time.get_unix_time_from_system()))
+		FriendLogic.gift_fields(Auth.uid, str(me()["company"]), day, Time.get_unix_time_from_system()))
 	if res["code"] != 200:
 		return _fail(res)
 	_sent[fid] = day
@@ -377,7 +508,7 @@ func delete_my_data() -> Dictionary:
 		return {"ok": true, "msg": ""}
 	var me_uid := Auth.uid
 	var writes := []
-	for sub in ["friends", "requests", "gifts"]:
+	for sub in ["friends", "requests", "gifts", "blocked"]:
 		var l := await _list("players/%s/%s" % [me_uid, sub])
 		if not l["ok"]:
 			return l
@@ -396,6 +527,15 @@ func delete_my_data() -> Dictionary:
 	for row in (sent["data"] if sent["data"] is Array else []):
 		if row is Dictionary and row.get("document") is Dictionary:
 			writes.append({"delete": str(row["document"]["name"])})
+	# 15.2: las denuncias que hice (llevan mi uid).
+	var reps := await _call(HTTPClient.METHOD_POST, ":runQuery", {"structuredQuery": {
+		"from": [{"collectionId": "reports"}],
+		"where": {"fieldFilter": {"field": {"fieldPath": "reporter"}, "op": "EQUAL", "value": {"stringValue": me_uid}}}}})
+	if reps["code"] != 200:
+		return _fail(reps)
+	for row in (reps["data"] if reps["data"] is Array else []):
+		if row is Dictionary and row.get("document") is Dictionary:
+			writes.append({"delete": str(row["document"]["name"])})
 	var code := my_code
 	if code == "":
 		var got := await _call(HTTPClient.METHOD_GET, "players/" + me_uid)
@@ -410,6 +550,7 @@ func delete_my_data() -> Dictionary:
 			writes.append({"delete": _name("codes/" + code)})
 	writes.append({"delete": _name("players/" + me_uid)})
 	writes.append({"delete": _name("saves/" + me_uid)})
+	writes.append({"delete": _name("pioneers/" + me_uid)})      # 15.2 (si estuvo en la prueba cerrada)
 	# Firestore acepta hasta 500 escrituras por commit; con 50 amigos son ~160.
 	var res := await _commit(writes)
 	if res["code"] != 200:
@@ -417,6 +558,7 @@ func delete_my_data() -> Dictionary:
 	friends = []
 	requests = []
 	gifts = []
+	blocked = []
 	my_code = ""
 	_sent = {}
 	if FileAccess.file_exists(STATE_PATH):

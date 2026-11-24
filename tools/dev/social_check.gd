@@ -182,6 +182,36 @@ func _run() -> void:
 	_check(not r["ok"], "no se puede agregar a uno mismo")
 	r = await friends.add_by_code("ZZZZZZ")
 	_check(not r["ok"], "código inexistente: %s" % r["msg"])
+	var tok_b0: String = await _wait(func(cb: Callable) -> void: auth.get_token(cb))
+	_check((await _http(HTTPClient.METHOD_GET, CloudSync.docs_root(project) + "/players/" + a["uid"], "", tok_b0))[0] == 403,
+		"15.2: un desconocido no lee el perfil (ni la foto) de Ana (403)")
+	var badges_ok := FriendLogic.profile_fields({"company": "Beto SRL", "avatar": "emprendedor", "stage": 1, "lifetime": 0, "prestige": 0, "code": code_b, "badges": ["pionero", "primera_venta"]}, 1.0)
+	_check(await _raw_doc("players/" + b["uid"], badges_ok["fields"]) == 200, "15.2: perfil con insignias: aceptado")
+	var badges_bad := FriendLogic.profile_fields({"company": "Beto SRL", "avatar": "emprendedor", "stage": 1, "lifetime": 0, "prestige": 0, "code": code_b, "badges": ["a", "b", "c"]}, 1.0)
+	badges_bad["fields"]["badges"]["arrayValue"]["values"].append({"stringValue": "d"})
+	_check(await _raw_doc("players/" + b["uid"], badges_bad["fields"]) == 403, "15.2: más de 3 insignias: rechazado (403)")
+	badges_bad["fields"]["badges"] = {"arrayValue": {"values": [{"stringValue": "../hack"}]}}
+	_check(await _raw_doc("players/" + b["uid"], badges_bad["fields"]) == 403, "15.2: insignia con id raro: rechazado (403)")
+	var foto := badges_ok.duplicate(true)
+	foto["fields"]["photo"] = {"stringValue": "PHNjcmlwdD5hbGVydCgxKTwvc2NyaXB0Pg=="}
+	_check(await _raw_doc("players/" + b["uid"], foto["fields"]) == 403, "15.2: foto que no es imagen (texto en base64): rechazada (403)")
+	var px := Image.create(8, 8, false, Image.FORMAT_RGB8)
+	px.fill(Color.RED)
+	foto["fields"]["photo"] = {"stringValue": Marshalls.raw_to_base64(px.save_webp_to_buffer())}
+	_check(await _raw_doc("players/" + b["uid"], foto["fields"]) == 403, "15.2: foto WEBP: rechazada (403)")
+	foto["fields"]["photo"] = {"stringValue": Marshalls.raw_to_base64(px.save_png_to_buffer())}
+	_check(await _raw_doc("players/" + b["uid"], foto["fields"]) == 200, "15.2: foto PNG: aceptada")
+	foto["fields"]["photo"] = {"stringValue": Marshalls.raw_to_base64(px.save_jpg_to_buffer())}
+	_check(await _raw_doc("players/" + b["uid"], foto["fields"]) == 200, "15.2: foto JPEG: aceptada")
+	_check(await _raw_doc("players/" + b["uid"], badges_ok["fields"]) == 200, "(sin foto otra vez)")
+	# Spam: una solicitud sin sumar al contador del día no pasa.
+	var tok_spam: String = await _wait(func(cb: Callable) -> void: auth.get_token(cb))
+	var bare := await _http(HTTPClient.METHOD_PATCH, CloudSync.docs_root(project) + "/players/%s/requests/%s" % [a["uid"], b["uid"]],
+		JSON.stringify(FriendLogic.request_fields(b["uid"], {"company": "Beto", "avatar": "emprendedor"}, 1.0)), tok_spam)
+	_check(bare[0] == 403, "15.2: solicitud sin contar en el tope diario: rechazada (403)")
+	var day := FriendLogic.utc_day(Time.get_unix_time_from_system())
+	_check(await _raw_doc("limits/" + b["uid"], {"day": {"integerValue": str(day)}, "count": {"integerValue": "5"}}) == 403,
+		"15.2: el contador no se puede saltear (de 0 a 5): rechazado (403)")
 	r = await friends.add_by_code(code_a.to_lower())
 	_check(r["ok"], "Beto le manda solicitud a Ana: %s" % r["msg"])
 	r = await friends.add_by_code(code_a)
@@ -197,6 +227,9 @@ func _run() -> void:
 
 	await _sign_in(a["email"])
 	_check(friends.requests.size() == 1 and friends.requests[0]["company"] == "Beto SRL", "Ana ve la solicitud de Beto")
+	var tok_a0: String = await _wait(func(cb: Callable) -> void: auth.get_token(cb))
+	_check((await _http(HTTPClient.METHOD_GET, CloudSync.docs_root(project) + "/players/" + b["uid"], "", tok_a0))[0] == 200,
+		"15.2: Ana sí lee el perfil de quien le pidió amistad")
 	r = await friends.accept(b["uid"])
 	_check(r["ok"], "Ana acepta: %s" % r["msg"])
 	_check(friends.is_friend(b["uid"]) and friends.requests.is_empty(), "Beto en la lista de Ana y sin solicitudes")
@@ -218,6 +251,139 @@ func _run() -> void:
 
 	await _sign_in(a["email"])
 	_check(not friends.is_friend(b["uid"]), "Ana tampoco lo tiene (se borró de los dos lados)")
+
+	print("== Bloquear y denunciar (15.2)")
+	await _sign_in(b["email"])
+	r = await friends.add_by_code(code_a)
+	_check(r["ok"], "Beto vuelve a mandarle solicitud a Ana")
+	await _sign_in(a["email"])
+	_check(friends.requests.size() == 1, "Ana la ve")
+	r = await friends.report(b["uid"], "Beto SRL", "nombre")
+	_check(r["ok"], "Ana denuncia y bloquea a Beto: %s" % r["msg"])
+	_check(friends.requests.is_empty() and friends.is_blocked(b["uid"]), "la solicitud desaparece y Beto queda bloqueado")
+	await friends.refresh()
+	_check(friends.blocked.size() == 1 and friends.requests.is_empty(), "sigue así al recargar")
+	var tok_ab: String = await _wait(func(cb: Callable) -> void: auth.get_token(cb))
+	_check((await _http(HTTPClient.METHOD_POST, CloudSync.docs_root(project) + "/reports", JSON.stringify(FriendLogic.report_fields(b["uid"], a["uid"], "otro", "x", 1.0)), tok_ab))[0] == 403,
+		"no se puede denunciar a nombre de otro (403)")
+	var admin_rep := await _http(HTTPClient.METHOD_POST, CloudSync.docs_root(project) + ":runQuery", JSON.stringify({"structuredQuery": {"from": [{"collectionId": "reports"}]}}), "owner")
+	_check(admin_rep[0] == 200 and (admin_rep[1] as Array).filter(func(x) -> bool: return x is Dictionary and x.has("document")).size() >= 1, "la denuncia quedó para el equipo")
+	await _sign_in(b["email"])
+	r = await friends.add_by_code(code_a)
+	_check(not r["ok"], "Beto bloqueado no puede mandarle otra solicitud")
+	var tok_bb: String = await _wait(func(cb: Callable) -> void: auth.get_token(cb))
+	_check((await _http(HTTPClient.METHOD_GET, CloudSync.docs_root(project) + "/players/" + a["uid"], "", tok_bb))[0] == 403, "ni leer el perfil de Ana (403)")
+	_check((await _http(HTTPClient.METHOD_GET, CloudSync.docs_root(project) + "/players/%s/blocked/%s" % [a["uid"], b["uid"]], "", tok_bb))[0] == 403, "ni ver la lista de bloqueados de Ana (403)")
+	await _sign_in(a["email"])
+	r = await friends.unblock(b["uid"])
+	_check(r["ok"] and friends.blocked.is_empty(), "Ana lo desbloquea")
+	await _sign_in(b["email"])
+	r = await friends.add_by_code(code_a)
+	_check(r["ok"], "desbloqueado, Beto puede volver a pedirle amistad")
+	await _sign_in(a["email"])
+	r = await friends.block(b["uid"], "Beto SRL")
+	_check(r["ok"] and friends.requests.is_empty(), "Ana lo vuelve a bloquear (queda bloqueado para la prueba de borrado)")
+
+	print("== Tope de solicitudes por día (15.2)")
+	var spam := await _account("spam_%s@test.invalid" % stamp, true)
+	friends._on_auth_changed()
+	while friends._busy:
+		await process_frame
+	var dday := FriendLogic.utc_day(Time.get_unix_time_from_system())
+	var ok_inc := true
+	for i in FriendLogic.REQUESTS_PER_DAY:
+		ok_inc = ok_inc and await _raw_doc("limits/" + spam["uid"], {"day": {"integerValue": str(dday)}, "count": {"integerValue": str(i + 1)}}) == 200
+	_check(ok_inc, "el contador sube de a 1 hasta %d" % FriendLogic.REQUESTS_PER_DAY)
+	_check(await _raw_doc("limits/" + spam["uid"], {"day": {"integerValue": str(dday)}, "count": {"integerValue": str(FriendLogic.REQUESTS_PER_DAY + 1)}}) == 403,
+		"no pasa de %d (403)" % FriendLogic.REQUESTS_PER_DAY)
+	_check(await _raw_doc("limits/" + spam["uid"], {"day": {"integerValue": str(dday)}, "count": {"integerValue": "1"}}) == 403, "ni se reinicia el mismo día (403)")
+	var tok_sp: String = await _wait(func(cb: Callable) -> void: auth.get_token(cb))
+	_check((await _http(HTTPClient.METHOD_DELETE, CloudSync.docs_root(project) + "/limits/" + spam["uid"], "", tok_sp))[0] == 403, "ni se borra (403)")
+	r = await friends.add_by_code(code_b)
+	_check(not r["ok"], "con el tope lleno no manda más: " + r["msg"])
+	var forced := await _http(HTTPClient.METHOD_POST, CloudSync.docs_root(project) + ":commit", JSON.stringify({"writes": [
+		{"update": {"name": "projects/%s/databases/(default)/documents/players/%s/requests/%s" % [project, b["uid"], spam["uid"]], "fields": FriendLogic.request_fields(spam["uid"], {"company": "Spam", "avatar": "emprendedor"}, 1.0)["fields"]}},
+		{"update": {"name": "projects/%s/databases/(default)/documents/limits/%s" % [project, spam["uid"]], "fields": {"day": {"integerValue": str(dday)}, "count": {"integerValue": str(FriendLogic.REQUESTS_PER_DAY + 1)}}}}]}), tok_sp)
+	_check(forced[0] == 403, "ni salteándose el juego (commit a mano): 403")
+
+	print("== Pioneros: inscripción, registro y planilla (15.2)")
+	var docs_root: String = CloudSync.docs_root(project)
+	var commit_u: String = docs_root + ":commit"
+	var su_email := "pionera_%s@gmail.com" % stamp
+	var su := func(email: String, name: String, extra := {}) -> int:
+		var fields := {"name": {"stringValue": name}, "email": {"stringValue": email}, "consent": {"booleanValue": true}, "android": {"booleanValue": true}}
+		fields.merge(extra, true)
+		var res := await _http(HTTPClient.METHOD_POST, commit_u, JSON.stringify({"writes": [{
+			"update": {"name": "projects/%s/databases/(default)/documents/signups/%s" % [project, email], "fields": fields},
+			"updateTransforms": [{"fieldPath": "created", "setToServerValue": "REQUEST_TIME"}],
+			"currentDocument": {"exists": false}}]}))
+		return res[0]
+	_check(await su.call(su_email, "Pionera") == 200, "inscripción sin cuenta: aceptada")
+	_check(await su.call(su_email, "Otra vez") != 200, "el mismo email no se anota dos veces")
+	_check(await su.call("no-es-un-email", "X") != 200, "email inválido: rechazado")
+	_check(await su.call("otra_%s@gmail.com" % stamp, "X".repeat(60)) != 200, "nombre de 60 letras: rechazado")
+	_check(await su.call("otra_%s@gmail.com" % stamp, "Ok", {"admin": {"booleanValue": true}}) != 200, "campos de más (\"admin\"): rechazado")
+	_check((await _http(HTTPClient.METHOD_GET, docs_root + "/signups/" + su_email))[0] != 200, "sin cuenta no se leen las inscripciones")
+	var tok_any: String = await _wait(func(cb: Callable) -> void: auth.get_token(cb))
+	_check((await _http(HTTPClient.METHOD_GET, docs_root + "/signups/" + su_email, "", tok_any))[0] == 403, "un jugador común tampoco (403)")
+	# Registro desde el juego (en el AAB de la prueba cerrada; acá se fuerza).
+	var pr: Dictionary = await friends.register_pioneer(true)
+	_check(pr["ok"] and int(pr["doc"]["days"]) == 1, "el juego anota al pionero (1 día)")
+	pr = await friends.register_pioneer(true)
+	_check(pr["ok"] and int(pr["doc"]["days"]) == 1, "el mismo día no suma otro")
+	var tday := FriendLogic.utc_day(Time.get_unix_time_from_system())
+	var cheat := PioneerRegistry.to_fields({"email": auth.email, "company": "X", "first_day": tday - 20, "last_day": tday, "days": 20, "version": "15.2"})
+	_check(await _raw_doc("pioneers/" + auth.uid, cheat["fields"]) == 403, "no se puede inventar 20 días (403)")
+	var other_mail := PioneerRegistry.to_fields({"email": "otro@gmail.com", "company": "X", "first_day": tday, "last_day": tday, "days": 1, "version": "15.2"})
+	_check(await _raw_doc("pioneers/" + auth.uid, other_mail["fields"]) == 403, "ni registrarse con el email de otro (403)")
+	_check((await _http(HTTPClient.METHOD_GET, docs_root + "/pioneers/" + a["uid"], "", tok_any))[0] == 403, "un jugador no lee el registro de otro (403)")
+	var pioneer_uid: String = auth.uid
+	# Administración (email de isAdmin en firestore.rules).
+	var adm := await _account("facundo.n.defagot@gmail.com", true)
+	var tok_adm: String = await _wait(func(cb: Callable) -> void: auth.get_token(cb))
+	var ls := await _http(HTTPClient.METHOD_GET, docs_root + "/signups?pageSize=50", "", tok_adm)
+	_check(ls[0] == 200 and str(ls[1]).contains(su_email), "la administración ve las inscripciones")
+	var lp := await _http(HTTPClient.METHOD_GET, docs_root + "/pioneers?pageSize=50", "", tok_adm)
+	_check(lp[0] == 200 and str(lp[1]).contains(pioneer_uid), "y el registro de pioneros")
+	var mark := await _http(HTTPClient.METHOD_PATCH, docs_root + "/signups/%s?updateMask.fieldPaths=invited" % su_email, JSON.stringify({"fields": {"invited": {"booleanValue": true}}}), tok_adm)
+	_check(mark[0] == 200, "marca a la inscripta como invitada")
+	var hack := await _http(HTTPClient.METHOD_PATCH, docs_root + "/signups/%s?updateMask.fieldPaths=email" % su_email, JSON.stringify({"fields": {"email": {"stringValue": "x@y.com"}}}), tok_adm)
+	_check(hack[0] == 403, "pero no le cambia el email (403)")
+	var lr := await _http(HTTPClient.METHOD_POST, docs_root + ":runQuery", JSON.stringify({"structuredQuery": {"from": [{"collectionId": "reports"}]}}), tok_adm)
+	_check(lr[0] == 200, "y puede revisar las denuncias")
+
+	print("== Moderación (15.2, web/pioneros-admin.html)")
+	var mod_fields := func(photo_off: bool, name_off: bool, banned: bool) -> String:
+		return JSON.stringify({"fields": {"photo_off": {"booleanValue": photo_off}, "name_off": {"booleanValue": name_off},
+			"banned": {"booleanValue": banned}, "reason": {"stringValue": "prueba"}, "at": {"doubleValue": 1.0}}})
+	_check((await _http(HTTPClient.METHOD_GET, docs_root + "/players/" + b["uid"], "", tok_adm))[0] == 200, "la administración ve el perfil denunciado")
+	_check((await _http(HTTPClient.METHOD_PATCH, docs_root + "/moderation/" + b["uid"], mod_fields.call(true, true, false), tok_adm))[0] == 200, "le saca foto y nombre a Beto")
+	_check((await _http(HTTPClient.METHOD_PATCH, docs_root + "/players/%s?updateMask.fieldPaths=company" % b["uid"],
+		JSON.stringify({"fields": {"company": {"stringValue": FriendLogic.MOD_NAME}}}), tok_adm))[0] == 200, "y pone el nombre moderado en su perfil")
+	_check((await _http(HTTPClient.METHOD_PATCH, docs_root + "/players/%s?updateMask.fieldPaths=company" % b["uid"],
+		JSON.stringify({"fields": {"company": {"stringValue": "Cualquier cosa"}}}), tok_adm))[0] == 403, "pero no le puede poner otro nombre (403)")
+	_check((await _http(HTTPClient.METHOD_PATCH, docs_root + "/players/%s?updateMask.fieldPaths=stage" % b["uid"],
+		JSON.stringify({"fields": {"stage": {"integerValue": "9"}}}), tok_adm))[0] == 403, "ni tocarle otros datos (403)")
+	await _sign_in(b["email"])
+	_check(friends.status == "ok" and str(friends.me()["company"]) == FriendLogic.MOD_NAME, "el juego de Beto publica el nombre moderado")
+	_check(friends.moderation_note() != "", "y le avisa: " + friends.moderation_note())
+	var bp := FriendLogic.profile_of(game.m, b["uid"], friends.my_code)
+	bp["company"] = "Nombre feo"
+	_check(await _raw_doc("players/" + b["uid"], FriendLogic.profile_fields(bp, 1.0)["fields"]) == 403, "Beto no puede volver a poner su nombre (403)")
+	var tok_b: String = await _wait(func(cb: Callable) -> void: auth.get_token(cb))
+	_check((await _http(HTTPClient.METHOD_DELETE, docs_root + "/moderation/" + b["uid"], "", tok_b))[0] == 403, "ni borrar la sanción (403)")
+	await _sign_in("facundo.n.defagot@gmail.com")
+	tok_adm = await _wait(func(cb: Callable) -> void: auth.get_token(cb))
+	_check((await _http(HTTPClient.METHOD_PATCH, docs_root + "/moderation/" + b["uid"], mod_fields.call(true, true, true), tok_adm))[0] == 200, "expulsa a Beto de Amigos")
+	_check((await _http(HTTPClient.METHOD_DELETE, docs_root + "/players/" + b["uid"], "", tok_adm))[0] == 200, "y borra su perfil público")
+	await _sign_in(b["email"])
+	_check(friends.status == "error" and friends.last_error.contains("denuncias"), "Beto expulsado: Amigos le muestra el aviso")
+	_check(await _raw_doc("players/" + b["uid"], FriendLogic.profile_fields(FriendLogic.profile_of(game.m, b["uid"], friends.my_code), 1.0)["fields"]) == 403, "y no puede recrear su perfil (403)")
+	await _sign_in("facundo.n.defagot@gmail.com")
+	tok_adm = await _wait(func(cb: Callable) -> void: auth.get_token(cb))
+	_check((await _http(HTTPClient.METHOD_DELETE, docs_root + "/moderation/" + b["uid"], "", tok_adm))[0] == 200, "la administración levanta la sanción")
+	await _sign_in(b["email"])
+	_check(friends.status == "ok" and friends.moderation_note() == "" and str(friends.me()["company"]) != FriendLogic.MOD_NAME, "Beto vuelve a Amigos con su nombre")
 
 	print("== Borrar la cuenta (Google Play)")
 	var c := await _account("carla_%s@test.invalid" % stamp, true)
@@ -248,7 +414,7 @@ func _run() -> void:
 	await _sign_in(a["email"])
 	var tok_a: String = await _wait(func(cb: Callable) -> void: auth.get_token(cb))
 	var root_docs: String = CloudSync.docs_root(project)
-	_check((await _http(HTTPClient.METHOD_GET, root_docs + "/players/" + c["uid"], "", tok_a))[0] == 404, "el perfil público de Carla no existe más")
+	_check((await _http(HTTPClient.METHOD_GET, root_docs + "/players/" + c["uid"], "", "owner"))[0] == 404, "el perfil público de Carla no existe más (vista de administrador)")
 	_check((await _http(HTTPClient.METHOD_GET, root_docs + "/codes/" + code_c, "", tok_a))[0] == 404, "el código de Carla quedó libre")
 	var again: Dictionary = await _wait(func(cb: Callable) -> void:
 		auth.sign_out()
@@ -256,6 +422,15 @@ func _run() -> void:
 	_check(not again["ok"], "la cuenta de Carla ya no existe: " + str(again["msg"]))
 	var admin := await _http(HTTPClient.METHOD_GET, root_docs + "/saves/" + c["uid"], "", "owner")
 	_check(admin[0] == 404, "la partida de Carla en la nube se borró (vista de administrador)")
+
+	print("== Borrar la cuenta con bloqueos y denuncias (15.2)")
+	await _sign_in(a["email"])
+	r = await auth.delete_account("clave-segura-123")
+	_check(r["ok"], "Ana (que bloqueó y denunció) borra su cuenta: " + r["msg"])
+	var left_rep := await _http(HTTPClient.METHOD_POST, root_docs + ":runQuery", JSON.stringify({"structuredQuery": {"from": [{"collectionId": "reports"}],
+		"where": {"fieldFilter": {"field": {"fieldPath": "reporter"}, "op": "EQUAL", "value": {"stringValue": a["uid"]}}}}}), "owner")
+	_check(left_rep[0] == 200 and (left_rep[1] as Array).filter(func(x) -> bool: return x is Dictionary and x.has("document")).is_empty(), "sus denuncias se borraron")
+	_check((await _http(HTTPClient.METHOD_GET, root_docs + "/players/%s/blocked/%s" % [a["uid"], b["uid"]], "", "owner"))[0] == 404, "su lista de bloqueados se borró")
 
 	auth.sign_out()
 	for f in KEEP:

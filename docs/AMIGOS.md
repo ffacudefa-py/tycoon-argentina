@@ -16,7 +16,16 @@ quedan en pausa, y las reglas de Firestore lo exigen también del lado del servi
   `friends.gift_reward` (2 min de ganancia neta, mínimo $200) y se abren como mucho
   `friends.gifts_per_day` (5) por día. Todo en `data/progression.json`.
 - **Sacar a un amigo**: se borra de las dos listas.
+- **Bloquear o denunciar** (15.2, botón ⚠ en solicitudes y amigos): bloquear lo saca de
+  amigos, borra su solicitud y su mate y no le deja mandar nada más ni ver el perfil;
+  denunciar además deja un documento en `reports/` para que lo revise el equipo. Se
+  desbloquea en la tarjeta *Bloqueados*.
+- **Insignias** (15.2): cada uno elige hasta 3 (logros o especiales como *Pionero*) y
+  sus amigos las ven al lado del nombre en el ranking (`Badges`, `scripts/profile/badges.gd`).
 - Máximo `friends.max_friends` (50) amigos.
+- **Tope de solicitudes** (15.2): 20 por día por cuenta (`FriendLogic.REQUESTS_PER_DAY` y
+  `limits/<uid>` en `firestore.rules`, mismo número). La solicitud y el contador van en un
+  solo commit; las reglas rechazan una solicitud que no sume 1.
 
 Acceso: Perfil → tarjeta **Amigos** (muestra cuántas solicitudes y mates hay sin ver).
 
@@ -24,11 +33,13 @@ Acceso: Perfil → tarjeta **Amigos** (muestra cuántas solicitudes y mates hay 
 
 | Documento | Contenido | Quién lee / escribe |
 |---|---|---|
-| `players/<uid>` | empresa, avatar, etapa, ganado, prestigio, código y (15.0) `photo`: miniatura JPEG 64×64 en base64 si el jugador lo activa en Configuración (apagado de fábrica) | cualquiera verificado lo lee **de a uno** (no se listan); escribe el dueño |
+| `players/<uid>` | empresa, avatar, etapa, ganado, prestigio, código, (15.0) `photo`: miniatura JPEG 64×64 en base64 si el jugador lo activa en Configuración (apagado de fábrica) y (15.2) `badges`: hasta 3 ids de insignias | desde la 15.2 lo leen **sólo** el dueño, sus amigos y a quien le mandó solicitud (antes, cualquiera verificado); no se listan; escribe el dueño |
 | `codes/<CÓDIGO>` | `{uid}` | se lee de a uno; se crea una vez y no se cambia |
 | `players/<uid>/requests/<de>` | solicitud recibida | la crea `<de>` (si no son amigos); el dueño la ve y la borra |
 | `players/<uid>/friends/<uid2>` | `{since}` | el dueño; quien acepta escribe además en la lista del que pidió **sólo si existe la solicitud** |
-| `players/<uid>/gifts/<de>` | mate sin abrir | lo crea `<de>` **sólo si está en la lista del dueño**; el dueño lo abre (borra) |
+| `players/<uid>/gifts/<de>` | mate sin abrir | lo crea `<de>` **sólo si está en la lista del dueño** (y no está bloqueado); el dueño lo abre (borra) |
+| `players/<uid>/blocked/<uid2>` | (15.2) `{company, at}` | sólo el dueño; mientras exista, `<uid2>` no puede crear solicitudes ni mates ni leer el perfil |
+| `reports/<auto>` | (15.2) `{reporter, target, reason, company, at}` | la crea el que denuncia a su nombre; nadie la lee desde el juego (se revisa en la consola); el que denunció la borra al borrar su cuenta |
 
 Aceptar es un `documents:commit` atómico: las dos entradas de `friends` y el borrado de
 la solicitud. Las reglas están en `firestore.rules`.

@@ -23,7 +23,7 @@ También: "Usar avatar pixel art", "Quitar foto" y "Restaurar banner por defecto
   y se procesa con `call_deferred` (respeta el ciclo de vida: si la app pasó a
   segundo plano, el juego ya guardó y el recorte se abre al volver).
   En PC usa el diálogo de archivos de Godot.
-- `profile_images.gd`: detecta PNG/JPEG/WEBP por la firma, corrige la rotación
+- `profile_images.gd`: detecta PNG/JPEG por la firma (15.2: sólo esos dos; WEBP, GIF u otros archivos se rechazan), corrige la rotación
   EXIF de las fotos de cámara, achica a 2048 px como máximo para trabajar y
   guarda PNG optimizados: foto **256×256**, banner **768×256**, en
   `user://profile/` (escritura a temporal + verificación + renombrado).

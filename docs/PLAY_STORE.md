@@ -24,7 +24,9 @@ Estado de la 15.1 frente a los requisitos de Google Play (revisado el 22/11/2026
 | Consentimiento para anuncios en UE/Reino Unido (CMP certificado por Google) | ✅ UMP integrado; verificado en el emulador: aparece el formulario de Google antes de iniciar AdMob (`admob_ad_provider.gd`): pide consentimiento antes de iniciar AdMob y, si corresponde, muestra *Privacidad de los anuncios* en Configuración. ⏳ crear el mensaje GDPR en AdMob → Privacidad y mensajes |
 | Anuncios reales | ✅ cuenta de AdMob de **Juan José Defagot** (pub-5630983612724561), creada el 22/11/2026 como app "no publicada en tienda": App ID en `data/ads.json` y `project.godot` (`[admob] general/android/app_id`), unidad Recompensado en `data/ads.json`, `web/app-ads.txt` publicado. **Nunca usar la cuenta de AdMob de benjann.** ⏳ vincular la app con Play en AdMob cuando esté publicada, y poner `https://coronadosdegloria.web.app` como sitio web del desarrollador en la ficha (app-ads.txt) |
 | Público objetivo | ⚠️ ver "Público y clasificación" |
-| Contenido | ✅ sin apuestas con dinero real, sin compras, sin chat ni contenido generado por usuarios (sólo el nombre de la empresa, máx. 40 letras, visible para amigos) |
+| Contenido | ✅ sin apuestas con dinero real, sin compras, sin chat. Contenido de usuarios: sólo el nombre de la empresa (máx. 40 letras) y, si el jugador lo activa, la miniatura de su foto, visibles **sólo para sus amigos** (desde la 15.2) |
+| Contenido de usuarios: bloquear y denunciar (15.2) | ✅ Amigos → botón ⚠ en cada solicitud y amigo: *Sólo bloquear* o *Denunciar y bloquear* (nombre ofensivo, foto inapropiada, spam o acoso, otro). Bloquear corta la amistad, borra su solicitud y su mate, y las reglas no le dejan mandar nada nuevo ni leer el perfil. Las denuncias quedan en `reports/` y se revisan en la consola de Firebase (Firestore → reports); a quien corresponda, se le puede borrar el perfil desde ahí |
+| Actualizaciones sólo por Play (15.2) | ✅ el AAB lleva la etiqueta `play`: no chequea ni avisa versiones nuevas de GitHub (sólo los APK de GitHub lo hacen) |
 
 ## Publicar las páginas legales
 
@@ -50,6 +52,25 @@ firebase deploy --only firestore:rules --project coronadosdegloria
 **Publicar las reglas junto con la 0.7.1**: la 0.7.0 no borra cuentas, pero el resto
 de lo que escribe ya cumple las reglas nuevas (mismos campos).
 
+**15.2 (revisión de seguridad del 23/11/2026)**: `players/<uid>` (empresa, foto, insignias)
+ya no lo lee cualquier cuenta verificada que sepa el uid: sólo el dueño, sus amigos y a
+quien le mandó una solicitud. Nuevas: `players/<uid>/blocked/<uid2>` y `reports/<auto>`;
+el campo `badges` del perfil (hasta 3 ids). Son compatibles con la 15.1 (no lee perfiles
+ajenos fuera de amigos y solicitudes, y no manda `badges`), así que se pueden publicar
+antes que la app (publicadas el 23/11/2026).
+
+**15.2, segunda parte (publicada el 23/11/2026 con el interruptor `compat151()` en `true`)**: tope de **20 solicitudes de amistad por día**
+por cuenta (`limits/<uid>` = `{day, count}`, día UTC; cada solicitud tiene que sumar 1 en el
+mismo commit; no se puede saltear, reiniciar ni borrar) y la foto del perfil sólo puede ser
+**JPEG o PNG** en base64 (por la firma). ⚠️ La 15.1 manda las solicitudes sin el contador:
+con estas reglas no podría agregar amigos. **Publicar las reglas el mismo día que sale la
+15.2** (y avisar a los que tienen la 15.1 que actualicen). El contador no tiene datos
+personales y queda aunque se borre la cuenta (si se pudiera borrar, se reiniciaría el tope).
+Mientras `compat151()` devuelva `true` el tope lo respeta sólo el juego 15.2; **el día que sale
+la 15.2, cambiarlo a `false` en `firestore.rules` y publicar las reglas**. La foto JPEG/PNG, la
+inscripción y el registro de pioneros (`docs/PIONEROS.md`) ya rigen. Las reglas se prueban con
+`tools/dev/rules_check.sh` (las corre con el interruptor en `false`).
+
 ## Keystore de subida y AAB
 
 La clave está en `D:\Users\Family\Tools\keystores\upload\` (PC de la familia), con la
@@ -61,6 +82,11 @@ KEYSTORE=/ruta/coronados-upload.jks KEYSTORE_PASS='…' GODOT=/ruta/godot tools/
 ```
 Genera `build/CoronadosDeGloria-<versión>.aab` con AdMob y falla si el manifest no lleva el App ID
 de producción o lleva uno de prueba. `SIN_ANUNCIOS=1` arma la versión sin el SDK (sin AD_ID).
+**`PRUEBA_CERRADA=1`** (15.2) arma `build/CoronadosDeGloria-<versión>-prueba-cerrada.aab` para la
+prueba cerrada: agrega la etiqueta `prueba_cerrada` (anuncios de **prueba** de Google, así los
+testers no generan clics inválidos en la cuenta real, y la insignia **Pionero** para quien lo juegue;
+se guarda en la partida y en la nube, así que la conserva en producción). El script controla que esa
+etiqueta esté sólo en ese AAB. Para producción se arma **sin** la variable.
 Activar Play App Signing al subir el primer AAB. Los testers que tengan el APK de GitHub
 tienen que desinstalarlo antes (otra firma): conviene entrar con la cuenta para que la
 partida quede en la nube.
@@ -72,7 +98,9 @@ partida quede en la nube.
   cuentas (la app se usa sin cuenta → *opcional*); fines: *Funcionalidad de la app*, *Administración de la cuenta*.
 - **Información personal → IDs de usuario** (uid de Firebase): igual que el email.
 - **Actividad en la app → Otro contenido generado por el usuario** (nombre de la empresa en el
-  perfil público): recopilado, opcional, *Funcionalidad de la app*.
+  perfil que ven los amigos; desde la 15.2 también las denuncias que hace el jugador, con el
+  motivo y el nombre denunciado): recopilado, opcional, *Funcionalidad de la app* y
+  *Seguridad, cumplimiento y prevención de fraudes*. Se borra al borrar la cuenta.
 - **Actividad en la app → Interacciones en la app / progreso** (partida en la nube): recopilado, opcional, *Funcionalidad de la app*.
 - **Fotos y videos → Fotos** (desde la 15.0): miniatura 64×64 de la foto de perfil, **sólo si el jugador lo activa**
   (viene apagado); recopilada, opcional, *Funcionalidad de la app*; se borra al desactivarlo o al borrar la cuenta.
@@ -106,3 +134,24 @@ Si algún día se arma con `SIN_ANUNCIOS=1`, las dos respuestas pasan a **No**.
 
 Las cuentas personales nuevas de Play Console deben hacer una **prueba cerrada con al menos
 12 testers durante 14 días** antes de poder publicar en producción.
+
+## Revisión de seguridad (23/11/2026)
+
+| Punto | Estado |
+|---|---|
+| Perfil (con foto) legible por cualquier cuenta que supiera el código | ✅ 15.2: sólo dueño, amigos y solicitudes (`firestore.rules`, probado en `social_check.gd`) |
+| Sin bloquear ni denunciar (política de contenido de usuarios); un desconocido podía reenviar solicitudes rechazadas | ✅ 15.2: bloquear y denunciar; bloqueado no manda solicitudes ni mates |
+| Spam de solicitudes | ✅ 15.2: máximo 20 por día por cuenta, controlado por las reglas (⏳ publicar con la 15.2) |
+| Subir algo que no sea una foto | ✅ 15.2: el juego sólo abre PNG/JPG/JPEG (por la firma) y las reglas sólo aceptan JPEG o PNG en base64 (⏳ publicar con la 15.2) |
+| Aviso de versión nueva de GitHub en el build de Play | ✅ 15.2: etiqueta `play` en el preset "Android Play Store" |
+| API key sin restringir, sin App Check | ⏳ restringir la clave en Google Cloud (abajo). App Check no aplica sin el SDK de Firebase (el juego usa la API REST); las reglas son la defensa |
+| OK sin cambios | `allowBackup=false`, receiver no exportado, sin secretos en el repo, tokens no se loguean, partidas validadas por reglas, borrado de cuenta completo (ahora también bloqueados y denuncias) |
+
+### Restringir la API key (a mano, cuenta dueña del proyecto)
+
+Google Cloud Console → proyecto **coronadosdegloria** → APIs y servicios → Credenciales →
+la clave de `data/firebase.json` (*Browser key / auto created by Firebase*) → **Restricciones de API**
+→ *Restringir clave* y dejar sólo: **Identity Toolkit API**, **Token Service API** y
+**Cloud Firestore API**. Sin restricción de aplicación (los APK de GitHub y el de Play tienen
+firmas distintas). Después, probar en el teléfono: entrar, sincronizar y abrir Amigos.
+Si el proyecto pasa a Blaze, poner además una alerta de presupuesto.

@@ -4,7 +4,8 @@ extends Node
 ## el autoload Music.
 
 const NAMES := ["tap", "coin", "buy", "upgrade", "unlock", "hire", "mission", "error", "event", "register", "tier", "whoosh",
-	"shot", "hit", "ricochet", "empty", "reload", "bag", "alarm", "siren", "swipe", "shred", "stamp", "buzzer", "tick"]
+	"shot", "hit", "ricochet", "empty", "reload", "bag", "alarm", "siren", "swipe", "shred", "stamp", "buzzer", "tick",
+	"throw", "slap", "bonk", "flap"]
 const POOL := 6
 ## Sonidos con varias versiones (assets/audio/<nombre>_0.wav, _1...): cada vez
 ## suena UNA, elegida al azar sin repetir la anterior, con el tono un poco

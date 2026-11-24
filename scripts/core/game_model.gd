@@ -89,7 +89,7 @@ func new_game() -> void:
 	prestige = {"points": 0, "spent": 0, "count": 0, "perks": {}}
 	achievements = {}
 	profile = {"company": "Mi Emprendimiento", "avatar": "emprendedor", "avatars": _default_avatars(), "milestones": [],
-		"photo": false, "banner": false}
+		"photo": false, "banner": false, "badges": {}, "shown_badges": []}
 	counters = {}
 	stats = {"play_time": 0.0, "best_income": 0.0, "created": now()}
 	daily_reward = {"last_day": -1, "index": 0}

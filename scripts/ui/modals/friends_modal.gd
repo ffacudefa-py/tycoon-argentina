@@ -68,6 +68,9 @@ static func _build(col: VBoxContainer) -> void:
 	cc.add_child(add_row)
 	col.add_child(code_card)
 
+	var mod_note := Friends.moderation_note()
+	if mod_note != "" and Friends.status != "error":
+		col.add_child(U.para(mod_note, U.SIZE_SMALL, U.RED))
 	if Friends.status == "error":
 		col.add_child(U.para(Friends.last_error, U.SIZE_SMALL, U.RED))
 	elif Friends.status == "loading" and Friends.friends.is_empty():
@@ -83,8 +86,10 @@ static func _build(col: VBoxContainer) -> void:
 			U.on_press(ok, func() -> void: Main.instance.result(await Friends.accept(fid), "unlock"), "")
 			r.add_child(ok)
 			var no := U.icon_button("cerrar", "rojo", 26)
+			no.tooltip_text = "Rechazar"
 			U.on_press(no, func() -> void: Main.instance.result(await Friends.reject(fid)))
 			r.add_child(no)
+			r.add_child(_moderate_button(fid, rq["company"]))
 			card.add_child(r)
 
 	# --- Mates recibidos
@@ -110,7 +115,8 @@ static func _build(col: VBoxContainer) -> void:
 		pos += 1
 		var mine: bool = p["uid"] == Auth.uid
 		var r := _person_row(p["avatar"], "%d. %s%s" % [pos, p["company"], " (vos)" if mine else ""],
-			"Etapa %d · %s ganados" % [int(p["stage"]), Fmt.money(int(p["lifetime"]))], mine, str(p.get("photo", "")))
+			"Etapa %d · %s ganados" % [int(p["stage"]), Fmt.money(int(p["lifetime"]))], mine, str(p.get("photo", "")),
+			Badges.filter_known(Game.m, p.get("badges", [])))
 		if not mine:
 			var fid: String = p["uid"]
 			var gift := U.icon_button("yerba", "verde", 28)
@@ -124,8 +130,51 @@ static func _build(col: VBoxContainer) -> void:
 				Main.instance.confirm("¿Sacar a %s?" % name, "Deja de estar en tu ranking y vos en el suyo. Se pueden volver a agregar con el código.", "Sacar",
 					func() -> void: Main.instance.result(await Friends.remove(fid))))
 			r.add_child(del)
+			r.add_child(_moderate_button(fid, name))
 		rank_card.add_child(r)
 	rank_card.add_child(U.para("Mate: convidale uno por día a cada amigo; al abrirlo gana un premio chico.", U.SIZE_SMALL, U.TEXT_SOFT))
+
+	# --- Bloqueados (15.2)
+	if not Friends.blocked.is_empty():
+		var bcard := _card(col, "Bloqueados (%d)" % Friends.blocked.size(), "candado")
+		for bl in Friends.blocked:
+			var r := _person_row("emprendedor", bl["company"] if str(bl["company"]) != "" else "(sin nombre)", "No te puede mandar nada ni ver tu perfil")
+			var bid: String = bl["uid"]
+			var un := U.button("Desbloquear", "crema", "", 26, U.SIZE_SMALL)
+			U.on_press(un, func() -> void: Main.instance.result(await Friends.unblock(bid)), "")
+			r.add_child(un)
+			bcard.add_child(r)
+
+
+## Botón para bloquear o denunciar (nombre, foto, acoso) a otro jugador.
+static func _moderate_button(fid: String, company: String) -> Button:
+	var b := U.icon_button("alerta", "crema", 26)
+	b.tooltip_text = "Bloquear o denunciar"
+	U.on_press(b, func() -> void: _moderate(fid, company))
+	return b
+
+
+static func _moderate(fid: String, company: String) -> void:
+	var body := U.vbox(6)
+	body.add_child(U.para("Si %s te molesta o tiene un nombre o una foto inapropiados, podés bloquearlo: deja de ser tu amigo, no te puede mandar solicitudes ni mates y no ve tu perfil. Si además lo denunciás, el equipo lo revisa." % company, U.SIZE_SMALL, U.TEXT))
+	var w_ref := []
+	var close := func() -> void:
+		if not w_ref.is_empty() and is_instance_valid(w_ref[0]):
+			w_ref[0].close()
+	var blk := U.button("Sólo bloquear", "rojo", "candado", 30, U.SIZE_SMALL)
+	U.on_press(blk, func() -> void:
+		close.call()
+		Main.instance.result(await Friends.block(fid, company)), "")
+	body.add_child(blk)
+	body.add_child(U.label("Denunciar y bloquear por:", U.SIZE_SMALL, U.TEXT_SOFT, true))
+	for reason in FriendLogic.REPORT_REASONS:
+		var rb := U.button(FriendLogic.REPORT_REASONS[reason], "amarillo", "alerta", 28, U.SIZE_SMALL)
+		var rr: String = reason
+		U.on_press(rb, func() -> void:
+			close.call()
+			Main.instance.result(await Friends.report(fid, company, rr)), "")
+		body.add_child(rb)
+	w_ref.append(Main.instance.modal_host.open("Bloquear o denunciar", body, true, 300))
 
 
 static func _card(col: VBoxContainer, title: String, icon_name: String) -> VBoxContainer:
@@ -140,7 +189,7 @@ static func _card(col: VBoxContainer, title: String, icon_name: String) -> VBoxC
 	return c
 
 
-static func _person_row(avatar_id: String, title: String, sub: String, highlight := false, photo := "") -> HBoxContainer:
+static func _person_row(avatar_id: String, title: String, sub: String, highlight := false, photo := "", badges: Array = []) -> HBoxContainer:
 	var r := U.hbox(6)
 	var av: TextureRect
 	if avatar_id == "mate":
@@ -156,7 +205,15 @@ static func _person_row(avatar_id: String, title: String, sub: String, highlight
 	t.clip_text = true
 	t.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	t.custom_minimum_size.x = 1
-	txt.add_child(t)
+	if badges.is_empty():
+		txt.add_child(t)
+	else:
+		# Nombre y, al lado, las insignias que muestra (15.2).
+		var name_row := U.hbox(3)
+		t.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		name_row.add_child(t)
+		name_row.add_child(ProfileWidgets.badge_strip(Game.m, badges, 14))
+		txt.add_child(name_row)
 	var s := U.label(sub, U.SIZE_SMALL, U.TEXT_SOFT)
 	s.clip_text = true
 	s.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS

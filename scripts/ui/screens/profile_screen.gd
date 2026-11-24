@@ -121,6 +121,7 @@ func _header() -> Control:
 	U.on_press(edit, RenameDialog.open)
 	name_row.add_child(edit)
 	col.add_child(name_row)
+	col.add_child(_shown_badges())
 	col.add_child(_fit(U.label("Etapa %d de 8 · %s" % [m.stage, m.data.stage_name(m.stage)], U.SIZE_SMALL, U.GREEN, true)))
 	_stage_bar = U.progress("violeta", 8)
 	col.add_child(_stage_bar)
@@ -194,6 +195,88 @@ const ACH_CATEGORIES := {"ventas": "Ventas", "dinero": "Dinero", "negocios": "Ne
 const ACH_TIERS := {"bronce": "Bronce", "plata": "Plata", "oro": "Oro", "diamante": "Diamante"}
 
 
+## 15.2: las insignias elegidas para mostrar (hasta Badges.MAX_SHOWN). Se tocan
+## para ver el detalle; sin ninguna elegida, una pista de cómo hacerlo.
+func _shown_badges() -> Control:
+	var ids := Badges.shown(m)
+	if ids.is_empty():
+		return _fit(U.label("Elegí tus insignias abajo, en Logros.", U.SIZE_SMALL, U.TEXT_SOFT))
+	var row := U.hbox(3)
+	for id in ids:
+		var b := _badge_button(id, true, Vector2(26, 26))
+		row.add_child(b)
+	return row
+
+
+## Botón de una insignia (de logro o especial) que abre su detalle.
+func _badge_button(id: String, got: bool, size: Vector2) -> TextureButton:
+	var b := TextureButton.new()
+	if Badges.is_special(id):
+		b.texture_normal = ProfileWidgets.badge_tex(m, id)
+	else:
+		b.texture_normal = badge_tex(m.data.achievement_by_id[id], got)
+	b.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	b.stretch_mode = TextureButton.STRETCH_KEEP_ASPECT_CENTERED
+	b.ignore_texture_size = true
+	b.custom_minimum_size = size
+	b.focus_mode = Control.FOCUS_NONE
+	b.tooltip_text = Badges.display_name(m, id)
+	U.on_press(b, func() -> void:
+		if Badges.is_special(id):
+			_special_info(id)
+		else:
+			_achievement_info(m.data.achievement_by_id[id]))
+	return b
+
+
+## Marca (tilde) en la esquina de las insignias que se muestran en el perfil.
+func _mark_shown(b: Control) -> void:
+	var tick := U.icon("check")
+	tick.custom_minimum_size = Vector2(12, 12)
+	tick.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	tick.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	tick.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+	tick.position = Vector2(-13, 0)
+	tick.size = Vector2(12, 12)
+	tick.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	b.add_child(tick)
+
+
+## Botón "Mostrar en mi perfil" / "Dejar de mostrar" del detalle de una insignia.
+func _show_toggle(id: String) -> Button:
+	var on := Badges.is_shown(m, id)
+	var b := U.button("Dejar de mostrar" if on else "Mostrar en mi perfil", "crema" if on else "verde", "persona", 30, U.SIZE_SMALL)
+	U.on_press(b, func() -> void:
+		var r := Badges.toggle_shown(m, id)
+		Main.instance.result(r)
+		if r["ok"]:
+			Main.instance.modal_host.close_top())
+	return b
+
+
+func _special_info(id: String) -> void:
+	var s: Dictionary = Badges.SPECIAL[id]
+	var body := U.vbox(6)
+	var big := TextureRect.new()
+	big.texture = ProfileWidgets.badge_tex(m, id)
+	big.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	big.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	big.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	big.custom_minimum_size = Vector2(64, 64)
+	big.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	body.add_child(big)
+	body.add_child(U.label("Insignia especial", U.SIZE_SMALL, U.TEXT_SOFT, true, HORIZONTAL_ALIGNMENT_CENTER))
+	body.add_child(U.para(s["description"], U.SIZE_BODY, U.TEXT))
+	var at := float((m.profile.get("badges", {}) as Dictionary).get(id, 0.0))
+	if at > 0.0:
+		body.add_child(U.label("Ganada el " + Time.get_date_string_from_unix_time(int(at)), U.SIZE_SMALL, U.TEXT_SOFT))
+	if id == "pionero" and PioneerRegistry.active() and not Auth.verified():
+		# Sin cuenta la insignia queda sólo en este teléfono y no se cuentan sus días.
+		body.add_child(U.para("Creá una cuenta (Perfil → Amigos) para quedar en el registro de pioneros y no perder la insignia si cambiás de teléfono.", U.SIZE_SMALL, U.RED))
+	body.add_child(_show_toggle(id))
+	Main.instance.modal_host.open(s["name"], body, true, 280)
+
+
 ## Insignia del logro (15.0, tools/art/badges15.py): la suya o la bloqueada de su categoría.
 static func badge_tex(a: Dictionary, got: bool) -> Texture2D:
 	var t := U.tex("res://assets/iconos/badges/%s.png" % (a["id"] if got else "locked_" + str(a.get("category", "aventura"))))
@@ -205,6 +288,17 @@ func _achievements() -> Control:
 	var col := U.vbox(6)
 	card.add_child(col)
 	col.add_child(U.label("Logros (%d/%d)" % [m.achievements.size(), m.data.achievements.size()], U.SIZE_BODY, U.TEXT, true))
+	col.add_child(U.para("Tocá una insignia ganada para mostrarla en tu perfil (hasta %d)." % Badges.MAX_SHOWN, U.SIZE_SMALL, U.TEXT_SOFT))
+	var specials := Badges.special_owned(m)
+	if not specials.is_empty():
+		col.add_child(U.label("Especiales", U.SIZE_SMALL, U.TEXT_SOFT, true))
+		var srow := U.hbox(2)
+		for id in specials:
+			var sb := _badge_button(id, true, Vector2(42, 40))
+			if Badges.is_shown(m, id):
+				_mark_shown(sb)
+			srow.add_child(sb)
+		col.add_child(srow)
 	for cat in ACH_CATEGORIES:
 		var list: Array = m.data.achievements.filter(func(a: Dictionary) -> bool: return str(a.get("category", "aventura")) == cat)
 		if list.is_empty():
@@ -227,6 +321,8 @@ func _achievements() -> Control:
 			b.tooltip_text = a["name"]
 			var aa: Dictionary = a
 			U.on_press(b, func() -> void: _achievement_info(aa))
+			if got and Badges.is_shown(m, a["id"]):
+				_mark_shown(b)
 			grid.add_child(b)
 		col.add_child(grid)
 	return card
@@ -253,6 +349,7 @@ func _achievement_info(a: Dictionary) -> void:
 	body.add_child(bar)
 	if got:
 		body.add_child(U.label("Desbloqueado el " + Time.get_date_string_from_unix_time(int(m.achievements[a["id"]])), U.SIZE_SMALL, U.TEXT_SOFT))
+		body.add_child(_show_toggle(a["id"]))
 	else:
 		body.add_child(U.label("%s / %s" % [Fmt.num(minf(v, float(a["target"]))), Fmt.num(float(a["target"]))], U.SIZE_SMALL, U.TEXT_SOFT))
 	Main.instance.modal_host.open(a["name"], body, true, 280)

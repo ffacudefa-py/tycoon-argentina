@@ -52,6 +52,8 @@ func _ready() -> void:
 		EmployeeSystem.ensure_candidates(m, id)
 	ProgressionSystem.ensure_daily(m)
 	m.update_progress()
+	# 15.2: el build de la prueba cerrada regala la insignia Pionero.
+	Badges.grant_closed_test(m)
 	_last_wall = m.now()
 	for sig in ["businesses_changed", "stage_changed", "world_changed", "profile_changed"]:
 		m.connect(sig, func(_a = null) -> void: save_soon())
@@ -117,6 +119,7 @@ func replace_with(payload: Dictionary) -> void:
 		EmployeeSystem.ensure_candidates(m, id)
 	ProgressionSystem.ensure_daily(m)
 	m.update_progress()
+	Badges.grant_closed_test(m)       # la partida de la nube puede ser de antes
 	_last_wall = m.now()
 	_acc = 0.0
 	save()
@@ -141,5 +144,6 @@ func reset_everything() -> void:
 		EmployeeSystem.ensure_candidates(m, id)
 	ProgressionSystem.ensure_daily(m)
 	m.update_progress()
+	Badges.grant_closed_test(m)
 	save()
 	model_reset.emit()

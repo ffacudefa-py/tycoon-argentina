@@ -160,6 +160,9 @@ func _run() -> void:
 		if a == "--shots-set=trailer":
 			await DevTrailer.new(self).run()
 			return
+		if a == "--shots-set=insignias":
+			await _run_badges()
+			return
 	var main := Main.instance
 	var m := Game.m
 	Game.reset_everything()
@@ -983,6 +986,38 @@ func _run_traffic() -> void:
 
 
 ## 15.0: la postal de inicio: la entrada y cuadros espaciados. Uso: --shots-set=postal
+## 15.2: insignias en el perfil (Pionero + logros elegidos). Uso: --shots-set=insignias
+func _run_badges() -> void:
+	var main := Main.instance
+	var m := Game.m
+	Game.reset_everything()
+	await get_tree().process_frame
+	main.modal_host.close_all()
+	if main.start.is_open():
+		main.start.enter_game()
+	m.set_company_name("Mates del Sur")
+	await _shot("in_00_sin_insignias", 0.3)
+	main.go_to(4)
+	await _shot("in_01_perfil_sin_mostrar", 0.6)
+	for a in m.data.achievements.slice(0, 9):
+		m.achievements[a["id"]] = m.now()
+	Badges.grant(m, "pionero")
+	Badges.toggle_shown(m, m.data.achievements[0]["id"])
+	Badges.toggle_shown(m, m.data.achievements[3]["id"])
+	await _shot("in_02_perfil_con_insignias", 0.6)
+	var screen: ProfileScreen = main.screens[4]
+	var sc := screen.get_child(0) as ScrollContainer
+	if sc:
+		sc.scroll_vertical = 520
+	await _shot("in_03_logros_marcados", 0.6)
+	screen._special_info("pionero")
+	await _shot("in_04_detalle_pionero", 0.5)
+	main.modal_host.close_all()
+	screen._achievement_info(m.data.achievements[5])
+	await _shot("in_05_detalle_lleno", 0.5)
+	main.modal_host.close_all()
+
+
 func _run_postal() -> void:
 	var main := Main.instance
 	main.start.open(true)

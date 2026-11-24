@@ -68,4 +68,11 @@ save("shred", mix(tone(0, 0.28, 0.25, "noise", decay=6), tone(70, 0.28, 0.25, "s
 save("stamp", mix(tone(110, 0.12, 0.5, "square", slide=-50, decay=20), tone(0, 0.06, 0.35, "noise", decay=40)))
 save("buzzer", tone(110, 0.5, 0.4, "square", decay=3, duty=0.45))
 save("tick", tone(1400, 0.03, 0.25, "square", decay=50, duty=0.3))
+# 15.2: la chancleta de la abuela reemplaza la pistola del asalto (shot/hit/ricochet/reload
+# quedan sin usar; van al final para no cambiar el azar de los sonidos de arriba).
+save("throw", mix(tone(0, 0.16, 0.22, "noise", slide=0, decay=11), tone(260, 0.16, 0.12, "tri", slide=900, decay=9)))
+save("slap", mix(mix(tone(0, 0.05, 0.85, "noise", decay=70), tone(0, 0.11, 0.25, "noise", decay=28)),
+                 tone(190, 0.09, 0.45, "sine", slide=-120, decay=32)))
+save("bonk", mix(tone(520, 0.16, 0.38, "tri", slide=-260, decay=16), tone(1040, 0.08, 0.14, "sine", slide=-400, decay=30)))
+save("flap", seq(tone(0, 0.035, 0.4, "noise", decay=60), tone(0, 0.05, 0.0), tone(0, 0.035, 0.35, "noise", decay=60)))
 print("ok", sorted(os.listdir(OUT)))

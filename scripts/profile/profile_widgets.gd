@@ -131,3 +131,30 @@ static func pick(kind: String) -> void:
 		CropScreen.open(kind, img, func(saved: bool) -> void:
 			if saved:
 				Game.save_soon()))
+
+
+## 15.2: imagen de una insignia ganada (logro o especial, ver Badges) (assets/iconos/badges/<id>.png, tools/art/badges15.py).
+static func badge_tex(m: GameModel, id: String) -> Texture2D:
+	var t := U.tex("res://assets/iconos/badges/%s.png" % id)
+	if t:
+		return t
+	var icon := str(Badges.SPECIAL[id]["icon"]) if Badges.is_special(id) else str(m.data.achievement_by_id.get(id, {}).get("icon", "estrella"))
+	return U.icon_tex(icon)
+
+
+## Fila de insignias chiquitas (cabecera del perfil, ranking de amigos).
+static func badge_strip(m: GameModel, ids: Array, size := 20) -> HBoxContainer:
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 2)
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	for id in ids:
+		var t := TextureRect.new()
+		t.texture = badge_tex(m, id)
+		t.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		t.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		t.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		t.custom_minimum_size = Vector2(size, size)
+		t.tooltip_text = Badges.display_name(m, id)
+		t.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		row.add_child(t)
+	return row

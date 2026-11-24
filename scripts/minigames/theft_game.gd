@@ -4,14 +4,14 @@ extends RefCounted
 ##
 ## Coordenadas en píxeles de un campo de w × h. Arriba (shelf_y) está la
 ## mercadería en la estantería; abajo a la izquierda (bag) la bolsa que sostiene
-## la mano izquierda; la pistola va abajo a la derecha. Los ladrones entran por
+## la mano izquierda; la chancleta (15.2, antes una pistola) va abajo a la derecha. Los ladrones entran por
 ## los costados a rachas muy rápidas con pausas cortas (el momento justo para
-## dispararles), agarran una caja y huyen por el costado más cercano.
-##  - tap(pos): disparo. Un ladrón con casco aguanta dos tiros. Si cae con una
+## pegarles), agarran una caja y huyen por el costado más cercano.
+##  - tap(pos): chancletazo. Un ladrón con casco aguanta dos. Si cae con una
 ##    caja, la caja queda en el piso: hay que arrastrarla a la bolsa antes de
 ##    que otro ladrón la levante o se la lleve un cómplice (floor_life).
-##  - Pistola de AMMO balas: con el cargador vacío hay que recargar (reload()).
-##  - Pasan clientes: dispararles deja la pistola trabada un rato.
+##  - AMMO chancletas: sin chancletas hay que ir a buscar más (reload()).
+##  - Pasan clientes: pegarles deja la mano quieta un rato (pedís perdón).
 ## Resultado: recovered() = cajas en la bolsa ÷ cajas que salieron del estante.
 ## events guarda lo que pasó en el último paso para efectos y sonidos.
 
@@ -109,8 +109,8 @@ func time_left() -> float:
 
 # ------------------------------------------------------------------ jugador
 
-## Disparo en pos. Devuelve el tipo: "hit", "armor", "miss", "civilian",
-## "empty" (sin balas), "reloading", "stunned" u "over".
+## Chancletazo en pos. Devuelve el tipo: "hit", "armor", "miss", "civilian",
+## "empty" (sin chancletas), "reloading", "stunned" u "over".
 func tap(pos: Vector2) -> String:
 	if finished:
 		return "over"
@@ -329,7 +329,7 @@ func _step_thief(th: Dictionary, dt: float) -> void:
 ## el rumbo apunta a la meta más un arco fijo del ladrón que se desvanece al
 ## llegar, la velocidad es pareja (acelera y frena con suavidad) y el giro tiene
 ## un límite por segundo, así nunca da volantazos. En cada tramo hace UNA parada
-## deliberada (mira a los costados): es el momento justo para dispararle.
+## deliberada (mira a los costados): es el momento justo para el chancletazo.
 ## dir = hacia dónde mira. Devuelve true al llegar.
 func _move(th: Dictionary, goal: Vector2, dt: float) -> bool:
 	var pos: Vector2 = th["pos"]
@@ -346,7 +346,7 @@ func _move(th: Dictionary, goal: Vector2, dt: float) -> bool:
 	var want := top
 	if float(th["pause_t"]) > 0.0:
 		th["pause_t"] = float(th["pause_t"]) - dt
-		want = 0.0                                   # se planta: el momento de disparar
+		want = 0.0                                   # se planta: el momento de pegarle
 	elif not bool(th.get("stopped", true)) and dist < float(th["stop_d"]):
 		th["stopped"] = true
 		th["pause_t"] = stop_time()
@@ -490,7 +490,7 @@ func rescale(nw: float, nh: float) -> void:
 
 
 ## 12.2: los pies más abajo que esto quedarían detrás de las manos (la bolsa y la
-## pistola, en primer plano): ladrones y clientes caminan siempre por encima.
+## chancleta, en primer plano): ladrones y clientes caminan siempre por encima.
 static func lane_bottom(height: float) -> float:
 	return height - 196.0
 

@@ -97,7 +97,7 @@ func _cancel_all() -> void:
 func _configure_check(on: bool) -> void:
 	if _plugin == null:
 		return
-	var cfg := {"on": on and Settings.get_value("notifications"), "releases_url": RELEASES_URL,
+	var cfg := {"on": on and Settings.get_value("notifications"), "releases_url": NotifPlan.releases_url(RELEASES_URL),
 		"version": str(ProjectSettings.get_setting("application/config/version"))}
 	if Auth.verified():
 		cfg.merge({"api_key": Auth.api_key, "refresh_token": Auth.background_token(), "uid": Auth.uid, "project": Friends.project_id})

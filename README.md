@@ -37,6 +37,18 @@ Todo el arte, los sonidos, los nombres y las empresas son originales y ficticios
 Lo más nuevo arriba. Cada versión dice sólo lo que **agregó**: lo anterior sigue
 incluido. "Sin APK" = la versión existe en el código pero no se publicó.
 
+### 15.2 — 23 nov 2026 · Sin APK (prueba cerrada de Google Play)
+Preparación para Google Play:
+- Asalto con la chancleta de la abuela en vez de la pistola (clasificación por
+  edades más baja): se revolea hacia el toque y el ladrón queda mareado.
+- Insignias: hasta 3 en el perfil; la de Pionero para quien juega la prueba cerrada.
+- Bloquear y denunciar jugadores, perfil visible sólo para amigos y solicitudes,
+  tope de 20 solicitudes por día y fotos sólo JPEG/PNG.
+- Moderación desde la planilla de administración (ocultar foto, quitar nombre,
+  expulsar de Amigos); el juego la respeta y avisa.
+- Programa de pioneros (inscripción web y registro de días jugados).
+- La versión de Play no avisa de APKs de GitHub.
+
 ### 15.1 — 22 nov 2026 · [APK](https://github.com/ffacudefa-py/tycoon-argentina-descargas/releases/tag/v15.1)
 Correcciones de la revisión de código de la 15.0-prelanzamiento:
 - Foto de perfil privada por defecto (se activa en Configuración); los envíos

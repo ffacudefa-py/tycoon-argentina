@@ -4,7 +4,8 @@ extends RefCounted
 ##   development: sin anuncios.
 ##   test:        IDs oficiales de prueba de Google (builds de debug).
 ##   production:  IDs reales de la cuenta de AdMob (builds de release).
-## Con "auto": APK con la etiqueta "beta" -> test; debug -> test; release -> production.
+## Con "auto": APK con la etiqueta "beta" o AAB de la prueba cerrada
+## ("prueba_cerrada", tools/build_play.sh) -> test; debug -> test; release -> production.
 ## Si en producción faltan los IDs, o son los de prueba, los anuncios quedan
 ## desactivados con un motivo claro: nunca se publica un ID de prueba como real.
 
@@ -26,8 +27,8 @@ static func from_data(d: Dictionary, force_env := "") -> AdConfig:
 	var c := AdConfig.new()
 	c.data = d
 	var env := force_env if force_env != "" else str(c.data.get("environment", "auto"))
-	if env == "auto" and OS.has_feature("beta"):
-		env = "test"                    # APK beta: etiqueta "beta" en el preset de exportación
+	if env == "auto" and (OS.has_feature("beta") or OS.has_feature("prueba_cerrada")):
+		env = "test"                    # APK beta y AAB de la prueba cerrada: anuncios de prueba
 	if env == "auto":
 		env = "test" if OS.is_debug_build() else "production"
 	c.environment = env

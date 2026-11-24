@@ -9,7 +9,8 @@ extends RefCounted
 ##
 ## done(image: Image, error: String). Si el usuario cancela: (null, "").
 
-const FILTERS := ["*.png, *.jpg, *.jpeg, *.webp ; Imágenes"]
+## 15.2: sólo PNG y JPEG (.png, .jpg, .jpeg). Igual se mira la firma del archivo, no la extensión.
+const FILTERS := ["*.png, *.jpg, *.jpeg ; Fotos (PNG o JPG)"]
 
 
 static func pick(host: Node, done: Callable) -> void:
@@ -40,7 +41,7 @@ static func load_path(path: String, done: Callable) -> void:
 		return
 	var img := ProfileImages.decode(bytes)
 	if img == null:
-		done.call(null, "Ese archivo no es una imagen compatible (PNG, JPG o WEBP).")
+		done.call(null, "Sólo se pueden usar fotos PNG o JPG (.png, .jpg o .jpeg).")
 		return
 	done.call(img, "")
 
