@@ -377,13 +377,39 @@ document.querySelectorAll(".rv").forEach((el, i) => { el.style.transitionDelay =
 </script>
 
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, connectFirestoreEmulator, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-const app = initializeApp({ apiKey: "AIzaSyCQMudrTolNqv76fCax76g5fzLp3Dgw_gQ", authDomain: "coronadosdegloria.firebaseapp.com", projectId: "coronadosdegloria" });
-const db = getFirestore(app);
+// Alta por la API REST de Firestore (un solo fetch con tiempo límite). El SDK web
+// quedaba colgado sin error en navegadores internos (Instagram, etc.) o con mala
+// señal: el botón se apagaba y "no pasaba nada".
+const KEY = "AIzaSyCQMudrTolNqv76fCax76g5fzLp3Dgw_gQ";
+const PROJ = "projects/coronadosdegloria/databases/(default)";
 // Pruebas locales contra el emulador: pioneros.html?emu=1
-if (new URLSearchParams(location.search).has("emu")) connectFirestoreEmulator(db, "127.0.0.1", 8080);
+const HOST = new URLSearchParams(location.search).has("emu") ? "http://127.0.0.1:8080" : "https://firestore.googleapis.com";
+
+async function signup(name, email, android) {
+  const ctl = new AbortController();
+  const timer = setTimeout(() => ctl.abort(), 20000);
+  try {
+    const r = await fetch(`${HOST}/v1/${PROJ}/documents:commit?key=${KEY}`, {
+      method: "POST", signal: ctl.signal,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ writes: [{
+        update: { name: `${PROJ}/documents/signups/${email}`, fields: {
+          name: { stringValue: name }, email: { stringValue: email },
+          consent: { booleanValue: true }, android: { booleanValue: android } } },
+        updateTransforms: [{ fieldPath: "created", setToServerValue: "REQUEST_TIME" }],
+        currentDocument: { exists: false },
+      }] }),
+    });
+    if (r.ok) return "ok";
+    const body = await r.json().catch(() => ({}));
+    const st = body.error && body.error.status;
+    // Ya existe: la precondición falla o las reglas niegan el update.
+    return st === "FAILED_PRECONDITION" || st === "ALREADY_EXISTS" || st === "PERMISSION_DENIED" ? "dup" : "error";
+  } catch (err) {
+    console.warn(err);
+    return err.name === "AbortError" ? "timeout" : "net";
+  } finally { clearTimeout(timer); }
+}
 
 const $ = (id) => document.getElementById(id);
 const EMAIL = /^[a-z0-9._%+-]{1,64}@[a-z0-9.-]{1,120}\.[a-z]{2,24}$/;
@@ -398,8 +424,9 @@ $("f").addEventListener("submit", async (e) => {
   if (!EMAIL.test(email)) return say("Ese email no parece válido. Usá el de tu cuenta de Google.");
   if (!$("consent").checked) return say("Para anotarte tenés que aceptar la casilla de abajo.");
   $("go").disabled = true;
-  try {
-    await setDoc(doc(db, "signups", email), { name, email, created: serverTimestamp(), consent: true, android: $("android").checked });
+  say("Enviando…", true);
+  const res = await signup(name, email, $("android").checked);
+  if (res === "ok") {
     const f = $("f");
     f.replaceChildren();
     const box = document.createElement("div"); box.className = "done";
@@ -408,13 +435,16 @@ $("f").addEventListener("submit", async (e) => {
     const p = document.createElement("p");
     p.textContent = "Quedaste anotado con " + email + ". Cuando abramos la prueba cerrada te llega la invitación de Google Play a ese email. ¡Gracias por ayudarnos!";
     box.append(img, h, p); f.append(box);
-  } catch (err) {
-    console.warn(err);
-    $("go").disabled = false;
-    say(err && err.code === "permission-denied"
-      ? "Ese email ya está anotado. Si no te llegó la invitación, escribinos."
-      : "No se pudo enviar (¿sin internet?). Probá de nuevo en un rato.");
+    f.scrollIntoView({ block: "center" });
+    return;
   }
+  $("go").disabled = false;
+  say({
+    dup: "Ese email ya está anotado. Si no te llegó la invitación, escribinos a sarceapps@gmail.com.",
+    timeout: "Tardó demasiado. Si estás en Instagram, abrí la página en Chrome (menú ⋯ → Abrir en el navegador) y probá de nuevo.",
+    net: "No se pudo enviar. Revisá tu conexión, o abrí la página en Chrome si estás dentro de Instagram.",
+    error: "Algo falló de nuestro lado. Probá de nuevo en un rato o escribinos a sarceapps@gmail.com.",
+  }[res]);
 });
 </script>
 </body>
