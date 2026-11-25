@@ -77,7 +77,8 @@
       <span class="row">
         <button class="primary" id="copy">Copiar emails sin invitar</button>
         <button id="markall">Marcar esos como invitados</button>
-        <button id="csv">Descargar CSV</button>
+        <button id="csvplay">CSV para Play</button>
+        <button id="csv">Descargar CSV (informe)</button>
       </span>
     </div>
     <p class="soft">Para invitarlos: Play Console → Prueba cerrada → Testers → lista de emails → pegar. Después marcalos como invitados.</p>
@@ -333,7 +334,7 @@ $("rv-close").onclick = () => { $("review").hidden = true; reviewing = null; };
 // ---------------------------------------------------------------- acciones
 const pending = () => signups.filter((s) => !s.invited);
 $("copy").onclick = async () => {
-  const list = pending().map((s) => s.email);
+  const list = pending().map((s) => s.email).filter((e) => !String(e).endsWith("@example.com"));
   if (!list.length) return toast("No hay inscriptos sin invitar");
   await navigator.clipboard.writeText(list.join(", "));
   toast(list.length + " emails copiados");
@@ -344,6 +345,16 @@ $("markall").onclick = async () => {
   if (!confirm("¿Marcar " + list.length + " como invitados en Play?")) return;
   await Promise.all(list.map((s) => updateDoc(doc(db, "signups", s.id), { invited: true }).then(() => { s.invited = true; })));
   render(); toast("Marcados como invitados");
+};
+// Formato que acepta Play Console: un email por línea, sin encabezado ni otras columnas.
+// Incluye a todos los inscriptos (la lista de Play se reemplaza entera al subirla).
+$("csvplay").onclick = () => {
+  const list = [...new Set(signups.map((s) => String(s.email).trim().toLowerCase()))]
+    .filter((e) => e && !e.endsWith("@example.com"));
+  if (!list.length) return toast("No hay inscriptos");
+  const blob = new Blob([list.join("\n") + "\n"], { type: "text/csv" });
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "pioneros-play.csv"; a.click();
+  toast(list.length + " emails en el CSV");
 };
 $("csv").onclick = () => {
   const byEmail = new Map(pioneers.map((p) => [String(p.email).toLowerCase(), p]));
