@@ -329,7 +329,6 @@
       <span class="inset"><input type="text" id="name" maxlength="40" autocomplete="nickname" required></span>
       <label for="email">Email de tu cuenta de Google</label>
       <span class="inset"><input type="email" id="email" maxlength="190" autocomplete="email" placeholder="nombre@gmail.com" required></span>
-      <input type="text" id="web" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
       <label class="check"><input type="checkbox" id="android"><span>Tengo un celular Android</span></label>
       <label class="check"><input type="checkbox" id="consent"><span>Tengo 13 años o más y acepto que usen este email sólo para invitarme a la prueba y escribirme sobre ella (<a href="privacidad.html" target="_blank">política de privacidad</a>).</span></label>
       <button type="submit" class="btn" id="go">Quiero ser Pionero</button>
@@ -414,10 +413,15 @@ async function signup(name, email, android) {
 const $ = (id) => document.getElementById(id);
 const EMAIL = /^[a-z0-9._%+-]{1,64}@[a-z0-9.-]{1,120}\.[a-z]{2,24}$/;
 function say(text, ok) { $("msg").textContent = text; $("msg").className = "msg " + (ok ? "ok" : "bad"); }
+// Nunca fallar en silencio: cualquier error inesperado se muestra debajo del botón.
+const oops = () => { $("go").disabled = false; say("Algo falló en tu navegador. Probá abrir la página en Chrome o escribinos a sarceapps@gmail.com."); };
+window.addEventListener("error", oops);
+window.addEventListener("unhandledrejection", oops);
 
 $("f").addEventListener("submit", async (e) => {
   e.preventDefault();
-  if ($("web").value) return;                       // trampa para bots
+  // (Había un campo trampa para bots oculto: el autocompletar del celular lo
+  // llenaba y el envío se cancelaba en silencio. Las reglas ya validan todo.)
   const name = $("name").value.trim().replace(/\s+/g, " ");
   const email = $("email").value.trim().toLowerCase();
   if (name.length < 2) return say("Poné tu nombre o un apodo (2 letras o más).");

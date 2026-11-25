@@ -20,6 +20,9 @@
       "firebase.json",
       "**/.*"
     ],
-    "cleanUrls": false
+    "cleanUrls": false,
+    "headers": [
+      { "source": "**/*.html", "headers": [{ "key": "Cache-Control", "value": "no-cache" }] }
+    ]
   }
 }
