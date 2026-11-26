@@ -28,17 +28,40 @@ un arte grande, rótulos con chevrones y bandas oscuras y claras. Todo con pieza
 ## Paso a paso
 
 1. **Difundir** el enlace de inscripción (Instagram, grupos, el reel).
-2. En la **planilla** (entrar con la cuenta administradora, abajo): *Copiar emails sin invitar*.
-3. Play Console → Pruebas → **Prueba cerrada** → Testers → lista de emails → pegar y guardar.
-   Copiar el **enlace para unirse** de la prueba y mandárselo a los inscriptos (por email).
-4. En la planilla: *Marcar esos como invitados*.
-5. Cada tester instala el AAB de la prueba desde Play. Al abrirlo gana la insignia
+2. **Automático**: a los ≤5 minutos de anotarse, cada inscripto recibe un mail de
+   sarceapps@gmail.com (ver *Mail automático*) con 3 botones: unirse al Grupo de Google
+   `coronados-pioneros@googlegroups.com` (eso lo habilita en la prueba), aceptar ser tester
+   (`play.google.com/apps/testing/ar.tycoonargentina.juego`) e instalar. La planilla lo marca
+   *invitado* con un ✉. Ya no hace falta cargar emails en Play Console.
+3. (Sigue funcionando el método viejo: *Copiar emails sin invitar* → lista de emails en Play Console.)
+4. Cada tester instala el AAB de la prueba desde Play. Al abrirlo gana la insignia
    **Pionero**; si tiene cuenta (Perfil → Amigos) queda en *Jugando* y se le cuentan los días.
    Sin cuenta la insignia queda sólo en su teléfono (el juego se lo avisa en el detalle de la insignia).
 6. La pestaña **Jugando** muestra cuántos días lleva cada uno; el indicador *Cumplen 14 días*
    tiene que llegar a **12** (conviene invitar 15–20 por las bajas). *Sin abrir hace N días*
    = escribirle para que no lo desinstale.
 7. Cumplidos los 14 días: Play Console → pedir acceso a producción.
+
+## Mail automático
+
+Script de Google Apps Script `tools/pioneros/Mailer.gs` (+ `appsscript.json`), **dueño:
+sarceapps@gmail.com** (por eso el mail sale de ahí; sarceapps es owner del proyecto Firebase,
+así que lee y marca `signups` por REST con su token OAuth, sin pasar por las reglas). El
+proyecto está en plan Spark (sin Cloud Functions), por eso es Apps Script y no una función.
+Cuota: 100 mails/día (cuenta Gmail común).
+
+Instalación (una vez):
+1. **Grupo** (con sarceapps): groups.google.com → Crear grupo → nombre `coronados-pioneros`
+   → *Quién puede buscar*: cualquier persona en la Web; *Quién puede unirse*: **cualquier
+   persona puede unirse**; *Quién puede ver conversaciones / publicar*: solo administradores.
+2. **Play Console** (jjdefagot) → Prueba cerrada → Testers → **Grupos de Google** → agregar
+   `coronados-pioneros@googlegroups.com` → Guardar (la lista de emails existente puede quedar).
+3. **Script** (con sarceapps): script.google.com → Nuevo proyecto "Pioneros mailer" →
+   pegar `Mailer.gs`; Configuración del proyecto → *Mostrar appsscript.json* → pegar
+   `appsscript.json`. Ejecutar `testMail` (autorizar; llega un mail de prueba a sarceapps),
+   después `setup` (crea el disparador cada 5 min). Opcional: `mailAlsoInvited` una vez para
+   mandárselo también a los que ya estaban marcados como invitados.
+4. Errores: script.google.com → Ejecuciones (y Google avisa por mail si el disparador falla).
 
 ## Administración
 
