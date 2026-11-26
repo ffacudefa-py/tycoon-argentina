@@ -27,11 +27,22 @@ const OPTIN_URL = "https://play.google.com/apps/testing/" + CFG.pkg;
 const STORE_URL = "https://play.google.com/store/apps/details?id=" + CFG.pkg;
 const FS = "https://firestore.googleapis.com/v1/projects/" + CFG.project + "/databases/(default)/documents";
 
-/** Ejecutar UNA vez a mano: crea el disparador cada 5 minutos y procesa lo pendiente. */
+/** Ejecutar UNA vez a mano: crea el disparador de respaldo cada 1 minuto y procesa lo pendiente. */
 function setup() {
   ScriptApp.getProjectTriggers().forEach((t) => ScriptApp.deleteTrigger(t));
-  ScriptApp.newTrigger("check").timeBased().everyMinutes(5).create();
+  ScriptApp.newTrigger("check").timeBased().everyMinutes(1).create();
   check();
+}
+
+/**
+ * Aviso instantáneo: pioneros.html hace un POST a la URL de esta app web justo después de
+ * inscribir a alguien. No recibe datos (a quién mandar sale siempre de Firestore), así que
+ * llamarla de más sólo hace una revisión extra.
+ * Implementar → Nueva implementación → App web, Ejecutar como: Yo, Acceso: Cualquier usuario.
+ */
+function doPost() {
+  run(false, 25000);
+  return ContentService.createTextOutput("ok");
 }
 
 /** Prueba: se manda el mail a vos mismo (sarceapps) sin tocar Firestore. */
@@ -45,9 +56,9 @@ function check() { run(false); }
 /** A mano, una vez: manda el mail también a los que ya estaban marcados como invitados. */
 function mailAlsoInvited() { run(true); }
 
-function run(includeInvited) {
+function run(includeInvited, waitMs) {
   const lock = LockService.getScriptLock();
-  if (!lock.tryLock(1000)) return;               // otra corrida sigue en curso
+  if (!lock.tryLock(waitMs || 1000)) return;     // otra corrida sigue en curso (el aviso espera)
   try {
     let sent = 0;
     for (const d of listSignups()) {

@@ -381,6 +381,8 @@ document.querySelectorAll(".rv").forEach((el, i) => { el.style.transitionDelay =
 // señal: el botón se apagaba y "no pasaba nada".
 const KEY = "AIzaSyCQMudrTolNqv76fCax76g5fzLp3Dgw_gQ";
 const PROJ = "projects/coronadosdegloria/databases/(default)";
+// App web de tools/pioneros/Mailer.gs (doPost): manda el mail al instante. Vacía = sólo el disparador de 1 min.
+const MAILER_URL = "";
 // Pruebas locales contra el emulador: pioneros.html?emu=1
 const HOST = new URLSearchParams(location.search).has("emu") ? "http://127.0.0.1:8080" : "https://firestore.googleapis.com";
 
@@ -431,13 +433,14 @@ $("f").addEventListener("submit", async (e) => {
   say("Enviando…", true);
   const res = await signup(name, email, $("android").checked);
   if (res === "ok") {
+    if (MAILER_URL && !HOST.startsWith("http://127")) fetch(MAILER_URL, { method: "POST", mode: "no-cors", keepalive: true }).catch(() => {});
     const f = $("f");
     f.replaceChildren();
     const box = document.createElement("div"); box.className = "done";
     const img = document.createElement("img"); img.className = "px"; img.src = "img/pionero.png"; img.alt = "";
     const h = document.createElement("h3"); h.textContent = "¡Listo, " + name + "!";
     const p = document.createElement("p");
-    p.textContent = "Quedaste anotado con " + email + ". En unos minutos te llega un mail de sarceapps@gmail.com con los pasos para entrar a la prueba (si no lo ves, revisá Spam o Promociones). ¡Gracias por ayudarnos!";
+    p.textContent = "Quedaste anotado con " + email + ". En un ratito te llega un mail de sarceapps@gmail.com con los pasos para entrar a la prueba (si no lo ves, revisá Spam o Promociones). ¡Gracias por ayudarnos!";
     box.append(img, h, p); f.append(box);
     f.scrollIntoView({ block: "center" });
     return;
