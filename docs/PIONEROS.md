@@ -88,3 +88,16 @@ Instalación (una vez):
 tools/dev/rules_check.sh          # reglas (incluye inscripción, registro y administración)
 ```
 Las páginas aceptan `?emu=1` para usar los emuladores en vez del proyecto real.
+
+### Seguridad del mail automático (revisado 2026-11-26)
+
+- **Cuota de Firestore**: el script guarda un cursor (`created` de la última inscripción) y
+  sólo consulta las nuevas (1 lectura por revisión si no hay nada). Antes leía todas cada
+  minuto (~16.000 lecturas/día con 16 inscriptos) y con ~50 inscriptos se habría comido las
+  50.000 lecturas gratis del proyecto, cortando los guardados del juego.
+- **Abuso de la app web** (`doPost` público): no recibe datos y como mucho revisa una vez cada 10 s.
+- **Spam desde sarceapps**: tope de 40 mails automáticos por día (`MAX_PER_DAY`); lo que pase
+  del tope sale al día siguiente. Cada email se anota una sola vez (id = email).
+- **Grupo**: cualquiera puede unirse (es la idea), pero sólo los administradores publican, las
+  conversaciones las ven sólo miembros y la lista de miembros sólo administradores. Nunca usar
+  `coronados-pioneros@googlegroups.com` como email de registro o de recuperación de ninguna cuenta.

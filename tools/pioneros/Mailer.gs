@@ -2,7 +2,7 @@
  * Coronados de Gloria — mail automático a los pioneros.
  *
  * Corre en Google Apps Script con la cuenta sarceapps@gmail.com (el mail sale de ahí).
- * Cada 5 minutos busca en Firestore las inscripciones (signups/<email>) que todavía no
+ * Al instante (doPost) y cada 1 minuto busca en Firestore las inscripciones (signups/<email>) nuevas que no
  * recibieron el mail, les manda los pasos para entrar a la prueba cerrada y las marca
  * con `mailed` (fecha) e `invited: true`.
  *
@@ -41,7 +41,13 @@ function setup() {
  * Implementar → Nueva implementación → App web, Ejecutar como: Yo, Acceso: Cualquier usuario.
  */
 function doPost() {
-  run(false, 25000);
+  // Freno contra quien llame la URL en bucle: como mucho una revisión cada 10 s (el resto lo
+  // agarra el disparador de 1 minuto). Así no se gasta la cuota gratis de Firestore del juego.
+  const cache = CacheService.getScriptCache();
+  if (!cache.get("ping")) {
+    cache.put("ping", "1", 10);
+    run(false, 25000);
+  }
   return ContentService.createTextOutput("ok");
 }
 
@@ -56,26 +62,61 @@ function check() { run(false); }
 /** A mano, una vez: manda el mail también a los que ya estaban marcados como invitados. */
 function mailAlsoInvited() { run(true); }
 
+// Tope de mails automáticos por día: si alguien llena el formulario con emails ajenos, el
+// script no puede usarse para mandar cientos de mails desde sarceapps (y quedan
+// pendientes para el día siguiente, no se pierden).
+const MAX_PER_DAY = 40;
+
 function run(includeInvited, waitMs) {
   const lock = LockService.getScriptLock();
   if (!lock.tryLock(waitMs || 1000)) return;     // otra corrida sigue en curso (el aviso espera)
   try {
+    const props = PropertiesService.getScriptProperties();
+    const today = Utilities.formatDate(new Date(), "America/Argentina/Buenos_Aires", "yyyy-MM-dd");
+    const sentKey = "sent_" + today;
+    let sentToday = Number(props.getProperty(sentKey) || 0);
+    // Sólo se leen las inscripciones posteriores a la última procesada (`cursor`), no todas:
+    // el disparador corre 1440 veces por día y el plan gratis de Firestore da 50.000 lecturas
+    // diarias para TODO el proyecto (juego incluido).
+    const cursor = includeInvited ? null : props.getProperty("cursor");
+    const docs = cursor ? newSignups(cursor) : listSignups().sort((a, b) =>
+      String(a.fields.created && a.fields.created.timestampValue).localeCompare(String(b.fields.created && b.fields.created.timestampValue)));
+    let last = cursor;
     let sent = 0;
-    for (const d of listSignups()) {
+    for (const d of docs) {
       const f = d.fields || {};
-      if (f.mailed || (!includeInvited && f.invited && f.invited.booleanValue)) continue;
+      const created = f.created && f.created.timestampValue;
       const email = (f.email && f.email.stringValue || "").toLowerCase();
-      if (!email || CFG.skip.test(email)) continue;
-      if (MailApp.getRemainingDailyQuota() < 1) { console.warn("Sin cuota de mails por hoy"); break; }
-      const name = (f.name && f.name.stringValue || "").trim();
-      send(email, name);
-      markMailed(d.name);
-      sent++;
+      const pending = !f.mailed && (includeInvited || !(f.invited && f.invited.booleanValue)) &&
+        email && !CFG.skip.test(email);
+      if (pending) {
+        if (sentToday >= MAX_PER_DAY || MailApp.getRemainingDailyQuota() < 1) {
+          console.warn("Tope diario de mails alcanzado; el resto sale mañana");
+          break;
+        }
+        send(email, (f.name && f.name.stringValue || "").trim());
+        markMailed(d.name);
+        sent++; sentToday++;
+        props.setProperty(sentKey, String(sentToday));
+      }
+      if (!includeInvited && created) last = created;   // docs ya vienen en orden
     }
+    if (!includeInvited && last && last !== cursor) props.setProperty("cursor", last);
     if (sent) console.log("Mails enviados: " + sent);
   } finally {
     lock.releaseLock();
   }
+}
+
+/** Inscripciones con `created` posterior al cursor, en orden (1 lectura si no hay ninguna). */
+function newSignups(cursor) {
+  const r = api(FS + ":runQuery", "post", { structuredQuery: {
+    from: [{ collectionId: "signups" }],
+    where: { fieldFilter: { field: { fieldPath: "created" }, op: "GREATER_THAN", value: { timestampValue: cursor } } },
+    orderBy: [{ field: { fieldPath: "created" }, direction: "ASCENDING" }],
+    limit: 100,
+  } });
+  return (r || []).filter((x) => x.document).map((x) => x.document);
 }
 
 function listSignups() {
