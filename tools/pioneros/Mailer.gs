@@ -101,11 +101,89 @@ function esc(s) {
   return String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 }
 
+const IMG = "https://coronadosdegloria.web.app/img/mail/";
+
+// Paleta del juego (web/pioneros.html).
+const C = { night: "#1a1730", night2: "#24203f", ink: "#3d1b0b", inkSoft: "#6b3f26", wood: "#5c3520",
+  crema: "#f6efe2", crema2: "#f7e7c4", gold: "#f2d173", gold2: "#f6b40e", goldDark: "#8e5a10",
+  green: "#256b42", greenDark: "#1d5a34", light: "#fff6e6", dim: "#c9c2dc" };
+
+const SUBJECT = "Ya sos Pionero de Coronados de Gloria: así entrás a la prueba";
+
 function send(email, name) {
-  const hola = name ? "¡Hola, " + name + "!" : "¡Hola!";
-  const subject = "Ya sos Pionero de Coronados de Gloria: así entrás a la prueba";
-  const text = [
-    hola,
+  MailApp.sendEmail({ to: email, subject: SUBJECT, body: mailText(email, name), htmlBody: mailHtml(email, name),
+    name: CFG.fromName, replyTo: CFG.replyTo });
+}
+
+function mailHtml(email, name) {
+  const F = "font-family:'Trebuchet MS',Verdana,sans-serif;";
+  const hola = name ? "¡Hola, " + esc(name) + "!" : "¡Hola!";
+
+  // Botón que funciona también en Outlook: celda de tabla con borde inferior grueso, como los del juego.
+  const button = (label, url, bg, edge, fg) =>
+    '<table role="presentation" cellpadding="0" cellspacing="0" style="margin-top:10px"><tr>' +
+    '<td style="background:' + bg + ';border:3px solid ' + C.ink + ';border-bottom-width:6px;border-radius:4px;' +
+    'box-shadow:inset 0 -4px 0 ' + edge + ';">' +
+    '<a href="' + url + '" style="display:block;padding:11px 22px;' + F + 'font-size:17px;font-weight:bold;' +
+    'color:' + fg + ';text-decoration:none;letter-spacing:.5px">' + label + "</a></td></tr></table>";
+
+  const step = (n, title, sub, label, url, green) =>
+    '<tr><td style="padding:14px 0;border-top:2px dashed ' + C.crema2 + '">' +
+    '<table role="presentation" cellpadding="0" cellspacing="0" width="100%"><tr>' +
+    '<td width="50" valign="top"><div style="width:36px;height:36px;line-height:36px;text-align:center;' +
+    'background:' + C.gold2 + ';border:3px solid ' + C.ink + ';border-radius:50%;' + F +
+    'font-size:18px;font-weight:bold;color:' + C.ink + '">' + n + "</div></td>" +
+    '<td valign="top" style="' + F + 'color:' + C.ink + '">' +
+    '<div style="font-size:18px;font-weight:bold">' + title + "</div>" +
+    '<div style="font-size:14px;color:' + C.inkSoft + ';margin-top:2px">' + sub + "</div>" +
+    (green ? button(label, url, C.green, C.greenDark, "#ffffff") : button(label, url, C.gold2, C.goldDark, C.ink)) +
+    "</td></tr></table></td></tr>";
+
+  return '<!doctype html><html><body style="margin:0;padding:0;background:' + C.night + '">' +
+    '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:' + C.night + '"><tr><td align="center" style="padding:18px 8px">' +
+    '<table role="presentation" width="600" cellpadding="0" cellspacing="0" style="width:100%;max-width:600px">' +
+    // Cabecera: pilares de las regiones con el logo
+    '<tr><td style="border:4px solid ' + C.goldDark + ';border-bottom:0;border-radius:6px 6px 0 0;overflow:hidden;line-height:0">' +
+    '<img src="' + IMG + 'cabecera.png" width="592" alt="Coronados de Gloria" style="display:block;width:100%;height:auto;border:0"></td></tr>' +
+    // Franja dorada
+    '<tr><td style="background:' + C.gold2 + ';border:4px solid ' + C.goldDark + ';border-top:3px solid ' + C.gold +
+    ';text-align:center;padding:8px;' + F + 'font-size:15px;font-weight:bold;letter-spacing:3px;color:' + C.ink + '">' +
+    "&#9670; PRUEBA CERRADA &middot; PIONEROS &#9670;</td></tr>" +
+    // Panel crema
+    '<tr><td style="background:' + C.crema + ';border:4px solid ' + C.wood + ';border-top:0;padding:22px 24px 8px">' +
+    '<table role="presentation" cellpadding="0" cellspacing="0" width="100%"><tr>' +
+    '<td valign="top" style="' + F + 'color:' + C.ink + '">' +
+    '<div style="font-size:26px;font-weight:bold;line-height:1.2">' + hola + "</div>" +
+    '<div style="font-size:16px;line-height:1.5;margin-top:8px">Gracias por anotarte. Ya podés entrar a la ' +
+    "<b>prueba cerrada</b> de Coronados de Gloria. Hacé estos 3 pasos con la <b>misma cuenta de Google</b> " +
+    "del Play Store de tu celular:</div>" +
+    '<div style="display:inline-block;margin-top:8px;padding:4px 10px;background:' + C.crema2 + ';border:2px solid ' + C.wood +
+    ';border-radius:3px;font-size:15px;font-weight:bold">' + esc(email) + "</div></td>" +
+    '<td width="96" valign="top" align="right"><img src="' + IMG + 'pionero.png" width="88" height="88" alt="Insignia Pionero" style="display:block;border:0"></td>' +
+    "</tr></table>" +
+    '<table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="margin-top:16px">' +
+    step(1, "Unite al grupo de pioneros", "Tocá <b>Unirse al grupo</b>. Es lo que te habilita como tester.", "UNIRME AL GRUPO", GROUP_URL) +
+    step(2, "Aceptá la invitación", "En la página de Google Play tocá <b>Convertirte en tester</b>.", "SER TESTER", OPTIN_URL) +
+    step(3, "Instalá el juego", "Si dice que no está disponible, esperá unos minutos y volvé a probar.", "INSTALAR EN GOOGLE PLAY", STORE_URL, true) +
+    "</table></td></tr>" +
+    // Recuadro oscuro: los 14 días
+    '<tr><td style="background:' + C.night2 + ';border:4px solid ' + C.wood + ';border-top:0;padding:16px 24px;' + F +
+    'color:' + C.light + ';font-size:15px;line-height:1.5">' +
+    '<span style="color:' + C.gold + ';font-weight:bold">&#9733; Para que la prueba cuente</span><br>' +
+    "Abrí el juego <b>al menos una vez por día durante 14 días</b>. La primera vez que lo abras ganás la insignia " +
+    '<b style="color:' + C.gold + '">Pionero</b>.</td></tr>' +
+    // Pie: base dorada con los rótulos de región
+    '<tr><td style="line-height:0;border:4px solid ' + C.goldDark + ';border-top:0;border-radius:0 0 6px 6px;overflow:hidden">' +
+    '<img src="' + IMG + 'pie.png" width="592" alt="" style="display:block;width:100%;height:auto;border:0"></td></tr>' +
+    '<tr><td style="padding:14px 8px;text-align:center;' + F + 'font-size:13px;color:' + C.dim + ';line-height:1.5">' +
+    "¿Dudas o te querés bajar? Respondé este mail.<br>— El equipo de Coronados de Gloria<br>" +
+    '<a href="https://coronadosdegloria.web.app" style="color:' + C.gold + '">coronadosdegloria.web.app</a></td></tr>' +
+    "</table></td></tr></table></body></html>";
+}
+
+function mailText(email, name) {
+  return [
+    name ? "¡Hola, " + name + "!" : "¡Hola!",
     "",
     "Gracias por anotarte. Ya podés entrar a la prueba cerrada de Coronados de Gloria en Google Play.",
     "Hacé estos 3 pasos con la MISMA cuenta de Google que usás en el Play Store del celular (" + email + "):",
@@ -120,28 +198,4 @@ function send(email, name) {
     "¿Dudas o te querés bajar? Respondé este mail.",
     "— El equipo de Coronados de Gloria",
   ].join("\n");
-
-  const btn = (n, label, url, sub) =>
-    '<tr><td style="padding:10px 0">' +
-    '<div style="font:bold 15px sans-serif;color:#3a2a1a">' + n + ". " + label + "</div>" +
-    '<div style="font:13px sans-serif;color:#6b5a48;margin:4px 0 8px">' + sub + "</div>" +
-    '<a href="' + url + '" style="display:inline-block;background:#c8962e;color:#fff;text-decoration:none;' +
-    'font:bold 15px sans-serif;padding:10px 18px;border-radius:6px">' + label + "</a></td></tr>";
-
-  const html =
-    '<div style="background:#f3e7cf;padding:24px"><table role="presentation" style="max-width:520px;margin:auto;' +
-    'background:#fffaf0;border:3px solid #3a2a1a;border-radius:8px;padding:20px" cellpadding="0" cellspacing="0">' +
-    '<tr><td style="font:bold 22px sans-serif;color:#3a2a1a">' + esc(hola) + "</td></tr>" +
-    '<tr><td style="font:15px sans-serif;color:#3a2a1a;padding:8px 0">Gracias por anotarte. Ya podés entrar a la ' +
-    "<b>prueba cerrada</b> de Coronados de Gloria. Hacé estos pasos con la <b>misma cuenta de Google</b> " +
-    "del Play Store de tu celular (<b>" + esc(email) + "</b>):</td></tr>" +
-    btn(1, "Unirme al grupo", GROUP_URL, "Tocá \"Unirse al grupo\". Es lo que te habilita como tester.") +
-    btn(2, "Ser tester", OPTIN_URL, "Aceptá la invitación (\"Convertirte en tester\").") +
-    btn(3, "Instalar el juego", STORE_URL, "Si dice que no está disponible, esperá unos minutos y volvé a probar.") +
-    '<tr><td style="font:14px sans-serif;color:#3a2a1a;padding-top:12px">Para que la prueba cuente, abrí el juego ' +
-    "<b>al menos una vez por día durante 14 días</b>. Al abrirlo ganás la insignia <b>Pionero</b>.</td></tr>" +
-    '<tr><td style="font:13px sans-serif;color:#6b5a48;padding-top:12px">¿Dudas o te querés bajar? Respondé este mail.<br>' +
-    "— El equipo de Coronados de Gloria</td></tr></table></div>";
-
-  MailApp.sendEmail({ to: email, subject: subject, body: text, htmlBody: html, name: CFG.fromName, replyTo: CFG.replyTo });
 }
