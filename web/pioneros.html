@@ -68,7 +68,7 @@
   .tag.sm span::before, .tag.sm span::after { width: 5px; height: 5px; }
   .tag.sm::before, .tag.sm::after { width: 13px; }
   .h2 { display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; margin: 0 0 36px; }
-  .h2 b { font: 64px/0.9 "VT323", monospace; font-weight: 400; letter-spacing: .02em; }
+  .h2 h2 { margin: 0; font: 64px/0.9 "VT323", monospace; font-weight: 400; letter-spacing: .02em; }
   .h2 i { display: block; width: 180px; height: 9px; font-style: normal; background:
       linear-gradient(90deg, transparent 0 12px, var(--gold) 12px calc(100% - 12px), transparent 0) center/100% 3px no-repeat,
       conic-gradient(from 45deg, var(--gold) 0 25%, transparent 0) center/9px 9px no-repeat; }
@@ -219,7 +219,7 @@
     @keyframes pan { to { background-position: 100% 50%; } }
     .hero h1 { font-size: 42px; }
     .hero .copy { padding-bottom: 64px; }
-    .h2 b, .join .pitch h2 { font-size: 50px; }
+    .h2 h2, .join .pitch h2 { font-size: 50px; }
     .stats { grid-template-columns: repeat(2, 1fr); row-gap: 22px; }
     section { padding: 72px 0; }
     .phones { grid-template-columns: 1fr; max-width: 300px; margin: 0 auto; }
@@ -272,7 +272,7 @@
 
 <section class="light edge-top" id="juego">
   <div class="wrap">
-    <div class="h2 rv"><span class="tag"><span>EL JUEGO</span></span><b>De un puesto a un imperio</b><i></i>
+    <div class="h2 rv"><span class="tag"><span>EL JUEGO</span></span><h2>De un puesto a un imperio</h2><i></i>
       <p>Empezás con un campo de algodón en el NOA. Contratás empleados, mejorás tus negocios y le ganás mercado a la competencia hasta que la Argentina entera sea tuya.</p></div>
     <div class="phones">
       <figure class="phone rv"><div class="frame"><img src="img/cap_imperio.jpg" alt="Pantalla Imperio del juego" loading="lazy" width="540" height="960"></div>
@@ -287,7 +287,7 @@
 
 <section class="dark" id="regiones">
   <div class="wrap">
-    <div class="h2 rv"><span class="tag"><span>MAPA</span></span><b>Seis regiones, seis paisajes</b><i></i>
+    <div class="h2 rv"><span class="tag"><span>MAPA</span></span><h2>Seis regiones, seis paisajes</h2><i></i>
       <p>Cada región tiene su producto estrella y su bonificación. Conquistalas en orden y avanzá de etapa.</p></div>
     <div class="regions" id="rg"></div>
   </div>
@@ -298,7 +298,7 @@
     <div class="badge rv"><img class="px" src="img/pionero.png" alt="Insignia Pionero: medalla de oro con laureles y una bandera argentina plantada"></div>
     <div class="rv">
       <span class="tag"><span>RECOMPENSA EXCLUSIVA</span></span>
-      <div class="h2" style="align-items:flex-start;text-align:left;margin:12px 0 0"><b>La insignia Pionero</b><i style="margin-left:-12px"></i></div>
+      <div class="h2" style="align-items:flex-start;text-align:left;margin:12px 0 0"><h2>La insignia Pionero</h2><i style="margin-left:-12px"></i></div>
       <p style="margin:14px 0 0;color:var(--ink-soft)">Sólo la tienen quienes jueguen la prueba cerrada. Cuando el juego salga para todos, <b>nunca más se va a poder conseguir</b>. Se muestra en tu perfil y la ven tus amigos.</p>
       <ol class="steps">
         <li><span>Te anotás acá con el <b>email de tu cuenta de Google</b> (el del Play Store de tu celular).</span></li>
