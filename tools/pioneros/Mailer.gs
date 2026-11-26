@@ -16,7 +16,7 @@ const CFG = {
   project: "coronadosdegloria",
   group: "coronados-pioneros",                       // <grupo>@googlegroups.com
   pkg: "ar.tycoonargentina.juego",
-  fromName: "Coronados de Gloria",
+  fromName: "Sarce And Company",
   replyTo: "sarceapps@gmail.com",
   // No mandar a cuentas de prueba internas.
   skip: /(@coronadosdegloria\.web\.app$|^prueba|^test)/,
@@ -108,7 +108,7 @@ const C = { night: "#1a1730", night2: "#24203f", ink: "#3d1b0b", inkSoft: "#6b3f
   crema: "#f6efe2", crema2: "#f7e7c4", gold: "#f2d173", gold2: "#f6b40e", goldDark: "#8e5a10",
   green: "#256b42", greenDark: "#1d5a34", light: "#fff6e6", dim: "#c9c2dc" };
 
-const SUBJECT = "Ya sos Pionero de Coronados de Gloria: así entrás a la prueba";
+const SUBJECT = "Ya podés jugar Coronados de Gloria! 🏆 Sos Pionero";
 
 function send(email, name) {
   MailApp.sendEmail({ to: email, subject: SUBJECT, body: mailText(email, name), htmlBody: mailHtml(email, name),
@@ -117,7 +117,7 @@ function send(email, name) {
 
 function mailHtml(email, name) {
   const F = "font-family:'Trebuchet MS',Verdana,sans-serif;";
-  const hola = name ? "¡Hola, " + esc(name) + "!" : "¡Hola!";
+  const hola = "¡Hola!";
 
   // Botón que funciona también en Outlook: celda de tabla con borde inferior grueso, como los del juego.
   const button = (label, url, bg, edge, fg) =>
@@ -154,48 +154,59 @@ function mailHtml(email, name) {
     '<table role="presentation" cellpadding="0" cellspacing="0" width="100%"><tr>' +
     '<td valign="top" style="' + F + 'color:' + C.ink + '">' +
     '<div style="font-size:26px;font-weight:bold;line-height:1.2">' + hola + "</div>" +
-    '<div style="font-size:16px;line-height:1.5;margin-top:8px">Gracias por anotarte. Ya podés entrar a la ' +
-    "<b>prueba cerrada</b> de Coronados de Gloria. Hacé estos 3 pasos con la <b>misma cuenta de Google</b> " +
-    "del Play Store de tu celular:</div>" +
+    '<div style="font-size:16px;line-height:1.5;margin-top:8px">Te anotaste para la <b>prueba cerrada</b> de ' +
+    "Coronados de Gloria y ya está lista. Para entrar, usá tu celular Android con la <b>misma cuenta de Google</b> " +
+    "con la que te anotaste:</div>" +
     '<div style="display:inline-block;margin-top:8px;padding:4px 10px;background:' + C.crema2 + ';border:2px solid ' + C.wood +
     ';border-radius:3px;font-size:15px;font-weight:bold">' + esc(email) + "</div></td>" +
     '<td width="96" valign="top" align="right"><img src="' + IMG + 'pionero.png" width="88" height="88" alt="Insignia Pionero" style="display:block;border:0"></td>' +
     "</tr></table>" +
     '<table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="margin-top:16px">' +
     step(1, "Unite al grupo de pioneros", "Tocá <b>Unirse al grupo</b>. Es lo que te habilita como tester.", "UNIRME AL GRUPO", GROUP_URL) +
-    step(2, "Aceptá la invitación", "En la página de Google Play tocá <b>Convertirte en tester</b>.", "SER TESTER", OPTIN_URL) +
-    step(3, "Instalá el juego", "Si dice que no está disponible, esperá unos minutos y volvé a probar.", "INSTALAR EN GOOGLE PLAY", STORE_URL, true) +
-    "</table></td></tr>" +
+    step(2, "Hacete tester", "Abrí este link desde tu celular y tocá <b>Ser tester</b> (o <b>Unirse</b>).", "SER TESTER", OPTIN_URL) +
+    step(3, "Instalá el juego desde Google Play", "Si dice que no está disponible, esperá unos minutos y volvé a probar.", "INSTALAR EN GOOGLE PLAY", STORE_URL, true) +
+    "</table>" +
+    '<div style="' + F + 'color:' + C.ink + ';font-size:15px;line-height:1.5;padding:14px 0 16px;border-top:2px dashed ' + C.crema2 + '">' +
+    "Mientras juegues esta versión vas a ganar la insignia <b>Pionero</b>, que solo tienen los que prueban " +
+    "el juego antes del lanzamiento. &#129351;</div></td></tr>" +
     // Recuadro oscuro: los 14 días
     '<tr><td style="background:' + C.night2 + ';border:4px solid ' + C.wood + ';border-top:0;padding:16px 24px;' + F +
     'color:' + C.light + ';font-size:15px;line-height:1.5">' +
-    '<span style="color:' + C.gold + ';font-weight:bold">&#9733; Para que la prueba cuente</span><br>' +
-    "Abrí el juego <b>al menos una vez por día durante 14 días</b>. La primera vez que lo abras ganás la insignia " +
-    '<b style="color:' + C.gold + '">Pionero</b>.</td></tr>' +
+    '<span style="color:' + C.gold + ';font-weight:bold">&#9733; Los 14 días</span><br>' +
+    "Para que el juego pueda salir para todos, Google nos pide que los testers lo mantengan instalado y lo abran " +
+    "<b>durante 14 días</b>. Así que si podés, entrá aunque sea un ratito cada día. " +
+    '<b style="color:' + C.gold + '">¡Nos ayuda muchísimo!</b></td></tr>' +
     // Pie: base dorada con los rótulos de región
     '<tr><td style="line-height:0;border:4px solid ' + C.goldDark + ';border-top:0;border-radius:0 0 6px 6px;overflow:hidden">' +
     '<img src="' + IMG + 'pie.png" width="592" alt="" style="display:block;width:100%;height:auto;border:0"></td></tr>' +
     '<tr><td style="padding:14px 8px;text-align:center;' + F + 'font-size:13px;color:' + C.dim + ';line-height:1.5">' +
-    "¿Dudas o te querés bajar? Respondé este mail.<br>— El equipo de Coronados de Gloria<br>" +
+    "Si encontrás un error o tenés una idea, respondé este mail.<br>" +
+    '<b style="color:' + C.light + '">¡Gracias por ser de los primeros!</b><br>El equipo de Coronados de Gloria<br>' +
     '<a href="https://coronadosdegloria.web.app" style="color:' + C.gold + '">coronadosdegloria.web.app</a></td></tr>' +
     "</table></td></tr></table></body></html>";
 }
 
 function mailText(email, name) {
   return [
-    name ? "¡Hola, " + name + "!" : "¡Hola!",
+    "¡Hola!",
     "",
-    "Gracias por anotarte. Ya podés entrar a la prueba cerrada de Coronados de Gloria en Google Play.",
-    "Hacé estos 3 pasos con la MISMA cuenta de Google que usás en el Play Store del celular (" + email + "):",
+    "Te anotaste para la prueba cerrada de Coronados de Gloria y ya está lista. Para entrar, usá tu celular Android",
+    "con la misma cuenta de Google con la que te anotaste (" + email + "):",
     "",
-    "1) Unite al grupo de pioneros (botón \"Unirse al grupo\"): " + GROUP_URL,
-    "2) Aceptá la invitación a la prueba (\"Convertirte en tester\"): " + OPTIN_URL,
-    "3) Instalá el juego desde Google Play: " + STORE_URL,
+    "1. Unite al grupo de pioneros (tocá \"Unirse al grupo\"):",
+    "   👉 " + GROUP_URL,
+    "2. Abrí este link y tocá \"Ser tester\" (o \"Unirse\"):",
+    "   👉 " + OPTIN_URL,
+    "3. Instalá el juego desde Google Play:",
+    "   👉 " + STORE_URL,
     "",
-    "Si Play dice que la app no está disponible, esperá unos minutos después del paso 1 y volvé a probar.",
-    "Para que la prueba cuente, abrí el juego al menos una vez por día durante 14 días. Al abrirlo ganás la insignia Pionero.",
+    "Mientras juegues esta versión vas a ganar la insignia Pionero, que solo tienen los que prueban el juego antes del lanzamiento. 🥇",
     "",
-    "¿Dudas o te querés bajar? Respondé este mail.",
-    "— El equipo de Coronados de Gloria",
+    "Para que el juego pueda salir para todos, Google nos pide que los testers lo mantengan instalado y lo abran durante 14 días. Así que si podés, entrá aunque sea un ratito cada día. ¡Nos ayuda muchísimo!",
+    "",
+    "Si encontrás un error o tenés una idea, respondé este mail.",
+    "",
+    "¡Gracias por ser de los primeros!",
+    "El equipo de Coronados de Gloria",
   ].join("\n");
 }
