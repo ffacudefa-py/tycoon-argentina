@@ -28,7 +28,10 @@ un arte grande, rótulos con chevrones y bandas oscuras y claras. Todo con pieza
 ## Paso a paso
 
 1. **Difundir** el enlace de inscripción (Instagram, grupos, el reel).
-2. **Automático**: al instante (aviso de la página a la app web del script) o, si falla, en ≤1 minuto, cada inscripto recibe un mail de
+2. **En la misma página**: al anotarse (o si el email ya estaba anotado) el formulario se
+   reemplaza por los 3 botones en orden —grupo, ser tester, instalar— con la cuenta que hay que
+   usar; el navegador recuerda por qué paso iba. No hace falta esperar ni buscar el mail.
+   **Además, de respaldo**: al instante (aviso de la página a la app web del script) o, si falla, en ≤1 minuto, cada inscripto recibe un mail de
    sarceapps@gmail.com (ver *Mail automático*) con 3 botones: unirse al Grupo de Google
    `coronados-pioneros@googlegroups.com` (eso lo habilita en la prueba), aceptar ser tester
    (`play.google.com/apps/testing/ar.tycoonargentina.juego`) e instalar. La planilla lo marca

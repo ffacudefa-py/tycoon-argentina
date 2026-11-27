@@ -192,6 +192,14 @@
   .done { text-align: center; padding: 10px 4px; }
   .done img { width: 128px; margin: 0 auto 8px; animation: bob 4s ease-in-out infinite; }
   .done h3 { font-size: 44px; }
+  /* Pasos para entrar a la prueba, en la misma página (sin esperar el mail). */
+  .join-steps { list-style: none; counter-reset: st; padding: 0; margin: 14px 0 6px; display: grid; gap: 12px; text-align: left; }
+  .join-steps li { counter-increment: st; display: block; }
+  .join-steps .btn { display: flex; align-items: center; gap: 10px; width: 100%; box-sizing: border-box; text-decoration: none; font-size: 24px; }
+  .join-steps .btn::before { content: counter(st); flex: none; width: 30px; height: 30px; display: grid; place-items: center; border-radius: 50%; background: rgba(0,0,0,.22); font-size: 22px; }
+  .join-steps .ok.btn::before { content: "✓"; background: var(--green); color: #fff; }
+  .join-steps small { display: block; margin: 4px 4px 0; font: 15px/1.35 system-ui, sans-serif; color: var(--ink-soft); }
+  .done .acct { font-size: 15px; color: var(--ink-soft); margin: 4px 0 0; overflow-wrap: anywhere; }
 
   /* pie */
   footer { background: #120f22; color: var(--text-dim); padding: 46px 0 28px; font-size: 15px; }
@@ -420,6 +428,53 @@ const oops = () => { $("go").disabled = false; say("Algo falló en tu navegador.
 window.addEventListener("error", oops);
 window.addEventListener("unhandledrejection", oops);
 
+// Los mismos 3 pasos del mail (CFG de tools/pioneros/Mailer.gs). Unirse al grupo abierto es
+// lo que habilita la cuenta en la prueba cerrada; después, aceptar ser tester e instalar.
+const PKG = "ar.tycoonargentina.juego";
+const STEPS = [
+  ["Unirme al grupo de pioneros", "https://groups.google.com/g/coronados-pioneros", "Tocá «Unirse al grupo»."],
+  ["Aceptar ser tester", "https://play.google.com/apps/testing/" + PKG, "Tocá «Convertirse en tester». Puede tardar unos minutos en activarse."],
+  ["Instalar el juego", "https://play.google.com/store/apps/details?id=" + PKG, "Si dice «No se encontró», esperá un rato y volvé a tocar."],
+];
+// Se recuerda en el navegador para que, al volver a la página, se vea por dónde iba.
+const SAVE = "pioneros_pasos";
+function remember(st) { try { localStorage.setItem(SAVE, JSON.stringify(st)); } catch {} }
+function recall() { try { return JSON.parse(localStorage.getItem(SAVE)); } catch { return null; } }
+
+function showSteps(scroll) {
+  const st = recall();
+  if (!st || !st.email) return;
+  const f = $("f");
+  f.replaceChildren();
+  const box = document.createElement("div"); box.className = "done";
+  const img = document.createElement("img"); img.className = "px"; img.src = "img/pionero.png"; img.alt = "";
+  const h = document.createElement("h3");
+  const acct = document.createElement("p"); acct.className = "acct";
+  acct.textContent = "Hacelo desde el celular Android, con la cuenta de Google " + st.email + " (la misma en los 3 pasos y en Play Store).";
+  const ol = document.createElement("ol"); ol.className = "join-steps";
+  const render = () => {
+    const next = STEPS.findIndex((_, i) => !st.done.includes(i));
+    const left = STEPS.length - st.done.length;
+    h.textContent = "¡Listo, " + st.name + "! " + (left > 1 ? "Faltan " + left + " toques" : left ? "Falta 1 toque" : "¡A jugar!");
+    ol.replaceChildren(...STEPS.map(([label, url, hint], i) => {
+      const li = document.createElement("li");
+      const a = document.createElement("a");
+      a.href = url; a.target = "_blank"; a.rel = "noopener"; a.textContent = label;
+      a.className = "btn " + (st.done.includes(i) ? "crema ok" : i === next ? "gold" : "crema");
+      a.addEventListener("click", () => { if (!st.done.includes(i)) { st.done.push(i); remember(st); setTimeout(render, 300); } });
+      const sm = document.createElement("small"); sm.textContent = hint;
+      li.append(a, sm);
+      return li;
+    }));
+  };
+  render();
+  const p = document.createElement("p"); p.className = "acct";
+  p.textContent = "También te mandamos estos pasos por mail. Si usás Instagram, abrí esta página en Chrome (menú ⋯ → Abrir en el navegador).";
+  box.append(img, h, acct, ol, p); f.append(box);
+  if (scroll) f.scrollIntoView({ block: "center" });
+}
+showSteps(false);
+
 $("f").addEventListener("submit", async (e) => {
   e.preventDefault();
   // (Había un campo trampa para bots oculto: el autocompletar del celular lo
@@ -432,22 +487,15 @@ $("f").addEventListener("submit", async (e) => {
   $("go").disabled = true;
   say("Enviando…", true);
   const res = await signup(name, email, $("android").checked);
-  if (res === "ok") {
-    if (MAILER_URL && !HOST.startsWith("http://127")) fetch(MAILER_URL, { method: "POST", mode: "no-cors", keepalive: true }).catch(() => {});
-    const f = $("f");
-    f.replaceChildren();
-    const box = document.createElement("div"); box.className = "done";
-    const img = document.createElement("img"); img.className = "px"; img.src = "img/pionero.png"; img.alt = "";
-    const h = document.createElement("h3"); h.textContent = "¡Listo, " + name + "!";
-    const p = document.createElement("p");
-    p.textContent = "Quedaste anotado con " + email + ". En un ratito te llega un mail de sarceapps@gmail.com con los pasos para entrar a la prueba (si no lo ves, revisá Spam o Promociones). ¡Gracias por ayudarnos!";
-    box.append(img, h, p); f.append(box);
-    f.scrollIntoView({ block: "center" });
+  if (res === "ok" || res === "dup") {
+    // El mail (tools/pioneros/Mailer.gs) sigue saliendo, pero ya no hay que esperarlo.
+    if (res === "ok" && MAILER_URL && !HOST.startsWith("http://127")) fetch(MAILER_URL, { method: "POST", mode: "no-cors", keepalive: true }).catch(() => {});
+    remember({ name, email, done: [] });
+    showSteps(true);
     return;
   }
   $("go").disabled = false;
   say({
-    dup: "Ese email ya está anotado. Si no te llegó la invitación, escribinos a sarceapps@gmail.com.",
     timeout: "Tardó demasiado. Si estás en Instagram, abrí la página en Chrome (menú ⋯ → Abrir en el navegador) y probá de nuevo.",
     net: "No se pudo enviar. Revisá tu conexión, o abrí la página en Chrome si estás dentro de Instagram.",
     error: "Algo falló de nuestro lado. Probá de nuevo en un rato o escribinos a sarceapps@gmail.com.",
