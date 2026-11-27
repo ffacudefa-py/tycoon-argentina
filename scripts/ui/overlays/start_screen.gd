@@ -163,20 +163,24 @@ func rebuild() -> void:
 	U.clear(_menu)
 	var m := Game.m
 	var has_progress := float(m.stats.get("play_time", 0.0)) > 20.0 or m.economy.lifetime_earned > 0
+	var row := U.hbox(8)
 	if Auth.signed_in():
 		_menu.add_child(_profile_card())
-	var play := U.button("CONTINUAR" if has_progress else "JUGAR", "verde", "derecha", 48, U.SIZE_TITLE)
-	U.on_press(play, enter_game, "")
-	_menu.add_child(play)
-	if not Auth.signed_in():
-		_menu.add_child(U.para("Jugás como invitado: tu progreso se guarda en este teléfono." if has_progress else "Arrancás con un campo de algodón en Santiago del Estero y vas conquistando la Argentina. El tutorial te guía.", U.SIZE_SMALL, U.TEXT_SOFT))
-	# 15.0: los dos botones en una fila, para dejarle más pantalla a la postal.
-	var row := U.hbox(8)
-	if not Auth.signed_in():
-		var login := U.button("INICIAR SESIÓN", "celeste", "", 40, U.SIZE_SMALL)
-		login.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		var play := U.button("CONTINUAR" if has_progress else "JUGAR", "verde", "derecha", 48, U.SIZE_TITLE)
+		U.on_press(play, enter_game, "")
+		_menu.add_child(play)
+	else:
+		# 15.3: sin sesión, INICIAR SESIÓN es el botón grande (con cuenta la partida
+		# va a la nube y la insignia Pionero se conserva); jugar como invitado
+		# pasa a la fila chica, al lado de CONFIGURACIÓN.
+		var login := U.button("INICIAR SESIÓN", "verde", "derecha", 48, U.SIZE_TITLE)
 		U.on_press(login, LoginModal.open)
-		row.add_child(login)
+		_menu.add_child(login)
+		_menu.add_child(U.para("Con cuenta tu partida se guarda en la nube y no la perdés al cambiar de teléfono." if has_progress else "Arrancás con un campo de algodón en Santiago del Estero y vas conquistando la Argentina. El tutorial te guía.", U.SIZE_SMALL, U.TEXT_SOFT))
+		var guest := U.button("SEGUIR COMO INVITADO" if has_progress else "JUGAR COMO INVITADO", "celeste", "", 40, U.SIZE_SMALL)
+		guest.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		U.on_press(guest, enter_game, "")
+		row.add_child(guest)
 	var cfg := U.button("CONFIGURACIÓN", "crema", "", 40, U.SIZE_SMALL)
 	cfg.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	U.on_press(cfg, SettingsModal.open)

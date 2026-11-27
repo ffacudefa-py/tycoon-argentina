@@ -130,17 +130,21 @@ func _place(target: Control, block: bool) -> void:
 	var bubble_y := vp.y * 0.35
 	if target:
 		var r := target.get_global_rect().grow(4)
-		if block:
-			_shade[0].position = Vector2.ZERO
-			_shade[0].size = Vector2(vp.x, r.position.y)
-			_shade[1].position = Vector2(0, r.end.y)
-			_shade[1].size = Vector2(vp.x, vp.y - r.end.y)
-			_shade[2].position = Vector2(0, r.position.y)
-			_shade[2].size = Vector2(r.position.x, r.size.y)
-			_shade[3].position = Vector2(r.end.x, r.position.y)
-			_shade[3].size = Vector2(vp.x - r.end.x, r.size.y)
+		# Siempre se oscurece alrededor del objetivo para que se vea dónde tocar.
+		# Con bloqueo, más oscuro y sin dejar tocar lo demás; sin bloqueo, más
+		# suave y los toques pasan (el jugador puede seguir usando la pantalla).
+		_shade[0].position = Vector2.ZERO
+		_shade[0].size = Vector2(vp.x, r.position.y)
+		_shade[1].position = Vector2(0, r.end.y)
+		_shade[1].size = Vector2(vp.x, vp.y - r.end.y)
+		_shade[2].position = Vector2(0, r.position.y)
+		_shade[2].size = Vector2(r.position.x, r.size.y)
+		_shade[3].position = Vector2(r.end.x, r.position.y)
+		_shade[3].size = Vector2(vp.x - r.end.x, r.size.y)
 		for s in _shade:
-			s.visible = block
+			s.visible = true
+			s.color.a = 0.72 if block else 0.45
+			s.mouse_filter = Control.MOUSE_FILTER_STOP if block else Control.MOUSE_FILTER_IGNORE
 		var pulse := 1.0 if fmod(_anim, 0.8) < 0.4 else 0.0
 		_ring.visible = true
 		_ring.position = (r.position - Vector2(pulse, pulse)).round()

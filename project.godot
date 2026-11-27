@@ -16,7 +16,7 @@ general/android/app_id="ca-app-pub-5630983612724561~7665288783"
 
 config/name="Coronados de Gloria"
 config/description="Simulador de negocios pixel art: de un puestito callejero a un imperio empresarial."
-config/version="15.2"
+config/version="15.3"
 run/main_scene="res://scenes/main/main.tscn"
 config/quit_on_go_back=false
 config/features=PackedStringArray("4.7", "GL Compatibility")

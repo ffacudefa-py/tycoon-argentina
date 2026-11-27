@@ -3,19 +3,11 @@ extends RefCounted
 ## "Novedades": se muestra una vez por versión al entrar al juego (Ajustes guarda
 ## la última vista en news_seen). No aparece en las capturas automáticas.
 
-const VERSION := "15.2"
-const TITLE := "Novedades 15.2"
+const VERSION := "15.3"
+const TITLE := "Novedades 15.3"
 const ITEMS := [
-	["alerta", "Asalto a chancletazos", "Ahora defendés el local con la chancleta de la abuela: revoleásela a los ladrones y quedan mareados."],
-	["corona", "Insignias en tu perfil", "Elegí hasta 3 insignias para mostrarle a tus amigos. Los que juegan la prueba cerrada ganan la de Pionero."],
-	["candado", "Bloquear y denunciar", "Desde Amigos podés bloquear o denunciar a un jugador. Tu perfil sólo lo ven tus amigos y quien te mandó una solicitud."],
-	["persona", "Solicitudes con límite", "Hasta 20 solicitudes de amistad por día, para que nadie llene de spam a los demás."],
-	["estrella", "Sonidos y música propios", "Toques, subir de nivel, mejoras, fanfarrias y el tema de Coronados de Gloria, hechos especialmente para el juego."],
-	["persona", "Empleados nuevos", "Seis roles nuevos (del pasante al contador) y sueldos que siguen a la ganancia del local. Los sueldos de tu partida se ajustaron solos."],
-	["corona", "62 logros", "Seis categorías y cuatro rangos, con insignias nuevas."],
-	["reloj", "Notificaciones", "Caja llena, eventos, versión nueva y solicitudes de amistad. Ahora siguen funcionando aunque reinicies el teléfono."],
-	["candado", "Tu foto es privada", "La foto de perfil ya no se comparte sola: activala en Configuración si querés que la vean tus amigos."],
-	["engranaje", "Partida más segura", "La nube guarda tu progreso cada 5 minutos mientras jugás, y \"Sincronizar ahora\" sube la copia en el momento."],
+	["persona", "Iniciá sesión de entrada", "INICIAR SESIÓN es ahora el botón principal del inicio: con cuenta tu partida va a la nube y conservás la insignia Pionero. Jugar como invitado sigue estando, al lado de Configuración."],
+	["estrella", "Tutorial más claro", "En todos los pasos del tutorial se oscurece un poco lo demás, así se ve enseguida qué hay que tocar."],
 ]
 
 

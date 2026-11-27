@@ -37,6 +37,12 @@ Todo el arte, los sonidos, los nombres y las empresas son originales y ficticios
 Lo más nuevo arriba. Cada versión dice sólo lo que **agregó**: lo anterior sigue
 incluido. "Sin APK" = la versión existe en el código pero no se publicó.
 
+### 15.3 — 27 nov 2026 · Prueba cerrada de Google Play
+- Inicio sin sesión: INICIAR SESIÓN es el botón grande; JUGAR COMO INVITADO pasa a
+  la fila chica junto a CONFIGURACIÓN (con cuenta se cuentan los días de la prueba).
+- Tutorial: en todos los pasos se oscurece lo que no hay que tocar (más suave y sin
+  bloquear en los pasos que sólo señalan).
+
 ### 15.2 — 23 nov 2026 · Sin APK (prueba cerrada de Google Play)
 Preparación para Google Play:
 - Asalto con la chancleta de la abuela en vez de la pistola (clasificación por
