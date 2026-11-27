@@ -26,7 +26,9 @@ var _cycle_bar: ProgressBar
 var _main_btn: Button
 var _goal_label: Label        ## próxima meta del negocio (Engagement.next_goal)
 var _goal_bar: ProgressBar
+var _combo_box: PanelContainer
 var _combo_label: Label
+var _combo_bar: ProgressBar
 var _chest_btn: Button
 var _level_btn: Button
 var _mode_btn: Button
@@ -82,14 +84,28 @@ func _ready() -> void:
 	_chest_btn.visible = false
 	U.on_press(_chest_btn, func() -> void: ChestModal.open(), "coin")
 	scene_wrap.add_child(_chest_btn)
-	_combo_label = U.label("", U.SIZE_TITLE, Color("ffd458"), true, HORIZONTAL_ALIGNMENT_CENTER)
+	# 15.3: contador de combo con las piezas del juego (panel oscuro 9-slice,
+	# ícono, número dorado y barra del tiempo que queda para seguir el combo).
+	_combo_box = U.panel("DarkCard")
+	_combo_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var cv := U.vbox(2)
+	var ch := U.hbox(4)
+	ch.alignment = BoxContainer.ALIGNMENT_CENTER
+	ch.add_child(U.icon("rayo"))
+	ch.add_child(U.label("COMBO", U.SIZE_SMALL, Color("f6efe2"), true))
+	_combo_label = U.label("", U.SIZE_TITLE, Color("ffd458"), true)
 	_combo_label.add_theme_color_override("font_outline_color", Color("3d1b0b"))
-	_combo_label.add_theme_constant_override("outline_size", 6)
-	_combo_label.set_anchors_preset(Control.PRESET_CENTER_TOP)
-	_combo_label.position = Vector2(-60, 44)
-	_combo_label.size = Vector2(120, 28)
-	_combo_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	scene_wrap.add_child(_combo_label)
+	_combo_label.add_theme_constant_override("outline_size", 4)
+	ch.add_child(_combo_label)
+	cv.add_child(ch)
+	_combo_bar = U.progress("amarillo", 6)
+	cv.add_child(_combo_bar)
+	_combo_box.add_child(cv)
+	_combo_box.custom_minimum_size.x = 112
+	scene_wrap.add_child(_combo_box)
+	_combo_box.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP, Control.PRESET_MODE_MINSIZE)
+	_combo_box.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	_combo_box.offset_top = 42
 	# Cambiar entre ver el local por dentro y la fachada en la calle. Botones
 	# de ícono chicos para tapar lo menos posible del escenario.
 	_view_btn = U.icon_button("edificio", "crema", 34)
@@ -343,10 +359,14 @@ func _update() -> void:
 	_goal_label.text = goal["text"]
 	_goal_bar.value = float(goal["value"])
 	var cmb := Engagement.combo(m)
-	_combo_label.visible = cmb >= 1.05 and not d["auto_sell"]
-	_combo_label.text = "COMBO x%s" % str(snappedf(cmb, 0.1))
-	_combo_label.scale = Vector2.ONE * (1.0 + (cmb - 1.0) * 0.3)
-	_combo_label.pivot_offset = _combo_label.size / 2.0
+	_combo_box.visible = cmb >= 1.05 and not d["auto_sell"]
+	if _combo_box.visible:
+		var cmax := float(Engagement.cfg(m).get("combo_max", 2.0))
+		_combo_label.text = "MÁX x%s" % str(snappedf(cmb, 0.1)) if cmb >= cmax - 0.001 else "x%s" % str(snappedf(cmb, 0.1))
+		_combo_label.add_theme_color_override("font_color", Color("ff9a3c") if cmb >= cmax - 0.001 else Color("ffd458"))
+		_combo_bar.value = clampf(float(m.engage.get("combo_t", 0.0)) / float(Engagement.cfg(m).get("combo_window", 3.0)), 0.0, 1.0)
+		_combo_box.pivot_offset = _combo_box.size / 2.0
+		_combo_box.scale = Vector2.ONE * (1.0 + (cmb - 1.0) * 0.15)
 	var chests := int(m.engage.get("chests", 0))
 	_chest_btn.visible = chests > 0
 	_chest_btn.text = "x%d" % chests

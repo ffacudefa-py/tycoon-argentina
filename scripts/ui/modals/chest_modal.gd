@@ -65,11 +65,18 @@ static func open() -> void:
 	body.add_child(left)
 	body.add_child(U.para("Se ganan con conquistas de provincias y regiones, logros, niveles 25/50/100 y desafíos de eventos.", U.SIZE_SMALL, U.TEXT_SOFT))
 	var b := U.button("ABRIR", "amarillo", "regalo", 44)
+	b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	# 15.3: abrir todos de una, sin ruleta (con muchos cofres juntados).
+	var all := U.button("ABRIR TODOS", "verde", "", 44, U.SIZE_SMALL)
+	all.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var spinning := [false]
 	var refresh := func() -> void:
 		var n := int(m.engage.get("chests", 0))
 		left.text = "Te quedan %d cofre%s" % [n, "" if n == 1 else "s"]
 		b.disabled = n <= 0 or spinning[0]
+		all.visible = n >= 2
+		all.text = "ABRIR TODOS (%d)" % n
+		all.disabled = spinning[0]
 	refresh.call()
 
 	# Antes de abrir, la tira ya muestra premios posibles, quieta.
@@ -130,7 +137,22 @@ static func open() -> void:
 		tw.tween_property(strip, "position:x", _offset_for(window, WIN_AT, 0.0), 0.25) \
 			.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 		tw.tween_callback(finish), "")
-	body.add_child(b)
+	U.on_press(all, func() -> void:
+		var r := Engagement.open_all_chests(m)
+		if not r["ok"]:
+			Main.instance.result(r)
+			return
+		prize.text = "%d cofres: %s" % [int(r["opened"]), r["text"]]
+		prize.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		_reveal(null, prize, {"text": prize.text})
+		var c := all.get_global_rect().get_center()
+		Main.instance.fx.coin_shower(c, 20)
+		Main.instance.fx.sparkle_burst(c, 12)
+		refresh.call(), "")
+	var row := U.hbox(8)
+	row.add_child(b)
+	row.add_child(all)
+	body.add_child(row)
 	Main.instance.modal_host.open("Cofres", body).with_help("cofres")
 
 

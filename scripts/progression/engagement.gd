@@ -58,7 +58,7 @@ static func grant_chest(m: GameModel, reason: String, n := 1) -> void:
 ## Abre un cofre: premio variable con pesos de progression.json → engagement.chest.
 ## Devuelve {ok, kind, text, chance, avatar} (chance = probabilidad de ese tipo
 ## de premio, para que la ruleta lo pinte como común o raro).
-static func open_chest(m: GameModel) -> Dictionary:
+static func open_chest(m: GameModel, quiet := false) -> Dictionary:
 	if int(m.engage.get("chests", 0)) <= 0:
 		return {"ok": false, "msg": "No tenés cofres. Se ganan conquistando, con logros y en los eventos."}
 	m.engage["chests"] = int(m.engage["chests"]) - 1
@@ -83,12 +83,47 @@ static func open_chest(m: GameModel) -> Dictionary:
 		"avatar":
 			m.unlock_avatar(p["avatar"])
 	m._count("chests_opened", 1)
-	m.celebrate.emit("chest_open", {"kind": p["kind"]})
-	m.progress_changed.emit()
+	if not quiet:
+		m.celebrate.emit("chest_open", {"kind": p["kind"]})
+		m.progress_changed.emit()
 	p["ok"] = true
 	p["msg"] = "¡Cofre abierto! " + p["text"]
 	p["chance"] = float(pick["weight"]) / total
 	return p
+
+
+## 15.3: abre todos los cofres de una (sin ruleta) y devuelve el resumen:
+## {ok, opened, money, boost_secs, boost_mult, avatars, text}. Un solo festejo al final.
+static func open_all_chests(m: GameModel) -> Dictionary:
+	var n := int(m.engage.get("chests", 0))
+	if n <= 0:
+		return {"ok": false, "msg": "No tenés cofres. Se ganan conquistando, con logros y en los eventos."}
+	var money := 0
+	var boost_secs := 0.0
+	var boost_mult := 1.0
+	var avatars := []
+	for i in n:
+		var p := open_chest(m, true)
+		match p["kind"]:
+			"money":
+				money += int(p["amount"])
+			"boost":
+				boost_secs += float(p["secs"])
+				boost_mult = maxf(boost_mult, float(p["mult"]))
+			"avatar":
+				avatars.append(m.data.avatar_by_id[p["avatar"]]["name"])
+	var parts := []
+	if money > 0:
+		parts.append(Fmt.money(money))
+	if boost_secs > 0.0:
+		parts.append("Turbo x%s por %s" % [str(boost_mult).trim_suffix(".0"), Fmt.duration(boost_secs)])
+	if not avatars.is_empty():
+		parts.append("Avatar%s: %s" % ["" if avatars.size() == 1 else "es", ", ".join(avatars)])
+	var text := " · ".join(parts)
+	m.celebrate.emit("chest_open", {"kind": "all", "n": n})
+	m.progress_changed.emit()
+	return {"ok": true, "opened": n, "money": money, "boost_secs": boost_secs, "boost_mult": boost_mult,
+		"avatars": avatars, "text": text, "msg": "¡%d cofres abiertos! %s" % [n, text]}
 
 
 ## Premios que puede dar un cofre ahora (sin avatares si ya están todos).

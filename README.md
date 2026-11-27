@@ -42,6 +42,11 @@ incluido. "Sin APK" = la versión existe en el código pero no se publicó.
   la fila chica junto a CONFIGURACIÓN (con cuenta se cuentan los días de la prueba).
 - Tutorial: en todos los pasos se oscurece lo que no hay que tocar (más suave y sin
   bloquear en los pasos que sólo señalan).
+- Cofres rebalanceados: plata 20–45 s de ingreso (antes 45–120 s) y 60–120 s (antes
+  240–420 s), turbo x1,5 de 2–5 min (antes x2 de 5–15 min): ~50 s de ingreso por cofre
+  en promedio, antes ~4 min. Botón ABRIR TODOS (sin ruleta, un solo festejo).
+- Contador de combo con el estilo del juego: panel oscuro, rayo, número dorado (naranja
+  en el máximo) y barra del tiempo que queda para seguir el combo.
 
 ### 15.2 — 23 nov 2026 · Sin APK (prueba cerrada de Google Play)
 Preparación para Google Play:

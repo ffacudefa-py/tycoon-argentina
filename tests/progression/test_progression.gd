@@ -401,6 +401,38 @@ func test_engagement_combo_chests_goals() -> void:
 	eq(int(m2.engage["chests"]), 1, "cofres guardados")
 
 
+
+## 15.3: cofres más chicos (no rompen la progresión) y "abrir todos".
+func test_cofres_nerf_y_abrir_todos() -> void:
+	var m := make_model()
+	conquer(m, B0)
+	var ips := m.income_per_sec()
+	# Ningún premio de plata pasa de 120 s de ingreso (antes 420 s) y el turbo no pasa de x1,5 por 5 min.
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 7
+	for e in Engagement.cfg(m)["chest"]:
+		for i in 30:
+			var p := Engagement.roll_prize(m, e, rng)
+			if p["kind"] == "money":
+				check(int(p["amount"]) <= maxi(int(e.get("min", 0)), int(ceil(ips * 120.0)) + 1), "plata acotada")
+			elif p["kind"] == "boost":
+				check(float(p["mult"]) <= 1.5 and float(p["secs"]) <= 300.0, "turbo acotado")
+	# Abrir todos: consume todos, suma lo que dieron y festeja una sola vez.
+	m.engage["chests"] = 6
+	var fiestas := [0]
+	m.celebrate.connect(func(kind: String, _d: Dictionary) -> void:
+		if kind == "chest_open":
+			fiestas[0] += 1)
+	var before := m.economy.money
+	var r := Engagement.open_all_chests(m)
+	check(r["ok"], "abre todos")
+	eq(int(r["opened"]), 6, "abrió los 6")
+	eq(int(m.engage["chests"]), 0, "no quedan cofres")
+	eq(fiestas[0], 1, "un solo festejo")
+	eq(m.economy.money - before, int(r["money"]), "la plata sumada es la que entró")
+	check(str(r["text"]) != "", "resumen con texto")
+	check(not Engagement.open_all_chests(m)["ok"], "sin cofres no abre")
+
 func test_rival_no_crece_sin_techo() -> void:
 	var m := make_model(5)
 	var rid: String = m.data.zone_by_id[Z0]["rival"]

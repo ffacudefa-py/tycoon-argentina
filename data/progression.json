@@ -84,30 +84,30 @@
    "chest": [
     {
      "kind": "money",
-     "weight": 50,
+     "weight": 55,
      "seconds": [
-      45,
-      120
+      20,
+      45
      ],
-     "min": 20
+     "min": 8
     },
     {
      "kind": "money",
-     "weight": 15,
+     "weight": 12,
      "seconds": [
-      240,
-      420
+      60,
+      120
      ],
-     "min": 60
+     "min": 25
     },
     {
      "kind": "boost",
-     "weight": 25,
-     "mult": 2.0,
+     "weight": 23,
+     "mult": 1.5,
      "seconds": [
-      300,
-      600,
-      900
+      120,
+      180,
+      300
      ]
     },
     {

@@ -7,6 +7,8 @@ const VERSION := "15.3"
 const TITLE := "Novedades 15.3"
 const ITEMS := [
 	["persona", "Iniciá sesión de entrada", "INICIAR SESIÓN es ahora el botón principal del inicio: con cuenta tu partida va a la nube y conservás la insignia Pionero. Jugar como invitado sigue estando, al lado de Configuración."],
+	["regalo", "Cofres rebalanceados", "Los cofres dan premios más chicos (plata y turbos x1,5 más cortos) para que no te salteen la progresión. Con 2 o más, ABRIR TODOS los abre de una."],
+	["rayo", "Combo nuevo", "El contador de combo ahora es un cartel con una barrita que muestra cuánto te queda para seguir sumando."],
 	["estrella", "Tutorial más claro", "En todos los pasos del tutorial se oscurece un poco lo demás, así se ve enseguida qué hay que tocar."],
 ]
 
